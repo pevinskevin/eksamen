@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Socket Test</title>
+</head>
+
+<body>
+    <h1>Real-time Order Book Data</h1>
+    <p>Check the browser console for 'orderBookUpdate' messages.</p>
+    <div style="display: flex; gap: 20px;">
+        <div style="width: 45%;">
+            <h2>Bids</h2>
+            <pre id="bidsData" style="white-space: pre-wrap; word-wrap: break-word;"></pre>
+        </div>
+        <div style="width: 45%;">
+            <h2>Asks</h2>
+            <pre id="asksData" style="white-space: pre-wrap; word-wrap: break-word;"></pre>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io("http://localhost:8080"); // Or just io() if served from same origin
+
+        socket.on("connect", () => {
+            console.log("Connected to WebSocket server from HTML! Socket ID:", socket.id);
+        });
+
+        socket.on("orderBookUpdate", (data) => {
+            console.log("Received 'orderBookUpdate' from server (HTML):");
+            console.dir(data);
+
+            const bidsElement = document.getElementById('bidsData');
+
+            if (Array.isArray(data) && bidsElement) {
+                bidsElement.textContent = JSON.stringify(data, null, 2);
+            } else {
+                // Optional: Log if the data isn't what you expect, for debugging
+                // console.warn("Received data is not an array or bidsElement not found:", data);
+            }
+        });
+
+        socket.on("disconnect", () => {
+            console.log("Disconnected from WebSocket server (HTML).");
+        });
+
+        socket.on("connect_error", (err) => {
+            console.error("Connection Error (HTML):", err.message);
+        });
+    </script>
+</body>
+
+</html>
