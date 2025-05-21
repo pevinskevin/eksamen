@@ -32,13 +32,16 @@
             console.dir(data);
 
             const bidsElement = document.getElementById('bidsData');
+            const asksElement = document.getElementById('asksData');
 
-            if (Array.isArray(data) && bidsElement) {
-                bidsElement.textContent = JSON.stringify(data, null, 2);
-            } else {
-                // Optional: Log if the data isn't what you expect, for debugging
-                // console.warn("Received data is not an array or bidsElement not found:", data);
+            if (data && data.bids && Array.isArray(data.bids) && bidsElement) {
+                bidsElement.textContent = JSON.stringify(data.bids, null, 2);
             }
+
+            if (data && data.asks && Array.isArray(data.asks) && asksElement) {
+                asksElement.textContent = JSON.stringify(data.asks, null, 2);
+            }
+
         });
 
         socket.on("disconnect", () => {

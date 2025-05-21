@@ -8,63 +8,59 @@ const binance = new Binance({
 });
 
 const marketDataEmitter = new EventEmitter();
-let currentMarketDepth = {};
-let bidsArrayForDisplay = [];
 
 const tradingPairs = ['BTCUSDT', 'ETHUSDT', 'XRPUSDT', 'BNBUSDT', 'SOLUSDT'];
-
-let bidsArray;
-let asksArray;
 
 binance.websockets.depthCache(
     tradingPairs[0],
     (symbol, depth) => {
-        const aggregatedBids = new Map();
-        bidsArrayForDisplay = [];
+        const aggregatedBidsInOneDollarIncrements = new Map();
+        const aggregatedAsksInOneDollarIncrements = new Map();
 
-        function loopMapElements(value, key, map) {
+        let bidsArrayForDisplay = [];
+        let asksArrayForDisplay = [];
+
+        let dataToEmit = {};
+
+        function loopBidsElements(value, key) {
             bidsArrayForDisplay.push({ priceband: key, quantity: value });
+        }
+        function loopAsksElements(value, key) {
+            asksArrayForDisplay.push({ priceband: key, quantity: value });
+        }
+
+        // Takes nested array, aggregates values and pushes to map.
+        function floorPriceAndAggregateQuantity(array, map) {
+            array.forEach((element) => {
+                const flooredPrice = Math.floor(Number(element[0]));
+                const quantity = element[1];
+
+                if (map.has(flooredPrice)) {
+                    let value = map.get(flooredPrice);
+                    map.set(flooredPrice, value + quantity);
+                } else {
+                    map.set(flooredPrice, quantity);
+                }
+            });
         }
 
         const bidsObject = binance.sortBids(depth.bids, Infinity);
         const askObject = binance.sortAsks(depth.asks, Infinity);
-        currentMarketDepth = { bids: bidsObject, asks: askObject };
 
-        bidsArray = Object.entries(bidsObject);
-        asksArray = Object.entries(askObject);
+        // structure [ [String price, Number quantity], [String price, Number quantity]... ]
+        let bidsArray = Object.entries(bidsObject);
+        floorPriceAndAggregateQuantity(bidsArray, aggregatedBidsInOneDollarIncrements);
 
-        bidsArray.forEach((element) => {
-            const priceInNearestDollar = Math.floor(Number(element[0]));
-            const quantity = element[1];
+        let asksArray = Object.entries(askObject);
+        floorPriceAndAggregateQuantity(asksArray, aggregatedAsksInOneDollarIncrements);
 
-            if (aggregatedBids.has(priceInNearestDollar)) {
-                let key = aggregatedBids.get(priceInNearestDollar);
-                aggregatedBids.set(priceInNearestDollar, key + quantity);
-            } else {
-                aggregatedBids.set(priceInNearestDollar, quantity);
-            }
-        });
+        aggregatedBidsInOneDollarIncrements.forEach(loopBidsElements);
+        aggregatedAsksInOneDollarIncrements.forEach(loopAsksElements);
+        dataToEmit = { bids: bidsArrayForDisplay, asks: asksArrayForDisplay };
 
-        aggregatedBids.forEach(loopMapElements);
-        console.log(bidsArrayForDisplay.length);
-
-        marketDataEmitter.emit('marketUpdate', bidsArrayForDisplay);
-
-        // bidsMap.forEach((price, quantity) => {
-        //     sortBids(price, quantity);
-        // });
-
-        // console.log(aggregatedBids);
+        marketDataEmitter.emit('marketUpdate', dataToEmit);
     },
     10000
 );
 
-function getOrderBook() {
-    return currentMarketDepth;
-}
-
-function getOrderBookAggregate() {
-    return bidsArrayForDisplay;
-}
-
-export { getOrderBook, getOrderBookAggregate, binance, marketDataEmitter };
+export { binance, marketDataEmitter };

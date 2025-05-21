@@ -22,16 +22,11 @@ const io = new Server(server, {
 app.use(express.json());
 
 // -- Index Page Setup --
-import {
-    getOrderBook,
-    getOrderBookAggregate,
-    binance,
-    marketDataEmitter,
-} from './binance-ws.js';
+import { binance, marketDataEmitter } from './binance-ws.js';
 
 // -- Market Update Emitter Setup --
-marketDataEmitter.on('marketUpdate', (updatedData) => {
-    io.emit('orderBookUpdate', updatedData);
+marketDataEmitter.on('marketUpdate', (updatedDataObject) => {
+    io.emit('orderBookUpdate', updatedDataObject);
 });
 
 import path from 'path';
