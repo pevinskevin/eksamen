@@ -1,0 +1,251 @@
+{
+  "meta": {
+    "generatedAt": "2025-05-22T12:47:08.874Z",
+    "tasksAnalyzed": 30,
+    "thresholdScore": 5,
+    "projectName": "Taskmaster",
+    "usedResearch": true
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 1,
+      "taskTitle": "BE: Project Setup & Basic Express Server",
+      "complexityScore": 3,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the 'BE: Project Setup & Basic Express Server' task into subtasks covering Node.js project initialization (npm init, git init), Express.js installation and basic server setup (app.js, listen on port, root route), ESLint and Prettier configuration, and creation of essential npm scripts (e.g., dev, start).",
+      "reasoning": "Foundational task involving standard tools and boilerplate. Low complexity as it follows well-documented procedures."
+    },
+    {
+      "taskId": 2,
+      "taskTitle": "BE: Database Selection & Initial Schema Design (Users, Cryptocurrencies, Balances)",
+      "complexityScore": 5,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Expand 'BE: Database Selection & Initial Schema Design' into subtasks: 1. Confirm PostgreSQL and set up local/cloud instance. 2. Install `pg` driver. 3. Design schema for `Users` table. 4. Design schemas for `Cryptocurrencies`, `Accounts` (fiat), and `CryptoHoldings` tables. 5. Implement migration scripts (SQL or tool-based) to create all tables with appropriate constraints.",
+      "reasoning": "Involves database setup, thoughtful schema design for multiple core entities, and migration script implementation. Schema design requires careful consideration of relationships and data types."
+    },
+    {
+      "taskId": 3,
+      "taskTitle": "BE: User Authentication Endpoints (Registration, Login)",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Detail the subtasks for 'BE: User Authentication Endpoints': 1. Create User model/service for database interactions. 2. Implement `/auth/register` endpoint including input validation, password hashing (bcryptjs), and user creation. 3. Implement `/auth/login` endpoint including user lookup, password verification, and JWT generation. 4. Define JWT payload and secret management. 5. Implement error handling for authentication failures.",
+      "reasoning": "Core security feature involving password management (hashing), session/token generation (JWT), input validation, and database interactions. Requires careful implementation to avoid vulnerabilities."
+    },
+    {
+      "taskId": 4,
+      "taskTitle": "BE: Authentication & Authorization Middleware",
+      "complexityScore": 6,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Break down 'BE: Authentication & Authorization Middleware' into subtasks: 1. Implement JWT verification middleware to protect routes (extract token, verify signature, attach user to request). 2. Implement role-based authorization middleware (e.g., `authorize(['admin'])`). 3. Apply authentication and authorization middleware to relevant Express routes.",
+      "reasoning": "Critical for securing API endpoints. Involves understanding middleware patterns, token verification logic, and implementing role checks."
+    },
+    {
+      "taskId": 5,
+      "taskTitle": "FE: Svelte Project Setup & Basic UI Shell",
+      "complexityScore": 4,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Expand 'FE: Svelte Project Setup & Basic UI Shell' into subtasks: 1. Initialize Svelte/SvelteKit project. 2. Define basic folder structure (components, routes/pages, stores). 3. Create main layout components (e.g., Navbar, Footer, MainContentArea). 4. Set up basic client-side routing (if using SvelteKit, this is largely built-in; if plain Svelte, add a router).",
+      "reasoning": "Standard frontend project initialization. SvelteKit simplifies some aspects but still requires setting up a coherent structure and basic layout components."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "FE: User Authentication UI & Logic",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Detail subtasks for 'FE: User Authentication UI & Logic': 1. Create `Register.svelte` component with form inputs and client-side validation. 2. Create `Login.svelte` component with form inputs and client-side validation. 3. Implement `fetch` API calls to backend `/auth/register` and `/auth/login` endpoints. 4. Manage client-side authentication state (e.g., using Svelte stores, storing JWT in localStorage). 5. Implement logout functionality and conditional UI rendering based on auth state.",
+      "reasoning": "Involves UI form creation, client-side validation, asynchronous API communication, and managing user session state on the client."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "BE: Cryptocurrency Management API & Seed Data",
+      "complexityScore": 4,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Break down 'BE: Cryptocurrency Management API & Seed Data' into subtasks: 1. Create/update Cryptocurrency model for database interactions. 2. Implement a GET API endpoint (e.g., `/cryptocurrencies`) to list all active cryptocurrencies. 3. Develop a script (SQL or Node.js) to seed the `Cryptocurrencies` table with initial data.",
+      "reasoning": "Relatively straightforward: involves a simple read API and data seeding. Model interaction is minimal for listing."
+    },
+    {
+      "taskId": 8,
+      "taskTitle": "FE: Display Cryptocurrencies",
+      "complexityScore": 3,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Expand 'FE: Display Cryptocurrencies' into subtasks: 1. Create a `CryptoList.svelte` component. 2. Implement logic (e.g., in `onMount` or SvelteKit `load` function) to fetch cryptocurrency data from the backend API. 3. Render the list of cryptocurrencies (symbol, name) in the UI, potentially with selection capability.",
+      "reasoning": "Standard fetch-and-display pattern for a list of items. Low complexity."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "BE: Account & CryptoHolding Models & Balance API",
+      "complexityScore": 6,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Detail subtasks for 'BE: Account & CryptoHolding Models & Balance API': 1. Implement database models/services for `Accounts` (fiat) and `CryptoHoldings` (crypto). 2. Create an authenticated GET API endpoint (e.g., `/account/balances`) to fetch balances for the logged-in user. 3. Implement logic to seed initial fiat (SIM_USD) and/or crypto balances for new users upon registration. 4. Ensure API queries correctly join/filter by `user_id`.",
+      "reasoning": "Involves creating new DB models, an authenticated API endpoint, and specific business logic for seeding new user balances. Requires careful handling of user-specific data."
+    },
+    {
+      "taskId": 10,
+      "taskTitle": "FE: Display Account Balances",
+      "complexityScore": 5,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Break down 'FE: Display Account Balances' into subtasks: 1. Create an `AccountDashboard.svelte` (or similar) component. 2. Implement logic to fetch the authenticated user's fiat and crypto balances from the backend API. 3. Clearly display the various balances in the UI, handling cases where balances might be zero or non-existent.",
+      "reasoning": "Requires fetching and displaying user-specific, potentially sensitive data. Needs to handle authenticated requests and present information clearly."
+    },
+    {
+      "taskId": 11,
+      "taskTitle": "BE: Order & Trade Models & DB Schema",
+      "complexityScore": 6,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Expand 'BE: Order & Trade Models & DB Schema' into subtasks: 1. Design the database schema for the `Orders` table, including all necessary fields (user_id, crypto_id, type, quantity, price, status, etc.) and constraints. 2. Design the database schema for the `Trades` table (buy_order_id, sell_order_id, quantity, price, buyer/seller_user_id, etc.). 3. Implement migration scripts to create these tables.",
+      "reasoning": "Critical schema design for the core trading functionality. Requires careful thought about all necessary attributes, relationships, and data types for orders and trades."
+    },
+    {
+      "taskId": 12,
+      "taskTitle": "BE: Order Placement API (Limit Orders)",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Detail subtasks for 'BE: Order Placement API (Limit Orders)': 1. Create a POST API endpoint (e.g., `/orders/place`) protected by authentication. 2. Implement robust input validation for order parameters (cryptocurrency_id, type, quantity, price). 3. Implement logic to check user's available balance (fiat for buy, crypto for sell). 4. If valid and sufficient funds, create a new record in the `Orders` table with 'open' status. 5. Handle error responses for invalid orders or insufficient funds.",
+      "reasoning": "A core trading function involving input validation, critical balance checks before committing an order, and database interaction. High importance for system integrity."
+    },
+    {
+      "taskId": 13,
+      "taskTitle": "FE: Trading Form & My Open Orders Display",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down 'FE: Trading Form & My Open Orders Display' into subtasks: 1. Create `TradingForm.svelte` component with inputs for crypto selection, order type, quantity, and price. 2. Implement client-side validation for the trading form. 3. Implement `fetch` API call to the backend `/orders/place` endpoint on form submission. 4. Create `MyOpenOrders.svelte` component to display user's open orders. 5. Implement logic to fetch (from a new BE endpoint like `/orders/mine`) and display these open orders.",
+      "reasoning": "Combines a complex interactive form for placing trades with displaying dynamic user-specific data (open orders). Involves multiple API interactions."
+    },
+    {
+      "taskId": 14,
+      "taskTitle": "BE: WebSocket Server Integration",
+      "complexityScore": 5,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Expand 'BE: WebSocket Server Integration' into subtasks: 1. Install and configure a WebSocket library (e.g., `ws`). 2. Integrate the WebSocket server with the existing Express HTTP server. 3. Implement basic WebSocket connection handlers (on 'connection', 'message', 'close', 'error') for logging and initial testing.",
+      "reasoning": "Introduces real-time communication capabilities. Requires setting up the WebSocket server to run alongside the HTTP server and handling basic connection lifecycle events."
+    },
+    {
+      "taskId": 15,
+      "taskTitle": "FE: WebSocket Client Integration",
+      "complexityScore": 4,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Detail subtasks for 'FE: WebSocket Client Integration': 1. Implement logic in Svelte (e.g., in a store or root layout component) to establish a WebSocket connection to the backend. 2. Implement client-side handlers for WebSocket events (`onopen`, `onmessage`, `onclose`, `onerror`). 3. Manage the WebSocket instance and its state (connected, disconnected) within the Svelte application.",
+      "reasoning": "Standard client-side WebSocket setup. Involves connecting to the server and handling basic communication events."
+    },
+    {
+      "taskId": 16,
+      "taskTitle": "BE: In-Memory Order Book Implementation",
+      "complexityScore": 8,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down 'BE: In-Memory Order Book Implementation' into subtasks: 1. Design data structures for the in-memory order book (e.g., sorted arrays/lists for bids and asks per trading pair). 2. Implement logic to add new orders to the correct side of the book, maintaining price-time priority. 3. Implement logic to remove or update orders (e.g., when cancelled or filled). 4. Ensure efficient sorting and retrieval of orders. 5. Create a service/module to encapsulate order book management.",
+      "reasoning": "Core component of the matching engine. Requires careful design of efficient data structures and logic for managing live orders, crucial for performance and correctness."
+    },
+    {
+      "taskId": 17,
+      "taskTitle": "BE: Order Matching Engine Development",
+      "complexityScore": 9,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Expand 'BE: Order Matching Engine Development' into subtasks: 1. Develop logic to take an incoming order and iterate through the opposing side of the in-memory order book. 2. Implement price-time priority for matching (best price first, then oldest order). 3. Handle full fills (incoming order fully matched with one or more resting orders). 4. Handle partial fills (incoming order or resting order partially matched). 5. Determine the quantity and price for each resulting trade. 6. Trigger the trade execution process when a match occurs.",
+      "reasoning": "The most complex piece of backend logic. Involves intricate algorithms for matching orders, handling various fill scenarios, and ensuring fairness (price-time priority)."
+    },
+    {
+      "taskId": 18,
+      "taskTitle": "BE: Trade Execution & State Updates",
+      "complexityScore": 8,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Detail subtasks for 'BE: Trade Execution & State Updates': 1. Implement logic to atomically update user balances (debit/credit fiat and crypto for buyer/seller) within a database transaction. 2. Create a new `Trade` record in the database for each executed match. 3. Update the status and `quantity_remaining` of involved `Order` records in the database. 4. Update/remove the matched orders from the in-memory order book. 5. Ensure all database updates related to a single trade are atomic (all succeed or all fail).",
+      "reasoning": "Critical for data integrity. Involves multiple database updates that must be atomic (transactions), affecting user balances, orders, and trade logs. Also needs to sync with the in-memory state."
+    },
+    {
+      "taskId": 19,
+      "taskTitle": "BE: Real-time Order Book Broadcasting",
+      "complexityScore": 7,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down 'BE: Real-time Order Book Broadcasting' into subtasks: 1. Decide on the data format for order book updates (e.g., full snapshot of top N levels, or deltas). 2. Implement logic to serialize the relevant order book data when changes occur (new order, trade, cancellation). 3. Integrate with the WebSocket server to broadcast these updates to subscribed clients. 4. Implement a mechanism for clients to subscribe/unsubscribe to specific trading pair order book updates.",
+      "reasoning": "Enables real-time UI. Involves deciding on an efficient data format, serializing data, and managing WebSocket broadcasts, potentially to many clients."
+    },
+    {
+      "taskId": 20,
+      "taskTitle": "FE: Real-time Order Book Visualization",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Expand 'FE: Real-time Order Book Visualization' into subtasks: 1. Create an `OrderBook.svelte` component. 2. Implement WebSocket logic to subscribe to order book updates for a selected trading pair. 3. Handle incoming WebSocket messages containing order book data. 4. Efficiently update and render the bids and asks lists (price, quantity, cumulative quantity) using Svelte's reactivity. 5. Style the order book for clarity (e.g., colors for bids/asks, clear formatting).",
+      "reasoning": "Complex UI component involving real-time data updates via WebSockets. Requires efficient rendering to avoid performance issues and clear presentation of dense information."
+    },
+    {
+      "taskId": 21,
+      "taskTitle": "BE: Real-time User Notifications Service",
+      "complexityScore": 6,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Detail subtasks for 'BE: Real-time User Notifications Service': 1. Implement a mechanism to map authenticated user IDs to their active WebSocket connections. (e.g. authenticate ws connection and store userId). 2. Develop a service/module that can send targeted messages to specific users via their WebSocket(s). 3. Define various notification types and their data payloads (e.g., order filled, balance update). 4. Integrate this service with relevant backend processes (e.g., trade execution, order placement failures) to trigger notifications.",
+      "reasoning": "Requires managing user-specific WebSocket connections and routing targeted messages, which adds a layer of complexity over broadcast messages."
+    },
+    {
+      "taskId": 22,
+      "taskTitle": "FE: Display Real-time User Notifications",
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down 'FE: Display Real-time User Notifications' into subtasks: 1. Implement a listener in the Svelte client for user-specific WebSocket messages. 2. Develop UI elements for displaying notifications (e.g., toast messages, a notification feed/panel). 3. Handle different types of notifications (e.g., trade confirmations, errors, balance updates). 4. If balance update notifications are received, dynamically update the displayed user balances in relevant components.",
+      "reasoning": "Involves handling incoming real-time messages and updating the UI accordingly, potentially including dynamic updates to other components like balance displays."
+    },
+    {
+      "taskId": 23,
+      "taskTitle": "BE/FE: Stripe Integration for Simulated Fiat Deposits",
+      "complexityScore": 8,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Expand 'BE/FE: Stripe Integration for Simulated Fiat Deposits' into subtasks: 1. FE: Set up Stripe.js and Stripe Elements for collecting card details securely. 2. FE: Implement logic to create a PaymentMethod/Token and handle Stripe's payment confirmation flow. 3. BE: Create an API endpoint to receive the payment token/ID and amount from the frontend. 4. BE: Integrate the Stripe Node.js SDK to create a test charge/PaymentIntent. 5. BE: On successful payment, update the user's fiat balance in the `Accounts` table. 6. BE: Create a `Transaction` record for the deposit. 7. BE: Define/Implement `Transactions` table schema if not already present.",
+      "reasoning": "High complexity due to integration with a third-party payment provider. Involves frontend (Stripe Elements), backend (SDK, API), security considerations, and financial record updates."
+    },
+    {
+      "taskId": 24,
+      "taskTitle": "BE/FE: Crypto Wallet Integration - Simulated Deposits",
+      "complexityScore": 5,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Detail subtasks for 'BE/FE: Crypto Wallet Integration - Simulated Deposits': 1. FE: Create UI to display a (shared or unique per user for simulation) testnet deposit address for selected cryptocurrencies. 2. BE: Define the mechanism for 'detecting' deposits (e.g., manual admin action via an internal tool/API, or a placeholder script). 3. BE: Implement logic/API endpoint to credit a user's `CryptoHolding` balance upon 'detection' of a deposit. 4. BE: Create a `Transaction` record for the crypto deposit. 5. (Optional Advanced) BE: If scripting, implement basic interaction with a testnet explorer API or library (e.g., Etherscan API for Sepolia).",
+      "reasoning": "Medium complexity for a simulated approach. If actual testnet monitoring/interaction were required, complexity would be higher. Focus is on the platform's internal bookkeeping."
+    },
+    {
+      "taskId": 25,
+      "taskTitle": "BE/FE: Crypto Wallet Integration - Simulated Withdrawals",
+      "complexityScore": 5,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down 'BE/FE: Crypto Wallet Integration - Simulated Withdrawals' into subtasks: 1. FE: Create a form for users to input withdrawal address and amount for a selected cryptocurrency. 2. FE: Implement client-side validation and submit the withdrawal request to the backend. 3. BE: Create an API endpoint to receive and process withdrawal requests. 4. BE: Validate user's crypto balance; if sufficient, debit the `CryptoHolding` balance. 5. BE: Create a `Transaction` record for the withdrawal (status 'pending' or 'completed' for simulation).",
+      "reasoning": "Similar to simulated deposits. Involves frontend form, backend API, balance checks, and internal record keeping. No actual blockchain transaction makes it simpler."
+    },
+    {
+      "taskId": 26,
+      "taskTitle": "BE/FE: Trade History Feature",
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Expand 'BE/FE: Trade History Feature' into subtasks: 1. BE: Create an authenticated GET API endpoint (e.g., `/trades/history`) to fetch trades for the logged-in user. 2. BE: Implement database query logic to retrieve relevant trades from the `Trades` table, determining if the user was buyer or seller. 3. FE: Create a `TradeHistory.svelte` component. 4. FE: Fetch data from the API and display the trade history in a clear, tabular format.",
+      "reasoning": "Standard feature requiring a backend API to query historical data and a frontend component to display it. Query logic might need care to present user's perspective (buy/sell)."
+    },
+    {
+      "taskId": 27,
+      "taskTitle": "BE/FE: (Optional) Admin Panel Basics",
+      "complexityScore": 7,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Detail subtasks for '(Optional) Admin Panel Basics': 1. Define an 'admin' role and update user schema/auth logic to support it. 2. BE: Create admin-only API endpoints protected by role-based authorization. 3. BE: Implement backend logic for admin actions (e.g., view all users, list/manage cryptocurrencies). 4. FE: Create a separate section/route for the admin panel, accessible only to admin users. 5. FE: Develop Svelte components for displaying admin data (e.g., user list). 6. FE: Develop Svelte components for admin actions (e.g., form to add/edit cryptocurrencies).",
+      "reasoning": "Building a new section with role-based access and distinct functionalities can be moderately complex, even for basic features. Scope can greatly influence this."
+    },
+    {
+      "taskId": 28,
+      "taskTitle": "FE: UI/UX Styling & Refinement",
+      "complexityScore": 7,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down 'FE: UI/UX Styling & Refinement' into subtasks: 1. Select and integrate a CSS strategy (e.g., lightweight framework like Pico.CSS, utility classes, or custom CSS). 2. Define global styles: typography, color palette, spacing, basic layout primitives. 3. Style key application components: forms, tables, navigation, buttons, order book, trading interface. 4. Ensure basic responsiveness for common desktop screen sizes. 5. Conduct a UX review of major user flows (auth, trading, balance viewing) and iterate for clarity and usability. 6. Address the 'attempt at styling' soft requirement with a consistent and clean look.",
+      "reasoning": "Achieving a polished, consistent, and usable UI/UX is a significant effort that often involves iteration. It's more than just applying CSS; it's about the overall user experience."
+    },
+    {
+      "taskId": 29,
+      "taskTitle": "ALL: GDPR Compliance Implementation",
+      "complexityScore": 6,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Expand 'ALL: GDPR Compliance Implementation' into subtasks: 1. Review all data collection, storage, and logging practices for data minimization; identify and remove unnecessary PII. 2. Draft and implement a clear Privacy Policy page/component accessible within the application. 3. Document the internal process for handling user data requests (access, export, deletion), even if initially manual. 4. Implement cookie consent mechanisms if any non-essential cookies/tracking are used.",
+      "reasoning": "Involves legal considerations, policy writing, and potentially technical changes for data handling. Critical for 'production ready' status."
+    },
+    {
+      "taskId": 30,
+      "taskTitle": "ALL: Final Testing, Code Cleanup & Documentation",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Detail subtasks for 'ALL: Final Testing, Code Cleanup & Documentation': 1. Conduct comprehensive end-to-end testing of all user flows and features on both frontend and backend. 2. Systematically remove all `console.log` statements, commented-out code, and unused files/functions. 3. Perform code refactoring for clarity, consistency, and maintainability. 4. Run linters and formatters across the entire codebase. 5. Write/update project documentation: README, architectural decisions, API endpoints, setup instructions, and key logic explanations (e.g., matching engine). 6. Prepare a script and ensure the application is stable for demonstration/showcasing.",
+      "reasoning": "Crucial final phase involving thorough quality assurance, code hygiene, and knowledge transfer through documentation. Can be time-consuming to do well."
+    }
+  ]
+}

@@ -20,8 +20,6 @@ binance.websockets.depthCache(
         let bidsArrayForDisplay = [];
         let asksArrayForDisplay = [];
 
-        let dataToEmit = {};
-
         function loopBidsElements(value, key) {
             bidsArrayForDisplay.push({ priceband: key, quantity: value });
         }
@@ -56,7 +54,7 @@ binance.websockets.depthCache(
 
         aggregatedBidsInOneDollarIncrements.forEach(loopBidsElements);
         aggregatedAsksInOneDollarIncrements.forEach(loopAsksElements);
-        dataToEmit = { bids: bidsArrayForDisplay, asks: asksArrayForDisplay };
+        let dataToEmit = { bids: bidsArrayForDisplay, asks: asksArrayForDisplay };
 
         marketDataEmitter.emit('marketUpdate', dataToEmit);
     },
