@@ -1,0 +1,11 @@
+# Task ID: 28
+# Title: FE: UI/UX Styling & Refinement
+# Status: pending
+# Dependencies: 5, 6, 8, 10, 13, 20, 22, 23, 24, 25, 26
+# Priority: medium
+# Description: Apply consistent styling across the Svelte application. Focus on clarity, simplicity, and usability, especially for the target 'Curious Learner' persona. Ensure basic responsiveness and address the 'attempt at styling' soft requirement. Consider a lightweight CSS framework or custom CSS.
+# Details:
+Use global CSS styles or component-scoped styles in Svelte. Choose a color scheme, typography. Ensure consistent layout for forms, tables, navigation. Make interactive elements clear. Test on common desktop screen sizes. Consider using Pico.CSS, OpenProps, or custom CSS for a clean look. Focus on readability of order book and trading forms.
+
+# Test Strategy:
+Application has a consistent and presentable visual appearance. Key user flows are intuitive. No major layout issues on desktop. Meets 'attempt at styling' requirement.

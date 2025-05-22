@@ -1,0 +1,11 @@
+# Task ID: 29
+# Title: ALL: GDPR Compliance Implementation
+# Status: pending
+# Dependencies: 28
+# Priority: high
+# Description: Implement GDPR compliance measures. This includes data minimization in logging and data storage, providing a clear privacy statement/policy page, and outlining (or implementing stubs for) how user data requests (export, deletion) would be handled. This is a 'production ready' hard requirement.
+# Details:
+Review all data stored and logged; ensure only necessary data is kept. Create a static `PrivacyPolicy.svelte` page outlining data usage, storage, user rights. For data export/deletion: plan the process. For MVP, this might be a statement that users can contact support, and backend stubs for admin to manually process requests. Ensure user consent for cookies/tracking if any are used beyond essential session management.
+
+# Test Strategy:
+Privacy policy page is accessible. Data handling practices reviewed for minimization. Plan for data subject requests is documented. No unnecessary personal data logged.

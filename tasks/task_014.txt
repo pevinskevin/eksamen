@@ -1,0 +1,11 @@
+# Task ID: 14
+# Title: BE: WebSocket Server Integration
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Integrate a WebSocket server (e.g., `ws` library or `socket.io`) into the Express backend. Handle basic client connections and disconnections.
+# Details:
+Install `ws` (`npm install ws`). Integrate with existing HTTP server: `const WebSocket = require('ws'); const server = http.createServer(app); const wss = new WebSocket.Server({ server }); wss.on('connection', ws => { console.log('Client connected'); ws.on('message', message => console.log('received: %s', message)); ws.on('close', () => console.log('Client disconnected')); }); server.listen(PORT, ...);`. This sets up the WebSocket server alongside Express.
+
+# Test Strategy:
+WebSocket server starts with the HTTP server. Client can connect to the WebSocket endpoint. Connection/disconnection events are logged on the server.

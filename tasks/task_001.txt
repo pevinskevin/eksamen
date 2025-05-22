@@ -1,0 +1,11 @@
+# Task ID: 1
+# Title: BE: Project Setup & Basic Express Server
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Initialize the Node.js backend project with Express.js. Set up project structure, linting (e.g., ESLint), formatting (e.g., Prettier), and a basic Express server that listens on a port. This forms the absolute foundation for all backend development.
+# Details:
+Initialize a new Node.js project (`npm init -y`). Install Express (`npm install express`). Create a main server file (e.g., `server.js` or `app.js`) to set up a basic Express app: `const express = require('express'); const app = express(); const PORT = process.env.PORT || 3000; app.get('/', (req, res) => res.send('Exchange Backend Running')); app.listen(PORT, () => console.log(`Server running on port ${PORT}`));`. Set up scripts in `package.json` for starting the server (e.g., `dev` script using `nodemon`). Configure ESLint and Prettier for code consistency.
+
+# Test Strategy:
+Verify that the Node.js project is initialized, Express is installed, and the basic server starts without errors, responding to a GET request at the root path. Linting and formatting tools should be configurable.

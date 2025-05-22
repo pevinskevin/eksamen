@@ -1,0 +1,11 @@
+# Task ID: 12
+# Title: BE: Order Placement API (Limit Orders)
+# Status: pending
+# Dependencies: 4, 9, 11
+# Priority: high
+# Description: Implement a backend API endpoint for users to place new buy or sell (limit) orders. This endpoint must validate the order (e.g., sufficient funds in user's account) and store it in the `Orders` table with an 'open' status.
+# Details:
+Create `/orders/place` POST endpoint, protected by auth middleware. Request body: { cryptocurrency_id, type: 'buy'/'sell', quantity, price }. Backend logic: 1. Validate input. 2. Check user balance: if 'buy', check SIM_USD balance >= quantity * price. If 'sell', check relevant crypto balance >= quantity. 3. If valid, create a new record in `Orders` table with status 'open', quantity_remaining = quantity_total. Respond with success/failure.
+
+# Test Strategy:
+Authenticated users can submit valid orders. Orders are stored in DB. Insufficient balance attempts are rejected. Invalid order parameters are rejected.

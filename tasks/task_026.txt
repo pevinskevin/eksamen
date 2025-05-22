@@ -1,0 +1,11 @@
+# Task ID: 26
+# Title: BE/FE: Trade History Feature
+# Status: pending
+# Dependencies: 4, 18
+# Priority: medium
+# Description: Develop a feature for users to view their trade history. Backend: API endpoint to fetch all trades for the authenticated user from the `Trades` table. Frontend: Display this history in a clear, tabular format.
+# Details:
+BE: `/trades/history` GET endpoint, protected by auth. Query `Trades` table for records where `buyer_user_id` or `seller_user_id` matches `req.user.id`. Return list of trades (pair, type (buy/sell from user's perspective), quantity, price, timestamp). FE: `TradeHistory.svelte` component. Fetch data from `/trades/history`. Display in a table.
+
+# Test Strategy:
+User can view their past trades. Data should be accurate and match records in the `Trades` table. Display should clearly indicate if user was buyer or seller for each trade.

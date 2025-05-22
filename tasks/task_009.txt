@@ -1,0 +1,11 @@
+# Task ID: 9
+# Title: BE: Account & CryptoHolding Models & Balance API
+# Status: pending
+# Dependencies: 2, 4
+# Priority: high
+# Description: Implement backend models for `Accounts` (fiat) and `CryptoHoldings` (crypto). Create API endpoints for authenticated users to fetch their balances. Implement logic to seed initial simulated fiat (e.g., SIM_USD) and/or crypto balances for new users upon registration or first login.
+# Details:
+Create `/account/balances` GET endpoint, protected by auth middleware. This endpoint should query `Accounts` and `CryptoHoldings` tables for the logged-in user (`req.user.id`). Return a consolidated list of balances. Implement logic (e.g., during user registration or a separate seeding function) to give new users a starting amount of 'SIM_USD' in their `Accounts` table and potentially some base simulated crypto in `CryptoHoldings`.
+
+# Test Strategy:
+Authenticated users can fetch their balances via the API. New users should have default seeded balances. Balances should reflect database state.

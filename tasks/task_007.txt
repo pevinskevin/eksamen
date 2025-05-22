@@ -1,0 +1,11 @@
+# Task ID: 7
+# Title: BE: Cryptocurrency Management API & Seed Data
+# Status: pending
+# Dependencies: 2
+# Priority: medium
+# Description: Create backend API endpoints for managing simulated cryptocurrencies (e.g., list all, get details). Implement a Cryptocurrency model and database interactions. Seed the database with initial cryptocurrency data (e.g., SIM_BTC, SIM_ETH).
+# Details:
+Create a `/cryptocurrencies` GET endpoint in Express to list all active cryptocurrencies from the `Cryptocurrencies` table. Implement model functions for `Cryptocurrency` (e.g., `getAllCryptocurrencies`). Create a seed script (SQL or Node.js) to populate `Cryptocurrencies` table with initial data like: `('SIM_BTC', 'Simulated Bitcoin', 'A simulated version of Bitcoin for trading practice', true)`, `('SIM_ETH', 'Simulated Ethereum', 'A simulated version of Ethereum', true)`.
+
+# Test Strategy:
+API endpoint `/cryptocurrencies` returns a JSON array of seeded cryptocurrencies. Data should match what's in the database.

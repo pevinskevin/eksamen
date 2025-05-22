@@ -1,0 +1,11 @@
+# Task ID: 23
+# Title: BE/FE: Stripe Integration for Simulated Fiat Deposits
+# Status: pending
+# Dependencies: 4, 9, 11
+# Priority: medium
+# Description: Integrate Stripe for simulated fiat deposits. Frontend: use Stripe Elements to collect test card details and get a payment token. Backend: API endpoint to receive token, use Stripe Node.js SDK to create a test charge. On success, update user's fiat balance in `Accounts` table and create a `Transaction` record.
+# Details:
+FE: Add 'Deposit Fiat' section. Use `@stripe/stripe-js` and `@stripe/react-stripe-js` (or Svelte equivalent for Stripe Elements). Collect amount, use Stripe Elements for card form. On submit, call `stripe.createPaymentMethod()` or `stripe.confirmCardPayment()`. Send paymentMethodId/token and amount to backend. BE: `/payments/stripe-deposit` POST endpoint. Use `stripe` Node.js library (`npm install stripe`). `stripe.paymentIntents.create({ amount, currency: 'usd', payment_method, confirm: true })` with test keys. On success: update user's 'SIM_USD' balance in `Accounts`. Create a `Transactions` record (user_id, type='deposit_fiat', currency_code='SIM_USD', amount, status='completed', external_transaction_id=stripe_charge_id). The `Transactions` table schema needs to be defined (similar to PRD: transaction_id, user_id, type, currency_code_or_crypto_id, amount, status, external_transaction_id, timestamp).
+
+# Test Strategy:
+User can go through Stripe test payment flow. Successful test payment updates user's fiat balance on backend and in UI. A transaction record is created. Stripe dashboard shows test transaction.

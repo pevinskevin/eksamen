@@ -1,0 +1,11 @@
+# Task ID: 30
+# Title: ALL: Final Testing, Code Cleanup & Documentation
+# Status: pending
+# Dependencies: 29
+# Priority: high
+# Description: Conduct comprehensive end-to-end testing of all user flows and features. Remove all `console.log` statements, unused code, and unfinished snippets. Ensure code style is consistent. Write or update documentation for key architectural decisions and setup. Prepare for showcasing the application.
+# Details:
+Manually test all user flows: registration, login, viewing markets, placing orders, trade execution, balance updates, notifications, deposits/withdrawals, trade history. Fix any bugs. Search codebase for `console.log` and remove. Delete commented-out code blocks and unused files/functions. Run linters/formatters. Document database schema, API endpoints, and any complex logic (e.g., matching engine). Prepare demo script for exam.
+
+# Test Strategy:
+All features work as expected. Codebase is clean and meets 'production ready' requirements. Documentation is sufficient for understanding the project. Application is ready for demonstration.

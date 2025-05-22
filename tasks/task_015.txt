@@ -1,0 +1,11 @@
+# Task ID: 15
+# Title: FE: WebSocket Client Integration
+# Status: pending
+# Dependencies: 5, 14
+# Priority: high
+# Description: Implement WebSocket client logic in the Svelte frontend to connect to the backend WebSocket server. Handle opening of the connection and receiving basic messages.
+# Details:
+In a Svelte store or a root component (`App.svelte` or `+layout.svelte`), establish a WebSocket connection: `const socket = new WebSocket('ws://localhost:3000'); socket.onopen = () => console.log('Connected to WebSocket'); socket.onmessage = event => console.log('Message from server:', event.data); socket.onclose = () => console.log('Disconnected from WebSocket');`. Ensure this runs client-side.
+
+# Test Strategy:
+Svelte frontend successfully connects to the backend WebSocket server. Console logs confirm connection and any test messages sent from server are received.

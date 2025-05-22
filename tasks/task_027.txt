@@ -1,0 +1,11 @@
+# Task ID: 27
+# Title: BE/FE: (Optional) Admin Panel Basics
+# Status: pending
+# Dependencies: 4, 7
+# Priority: low
+# Description: If time permits, implement basic admin functionalities. This could include a simple UI and corresponding backend APIs for an 'admin' role to view all users, manage list of tradable cryptocurrencies (add/edit/disable), or view system-wide trade statistics.
+# Details:
+BE: Define 'admin' role in `Users` table. Create admin-only routes protected by authorization middleware (e.g., `/admin/users`, `/admin/cryptocurrencies`). Implement logic for admin actions. FE: Create separate admin section/components, visible only to admin users. Display relevant data and provide forms for admin actions.
+
+# Test Strategy:
+Admin user can log in and access admin panel. Non-admin users cannot. Admin actions (e.g., disabling a cryptocurrency) reflect correctly in the system.

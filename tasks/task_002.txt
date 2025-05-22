@@ -1,0 +1,11 @@
+# Task ID: 2
+# Title: BE: Database Selection & Initial Schema Design (Users, Cryptocurrencies, Balances)
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Research and finalize the choice of database (leaning PostgreSQL as per PRD). Design the initial database schema for core entities: Users, Cryptocurrencies, Accounts (for fiat balances), and CryptoHoldings (for crypto balances). Implement migration scripts to create these tables.
+# Details:
+Confirm PostgreSQL as the database. Install PostgreSQL locally or set up a cloud instance. Install the `pg` Node.js driver (`npm install pg`). Design schema: `Users` (user_id, email, password_hash, role, created_at, updated_at), `Cryptocurrencies` (cryptocurrency_id, symbol, name, description, is_active), `Accounts` (account_id, user_id FK, currency_code (e.g., 'SIM_USD'), balance DECIMAL, created_at, updated_at), `CryptoHoldings` (holding_id, user_id FK, cryptocurrency_id FK, balance DECIMAL, created_at, updated_at). Write SQL scripts or use a migration tool (e.g., `node-pg-migrate`) to create these tables.
+
+# Test Strategy:
+Verify database connection from the Node.js application. Confirm that all specified tables and columns are created correctly in PostgreSQL with appropriate data types and constraints (primary keys, foreign keys, unique constraints).

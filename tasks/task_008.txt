@@ -1,0 +1,11 @@
+# Task ID: 8
+# Title: FE: Display Cryptocurrencies
+# Status: pending
+# Dependencies: 5, 7
+# Priority: medium
+# Description: Develop a Svelte component to fetch and display the list of available cryptocurrencies from the backend. This list will be used for users to select which market to view/trade.
+# Details:
+Create a `CryptoList.svelte` component. In its `onMount` lifecycle function or a load function (SvelteKit), use `fetch` to GET data from the `/cryptocurrencies` backend endpoint. Display the symbols and names in a list or table. Allow selection of a cryptocurrency (this will be used later for trading views).
+
+# Test Strategy:
+The frontend correctly fetches and displays the list of cryptocurrencies obtained from the backend API. Selection mechanism should be testable.

@@ -1,0 +1,11 @@
+# Task ID: 11
+# Title: BE: Order & Trade Models & DB Schema
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Define and implement database schema for `Orders` and `Trades`. `Orders` will store user's buy/sell orders. `Trades` will record executed transactions between users.
+# Details:
+Extend DB schema. `Orders` (order_id PK, user_id FK, cryptocurrency_id FK, type ('buy'/'sell'), order_type ('limit'/'market'), quantity_total DECIMAL, quantity_remaining DECIMAL, price DECIMAL, status ('open', 'partially_filled', 'fully_filled', 'cancelled'), created_at, updated_at). `Trades` (trade_id PK, buy_order_id FK, sell_order_id FK, cryptocurrency_id FK, quantity DECIMAL, price DECIMAL, buyer_user_id FK, seller_user_id FK, trade_timestamp). Create migration scripts.
+
+# Test Strategy:
+Verify `Orders` and `Trades` tables are created correctly in the database with all specified fields and constraints.

@@ -1,0 +1,431 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "BE: Project Setup & Basic Express Server",
+      "description": "Initialize the Node.js backend project with Express.js. Set up project structure, linting (e.g., ESLint), formatting (e.g., Prettier), and a basic Express server that listens on a port. This forms the absolute foundation for all backend development.",
+      "details": "Initialize a new Node.js project (`npm init -y`). Install Express (`npm install express`). Create a main server file (e.g., `server.js` or `app.js`) to set up a basic Express app: `const express = require('express'); const app = express(); const PORT = process.env.PORT || 3000; app.get('/', (req, res) => res.send('Exchange Backend Running')); app.listen(PORT, () => console.log(`Server running on port ${PORT}`));`. Set up scripts in `package.json` for starting the server (e.g., `dev` script using `nodemon`). Configure ESLint and Prettier for code consistency.",
+      "testStrategy": "Verify that the Node.js project is initialized, Express is installed, and the basic server starts without errors, responding to a GET request at the root path. Linting and formatting tools should be configurable.",
+      "priority": "high",
+      "dependencies": [],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 2,
+      "title": "BE: Database Selection & Initial Schema Design (Users, Cryptocurrencies, Balances)",
+      "description": "Research and finalize the choice of database (leaning PostgreSQL as per PRD). Design the initial database schema for core entities: Users, Cryptocurrencies, Accounts (for fiat balances), and CryptoHoldings (for crypto balances). Implement migration scripts to create these tables.",
+      "details": "Confirm PostgreSQL as the database. Install PostgreSQL locally or set up a cloud instance. Install the `pg` Node.js driver (`npm install pg`). Design schema: `Users` (user_id, email, password_hash, role, created_at, updated_at), `Cryptocurrencies` (cryptocurrency_id, symbol, name, description, is_active), `Accounts` (account_id, user_id FK, currency_code (e.g., 'SIM_USD'), balance DECIMAL, created_at, updated_at), `CryptoHoldings` (holding_id, user_id FK, cryptocurrency_id FK, balance DECIMAL, created_at, updated_at). Write SQL scripts or use a migration tool (e.g., `node-pg-migrate`) to create these tables.",
+      "testStrategy": "Verify database connection from the Node.js application. Confirm that all specified tables and columns are created correctly in PostgreSQL with appropriate data types and constraints (primary keys, foreign keys, unique constraints).",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 3,
+      "title": "BE: User Authentication Endpoints (Registration, Login)",
+      "description": "Implement backend logic for user registration and login. This includes creating a User model, handling password hashing (e.g., using bcryptjs or argon2), storing user data, verifying credentials, and generating session tokens (JWT) or setting up cookie-based sessions.",
+      "details": "Create `/auth/register` and `/auth/login` Express routes. For registration: validate input (email, password), hash password using `bcryptjs` (`npm install bcryptjs`), store user in `Users` table. For login: find user by email, compare hashed password, if valid, generate a JWT (`npm install jsonwebtoken`) containing user_id and role. Return token to client. Define User model functions for DB interactions (e.g., `createUser`, `findUserByEmail`).",
+      "testStrategy": "Test registration endpoint: new user created in DB, password hashed. Test login endpoint: valid credentials return a token/session, invalid credentials return an error. Check token content.",
+      "priority": "high",
+      "dependencies": [
+        2
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 4,
+      "title": "BE: Authentication & Authorization Middleware",
+      "description": "Implement middleware for authentication (verifying JWT/session) to protect routes that require a logged-in user. Implement basic authorization logic (e.g., role checking middleware) to restrict access to certain functionalities based on user roles (e.g., 'user', 'admin').",
+      "details": "Create an `authMiddleware` function that checks for `Authorization` header (Bearer token) or session cookie. If JWT, verify it using `jsonwebtoken.verify()`. Attach user object (e.g., `req.user = { id: decoded.userId, role: decoded.role }`) to the request. Create an `authorizeMiddleware(rolesArray)` that checks if `req.user.role` is in `rolesArray`. Apply these middlewares to protected routes.",
+      "testStrategy": "Protected routes should return 401/403 if no token/invalid token or insufficient role. Valid token/role should allow access. Test with different user roles.",
+      "priority": "high",
+      "dependencies": [
+        3
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 5,
+      "title": "FE: Svelte Project Setup & Basic UI Shell",
+      "description": "Set up the Svelte frontend project (or SvelteKit if preferred). Create a basic application shell with main layout components (e.g., navbar, footer, main content area) and set up client-side routing if using SvelteKit or a separate router.",
+      "details": "Initialize a Svelte project: `npx degit sveltejs/template my-svelte-project` or `npm create svelte@latest my-sveltekit-project`. Set up basic folder structure (components, routes/pages, stores). Create `Navbar.svelte`, `Footer.svelte`, and an `App.svelte` or `+layout.svelte` to structure the main UI. If not using SvelteKit, install a router like `svelte-routing`.",
+      "testStrategy": "Verify the Svelte application runs locally. Basic layout components should render. Navigation (if set up) should switch between placeholder pages.",
+      "priority": "high",
+      "dependencies": [],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 6,
+      "title": "FE: User Authentication UI & Logic",
+      "description": "Develop Svelte components for user registration and login forms. Implement logic to capture user input, perform client-side validation, and use the `fetch` API to send credentials to the backend authentication endpoints. Manage client-side user session (e.g., store JWT in localStorage, update UI based on auth state).",
+      "details": "Create `Register.svelte` and `Login.svelte` components with input fields and submit buttons. Use Svelte stores (e.g., `writable`) for managing user authentication state (token, user info). On form submission, use `fetch` to POST to `/auth/register` or `/auth/login`. Handle responses: store token in localStorage on success, display errors on failure. Implement logout functionality (clear token, reset auth state). Conditionally render UI elements based on auth state (e.g., show Login/Register or Logout/Profile links).",
+      "testStrategy": "User can register via the form, data sent to backend. User can log in, token received and stored. UI updates based on login status. Logout clears session. Error messages displayed for invalid input/credentials.",
+      "priority": "high",
+      "dependencies": [
+        3,
+        5
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 7,
+      "title": "BE: Cryptocurrency Management API & Seed Data",
+      "description": "Create backend API endpoints for managing simulated cryptocurrencies (e.g., list all, get details). Implement a Cryptocurrency model and database interactions. Seed the database with initial cryptocurrency data (e.g., SIM_BTC, SIM_ETH).",
+      "details": "Create a `/cryptocurrencies` GET endpoint in Express to list all active cryptocurrencies from the `Cryptocurrencies` table. Implement model functions for `Cryptocurrency` (e.g., `getAllCryptocurrencies`). Create a seed script (SQL or Node.js) to populate `Cryptocurrencies` table with initial data like: `('SIM_BTC', 'Simulated Bitcoin', 'A simulated version of Bitcoin for trading practice', true)`, `('SIM_ETH', 'Simulated Ethereum', 'A simulated version of Ethereum', true)`.",
+      "testStrategy": "API endpoint `/cryptocurrencies` returns a JSON array of seeded cryptocurrencies. Data should match what's in the database.",
+      "priority": "medium",
+      "dependencies": [
+        2
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 8,
+      "title": "FE: Display Cryptocurrencies",
+      "description": "Develop a Svelte component to fetch and display the list of available cryptocurrencies from the backend. This list will be used for users to select which market to view/trade.",
+      "details": "Create a `CryptoList.svelte` component. In its `onMount` lifecycle function or a load function (SvelteKit), use `fetch` to GET data from the `/cryptocurrencies` backend endpoint. Display the symbols and names in a list or table. Allow selection of a cryptocurrency (this will be used later for trading views).",
+      "testStrategy": "The frontend correctly fetches and displays the list of cryptocurrencies obtained from the backend API. Selection mechanism should be testable.",
+      "priority": "medium",
+      "dependencies": [
+        5,
+        7
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 9,
+      "title": "BE: Account & CryptoHolding Models & Balance API",
+      "description": "Implement backend models for `Accounts` (fiat) and `CryptoHoldings` (crypto). Create API endpoints for authenticated users to fetch their balances. Implement logic to seed initial simulated fiat (e.g., SIM_USD) and/or crypto balances for new users upon registration or first login.",
+      "details": "Create `/account/balances` GET endpoint, protected by auth middleware. This endpoint should query `Accounts` and `CryptoHoldings` tables for the logged-in user (`req.user.id`). Return a consolidated list of balances. Implement logic (e.g., during user registration or a separate seeding function) to give new users a starting amount of 'SIM_USD' in their `Accounts` table and potentially some base simulated crypto in `CryptoHoldings`.",
+      "testStrategy": "Authenticated users can fetch their balances via the API. New users should have default seeded balances. Balances should reflect database state.",
+      "priority": "high",
+      "dependencies": [
+        2,
+        4
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 10,
+      "title": "FE: Display Account Balances",
+      "description": "Create Svelte components to display the authenticated user's fiat and cryptocurrency balances, fetched from the backend API.",
+      "details": "Create an `AccountDashboard.svelte` or similar component. When the component mounts and the user is authenticated, use `fetch` to GET data from `/account/balances`. Display the balances clearly, separating fiat and different cryptocurrencies.",
+      "testStrategy": "Logged-in user sees their correct fiat and crypto balances displayed. If no balances, an appropriate message is shown. Updates if balances change (e.g., after a trade, to be tested later).",
+      "priority": "high",
+      "dependencies": [
+        6,
+        9
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 11,
+      "title": "BE: Order & Trade Models & DB Schema",
+      "description": "Define and implement database schema for `Orders` and `Trades`. `Orders` will store user's buy/sell orders. `Trades` will record executed transactions between users.",
+      "details": "Extend DB schema. `Orders` (order_id PK, user_id FK, cryptocurrency_id FK, type ('buy'/'sell'), order_type ('limit'/'market'), quantity_total DECIMAL, quantity_remaining DECIMAL, price DECIMAL, status ('open', 'partially_filled', 'fully_filled', 'cancelled'), created_at, updated_at). `Trades` (trade_id PK, buy_order_id FK, sell_order_id FK, cryptocurrency_id FK, quantity DECIMAL, price DECIMAL, buyer_user_id FK, seller_user_id FK, trade_timestamp). Create migration scripts.",
+      "testStrategy": "Verify `Orders` and `Trades` tables are created correctly in the database with all specified fields and constraints.",
+      "priority": "high",
+      "dependencies": [
+        2
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 12,
+      "title": "BE: Order Placement API (Limit Orders)",
+      "description": "Implement a backend API endpoint for users to place new buy or sell (limit) orders. This endpoint must validate the order (e.g., sufficient funds in user's account) and store it in the `Orders` table with an 'open' status.",
+      "details": "Create `/orders/place` POST endpoint, protected by auth middleware. Request body: { cryptocurrency_id, type: 'buy'/'sell', quantity, price }. Backend logic: 1. Validate input. 2. Check user balance: if 'buy', check SIM_USD balance >= quantity * price. If 'sell', check relevant crypto balance >= quantity. 3. If valid, create a new record in `Orders` table with status 'open', quantity_remaining = quantity_total. Respond with success/failure.",
+      "testStrategy": "Authenticated users can submit valid orders. Orders are stored in DB. Insufficient balance attempts are rejected. Invalid order parameters are rejected.",
+      "priority": "high",
+      "dependencies": [
+        4,
+        9,
+        11
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 13,
+      "title": "FE: Trading Form & My Open Orders Display",
+      "description": "Develop Svelte components for a trading form (select crypto, buy/sell, quantity, price) and a display area for the user's currently open orders. Orders submitted via the form should be sent to the backend API.",
+      "details": "Create `TradingForm.svelte` component. Inputs for cryptocurrency selection (dropdown populated from crypto list), order type (buy/sell buttons), quantity, price. On submit, `fetch` POST to `/orders/place`. Create `MyOpenOrders.svelte` component. Fetch user's open orders from a new backend endpoint (e.g., `/orders/mine`) and display them in a table.",
+      "testStrategy": "User can fill and submit the trading form. Order data is sent to backend. User's open orders are fetched and displayed correctly. Client-side validation for form inputs.",
+      "priority": "high",
+      "dependencies": [
+        6,
+        8,
+        10,
+        12
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 14,
+      "title": "BE: WebSocket Server Integration",
+      "description": "Integrate a WebSocket server (e.g., `ws` library or `socket.io`) into the Express backend. Handle basic client connections and disconnections.",
+      "details": "Install `ws` (`npm install ws`). Integrate with existing HTTP server: `const WebSocket = require('ws'); const server = http.createServer(app); const wss = new WebSocket.Server({ server }); wss.on('connection', ws => { console.log('Client connected'); ws.on('message', message => console.log('received: %s', message)); ws.on('close', () => console.log('Client disconnected')); }); server.listen(PORT, ...);`. This sets up the WebSocket server alongside Express.",
+      "testStrategy": "WebSocket server starts with the HTTP server. Client can connect to the WebSocket endpoint. Connection/disconnection events are logged on the server.",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 15,
+      "title": "FE: WebSocket Client Integration",
+      "description": "Implement WebSocket client logic in the Svelte frontend to connect to the backend WebSocket server. Handle opening of the connection and receiving basic messages.",
+      "details": "In a Svelte store or a root component (`App.svelte` or `+layout.svelte`), establish a WebSocket connection: `const socket = new WebSocket('ws://localhost:3000'); socket.onopen = () => console.log('Connected to WebSocket'); socket.onmessage = event => console.log('Message from server:', event.data); socket.onclose = () => console.log('Disconnected from WebSocket');`. Ensure this runs client-side.",
+      "testStrategy": "Svelte frontend successfully connects to the backend WebSocket server. Console logs confirm connection and any test messages sent from server are received.",
+      "priority": "high",
+      "dependencies": [
+        5,
+        14
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 16,
+      "title": "BE: In-Memory Order Book Implementation",
+      "description": "Design and implement in-memory data structures on the backend to hold the live order book for each cryptocurrency pair (e.g., bids and asks sorted by price). Implement logic to add new orders (from the Order Placement API) to this in-memory book and remove/update them when they are matched or cancelled. Refer to `depthcache-documentation.md` for potential strategies.",
+      "details": "Create a service/module for managing order books, e.g., `OrderBookService.js`. For each trading pair (e.g., 'SIM_BTC/SIM_USD'), maintain two sorted lists/arrays: one for bids (buy orders, sorted high to low price) and one for asks (sell orders, sorted low to high price). Each entry should store price, quantity, timestamp, order_id. When a new order comes from `/orders/place` and isn't immediately matched, add it to the appropriate side of the book. Consider using efficient data structures if performance becomes a concern (e.g., balanced trees or heaps, though arrays with sorting might suffice for simulation). The `depthcache-documentation.md` might provide insights on structure and management.",
+      "testStrategy": "New orders are correctly added to the in-memory order book, maintaining price-time priority. Test adding buy and sell orders at various prices and quantities. Verify internal state of the order book.",
+      "priority": "high",
+      "dependencies": [
+        11,
+        12
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 17,
+      "title": "BE: Order Matching Engine Development",
+      "description": "Develop the core order matching engine logic. This engine will take an incoming order and attempt to match it against resting orders in the in-memory order book based on price-time priority. It should handle partial and full fills. Refer to `depthcache-documentation.md` for potential strategies.",
+      "details": "In `OrderBookService.js` or a dedicated `MatchingEngine.js`. When a new order arrives: If buy order, iterate through asks (lowest price first). If sell order, iterate through bids (highest price first). If prices cross/match: determine fill quantity (min of incoming order qty and resting order qty). If partial fill, update remaining quantity of the involved order(s). If full fill, mark order(s) for removal. Price-time priority: match best price first; if multiple orders at best price, match oldest first (FIFO based on timestamp).",
+      "testStrategy": "Test various scenarios: new buy order matching existing sell order(s), new sell matching existing buy(s). Test partial fills, multiple fills for one incoming order, and orders that don't match and get added to the book. Verify price-time priority.",
+      "priority": "high",
+      "dependencies": [
+        16
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 18,
+      "title": "BE: Trade Execution & State Updates",
+      "description": "Implement the logic for when a trade occurs (match found by the engine). This includes: atomically updating user balances in the database (debit/credit fiat and crypto), creating a `Trade` record, and updating the status of involved `Order` records in the database and in-memory order book.",
+      "details": "When matching engine finds a match: 1. Start a database transaction. 2. Debit buyer's fiat, credit seller's fiat. Debit seller's crypto, credit buyer's crypto. Update `Accounts` and `CryptoHoldings` tables. 3. Create a new record in `Trades` table (buyer_id, seller_id, crypto_id, quantity, price, timestamp). 4. Update `Orders` table: change status (e.g., 'partially_filled', 'fully_filled'), decrease `quantity_remaining`. 5. Commit transaction. 6. Update/remove orders from the in-memory order book. Ensure atomicity for balance updates.",
+      "testStrategy": "Verify that after a trade: user balances are correctly updated in DB. A trade record is created. Order statuses and remaining quantities are updated in DB and in-memory book. Database transactions ensure atomicity (all updates succeed or all fail).",
+      "priority": "high",
+      "dependencies": [
+        9,
+        11,
+        17
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 19,
+      "title": "BE: Real-time Order Book Broadcasting",
+      "description": "When the in-memory order book changes (order added, trade occurs, order cancelled), broadcast these updates via WebSockets to all connected and subscribed frontend clients. Decide on data format (full book snapshot or deltas).",
+      "details": "Modify `OrderBookService.js` or `MatchingEngine.js`. After any change to an order book (new order added, order filled/cancelled): serialize the current state of the relevant order book (e.g., top N bids/asks for a specific crypto pair). Broadcast this data over WebSockets to clients subscribed to that pair. Message format example: `{ type: 'ORDER_BOOK_UPDATE', pair: 'SIM_BTC/SIM_USD', data: { bids: [...], asks: [...] } }`. Initially, sending a snapshot of the visible part of the book is simpler than deltas.",
+      "testStrategy": "Frontend clients receive WebSocket messages when the order book changes. The data received should reflect the current state of the order book on the server for the subscribed pair.",
+      "priority": "high",
+      "dependencies": [
+        14,
+        16,
+        18
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 20,
+      "title": "FE: Real-time Order Book Visualization",
+      "description": "Create a Svelte component to visualize the live order book (bids and asks). This component should subscribe to WebSocket updates for the selected cryptocurrency pair and efficiently re-render the display when new data arrives.",
+      "details": "Create `OrderBook.svelte` component. Props: `selectedPair`. On component mount or when `selectedPair` changes: send a WebSocket message to subscribe to that pair's order book updates (if backend requires explicit subscription). Listen for `ORDER_BOOK_UPDATE` messages. When data arrives, update local Svelte stores or component state for bids and asks. Render two lists (bids in green, asks in red), sorted by price, showing price, quantity, and cumulative quantity. Use Svelte's reactivity for efficient DOM updates (`{#each ... key=...}`).",
+      "testStrategy": "Order book display updates in near real-time when orders are placed or matched on the backend. Bids and asks are displayed correctly, sorted, and styled. Performance should be acceptable.",
+      "priority": "high",
+      "dependencies": [
+        8,
+        15,
+        19
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 21,
+      "title": "BE: Real-time User Notifications Service",
+      "description": "Implement a backend service to send targeted real-time notifications (e.g., order filled, order partially filled, insufficient funds, balance updates) to specific users via WebSockets.",
+      "details": "Maintain a mapping of connected WebSocket clients to user IDs (e.g., store `userId` on `ws` object after authentication via socket, or have clients send their JWT for initial socket auth). When an event occurs (e.g., order fill from `TradeExecution`): identify the relevant user(s). Send a targeted WebSocket message. Example: `{ type: 'USER_NOTIFICATION', message: 'Your buy order for 1 SIM_BTC at 10000 SIM_USD was filled.', details: {...} }` or `{ type: 'BALANCE_UPDATE', currency: 'SIM_USD', newBalance: 5000 }`.",
+      "testStrategy": "Specific users receive notifications relevant to their actions (e.g., trade confirmations, balance changes). Other users do not receive these notifications. Messages are correctly formatted.",
+      "priority": "medium",
+      "dependencies": [
+        14,
+        18
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 22,
+      "title": "FE: Display Real-time User Notifications",
+      "description": "Develop frontend logic to listen for user-specific WebSocket notifications and display them to the user (e.g., as toast messages or in a notification feed). Dynamically update displayed balances if a balance update notification is received.",
+      "details": "In Svelte client, listen for `USER_NOTIFICATION` and `BALANCE_UPDATE` messages. For `USER_NOTIFICATION`, display the message using a toast component (e.g., `svelte-toast`) or add to a list. For `BALANCE_UPDATE`, update the Svelte store holding user balances, which should reactively update the UI (e.g., `AccountDashboard.svelte`).",
+      "testStrategy": "User sees notifications for their own trade events. Balances displayed on the dashboard update automatically when a balance notification is received via WebSocket.",
+      "priority": "medium",
+      "dependencies": [
+        10,
+        15,
+        21
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 23,
+      "title": "BE/FE: Stripe Integration for Simulated Fiat Deposits",
+      "description": "Integrate Stripe for simulated fiat deposits. Frontend: use Stripe Elements to collect test card details and get a payment token. Backend: API endpoint to receive token, use Stripe Node.js SDK to create a test charge. On success, update user's fiat balance in `Accounts` table and create a `Transaction` record.",
+      "details": "FE: Add 'Deposit Fiat' section. Use `@stripe/stripe-js` and `@stripe/react-stripe-js` (or Svelte equivalent for Stripe Elements). Collect amount, use Stripe Elements for card form. On submit, call `stripe.createPaymentMethod()` or `stripe.confirmCardPayment()`. Send paymentMethodId/token and amount to backend. BE: `/payments/stripe-deposit` POST endpoint. Use `stripe` Node.js library (`npm install stripe`). `stripe.paymentIntents.create({ amount, currency: 'usd', payment_method, confirm: true })` with test keys. On success: update user's 'SIM_USD' balance in `Accounts`. Create a `Transactions` record (user_id, type='deposit_fiat', currency_code='SIM_USD', amount, status='completed', external_transaction_id=stripe_charge_id). The `Transactions` table schema needs to be defined (similar to PRD: transaction_id, user_id, type, currency_code_or_crypto_id, amount, status, external_transaction_id, timestamp).",
+      "testStrategy": "User can go through Stripe test payment flow. Successful test payment updates user's fiat balance on backend and in UI. A transaction record is created. Stripe dashboard shows test transaction.",
+      "priority": "medium",
+      "dependencies": [
+        4,
+        9,
+        11
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 24,
+      "title": "BE/FE: Crypto Wallet Integration - Simulated Deposits",
+      "description": "Implement basic crypto wallet integration for simulated deposits. Frontend: display a unique (or shared for simulation) testnet deposit address for a selected crypto. Backend: mechanism to (manually or via script) monitor this address on a testnet (e.g., Sepolia for ETH, Solana testnet for SOL). On detecting a 'deposit', credit user's `CryptoHolding` balance and create a `Transaction` record.",
+      "details": "FE: 'Deposit Crypto' section. User selects crypto (e.g., 'SIM_ETH_Sepolia'). Display a fixed testnet address controlled by the application. BE: For simulation, this might be a manual process initially: admin checks testnet explorer (Etherscan Sepolia) for incoming transactions to the exchange's address. If a deposit is confirmed, admin manually triggers an API endpoint or DB update to credit user's `CryptoHoldings` for the specific crypto and create a `Transactions` record (type='deposit_crypto'). More advanced: script using `ethers.js` or `@solana/web3.js` to periodically query balance/transactions for the exchange's address.",
+      "testStrategy": "User is shown a deposit address. After simulating a testnet transfer to this address, their simulated crypto balance is updated on the platform (manually or via script). A transaction record is created.",
+      "priority": "low",
+      "dependencies": [
+        4,
+        9,
+        11,
+        23
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 25,
+      "title": "BE/FE: Crypto Wallet Integration - Simulated Withdrawals",
+      "description": "Implement basic crypto wallet integration for simulated withdrawals. Frontend: form for withdrawal address and amount. Backend: API to receive request, check balance, simulate transfer (log it, no actual testnet transaction unless time permits), debit user's `CryptoHolding` balance, and create a `Transaction` record.",
+      "details": "FE: 'Withdraw Crypto' section. User selects crypto, enters amount and their external testnet wallet address. Submit to backend. BE: `/wallet/initiate-withdrawal` POST endpoint. Validate user has sufficient balance in `CryptoHoldings`. If yes: debit balance. Create `Transactions` record (type='withdrawal_crypto', status='pending' or 'completed' for simulation). For actual testnet transaction (advanced): use `ethers.js` or `@solana/web3.js` with exchange's private key to send funds. For simulation, just log the intent.",
+      "testStrategy": "User can request a withdrawal. If sufficient balance, simulated balance is debited. A transaction record is created. If actual testnet tx implemented, verify on explorer.",
+      "priority": "low",
+      "dependencies": [
+        4,
+        9,
+        11,
+        23,
+        24
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 26,
+      "title": "BE/FE: Trade History Feature",
+      "description": "Develop a feature for users to view their trade history. Backend: API endpoint to fetch all trades for the authenticated user from the `Trades` table. Frontend: Display this history in a clear, tabular format.",
+      "details": "BE: `/trades/history` GET endpoint, protected by auth. Query `Trades` table for records where `buyer_user_id` or `seller_user_id` matches `req.user.id`. Return list of trades (pair, type (buy/sell from user's perspective), quantity, price, timestamp). FE: `TradeHistory.svelte` component. Fetch data from `/trades/history`. Display in a table.",
+      "testStrategy": "User can view their past trades. Data should be accurate and match records in the `Trades` table. Display should clearly indicate if user was buyer or seller for each trade.",
+      "priority": "medium",
+      "dependencies": [
+        4,
+        18
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 27,
+      "title": "BE/FE: (Optional) Admin Panel Basics",
+      "description": "If time permits, implement basic admin functionalities. This could include a simple UI and corresponding backend APIs for an 'admin' role to view all users, manage list of tradable cryptocurrencies (add/edit/disable), or view system-wide trade statistics.",
+      "details": "BE: Define 'admin' role in `Users` table. Create admin-only routes protected by authorization middleware (e.g., `/admin/users`, `/admin/cryptocurrencies`). Implement logic for admin actions. FE: Create separate admin section/components, visible only to admin users. Display relevant data and provide forms for admin actions.",
+      "testStrategy": "Admin user can log in and access admin panel. Non-admin users cannot. Admin actions (e.g., disabling a cryptocurrency) reflect correctly in the system.",
+      "priority": "low",
+      "dependencies": [
+        4,
+        7
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 28,
+      "title": "FE: UI/UX Styling & Refinement",
+      "description": "Apply consistent styling across the Svelte application. Focus on clarity, simplicity, and usability, especially for the target 'Curious Learner' persona. Ensure basic responsiveness and address the 'attempt at styling' soft requirement. Consider a lightweight CSS framework or custom CSS.",
+      "details": "Use global CSS styles or component-scoped styles in Svelte. Choose a color scheme, typography. Ensure consistent layout for forms, tables, navigation. Make interactive elements clear. Test on common desktop screen sizes. Consider using Pico.CSS, OpenProps, or custom CSS for a clean look. Focus on readability of order book and trading forms.",
+      "testStrategy": "Application has a consistent and presentable visual appearance. Key user flows are intuitive. No major layout issues on desktop. Meets 'attempt at styling' requirement.",
+      "priority": "medium",
+      "dependencies": [
+        5,
+        6,
+        8,
+        10,
+        13,
+        20,
+        22,
+        23,
+        24,
+        25,
+        26
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 29,
+      "title": "ALL: GDPR Compliance Implementation",
+      "description": "Implement GDPR compliance measures. This includes data minimization in logging and data storage, providing a clear privacy statement/policy page, and outlining (or implementing stubs for) how user data requests (export, deletion) would be handled. This is a 'production ready' hard requirement.",
+      "details": "Review all data stored and logged; ensure only necessary data is kept. Create a static `PrivacyPolicy.svelte` page outlining data usage, storage, user rights. For data export/deletion: plan the process. For MVP, this might be a statement that users can contact support, and backend stubs for admin to manually process requests. Ensure user consent for cookies/tracking if any are used beyond essential session management.",
+      "testStrategy": "Privacy policy page is accessible. Data handling practices reviewed for minimization. Plan for data subject requests is documented. No unnecessary personal data logged.",
+      "priority": "high",
+      "dependencies": [
+        28
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 30,
+      "title": "ALL: Final Testing, Code Cleanup & Documentation",
+      "description": "Conduct comprehensive end-to-end testing of all user flows and features. Remove all `console.log` statements, unused code, and unfinished snippets. Ensure code style is consistent. Write or update documentation for key architectural decisions and setup. Prepare for showcasing the application.",
+      "details": "Manually test all user flows: registration, login, viewing markets, placing orders, trade execution, balance updates, notifications, deposits/withdrawals, trade history. Fix any bugs. Search codebase for `console.log` and remove. Delete commented-out code blocks and unused files/functions. Run linters/formatters. Document database schema, API endpoints, and any complex logic (e.g., matching engine). Prepare demo script for exam.",
+      "testStrategy": "All features work as expected. Codebase is clean and meets 'production ready' requirements. Documentation is sufficient for understanding the project. Application is ready for demonstration.",
+      "priority": "high",
+      "dependencies": [
+        29
+      ],
+      "status": "pending",
+      "subtasks": []
+    }
+  ]
+}

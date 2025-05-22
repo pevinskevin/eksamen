@@ -1,0 +1,11 @@
+# Task ID: 21
+# Title: BE: Real-time User Notifications Service
+# Status: pending
+# Dependencies: 14, 18
+# Priority: medium
+# Description: Implement a backend service to send targeted real-time notifications (e.g., order filled, order partially filled, insufficient funds, balance updates) to specific users via WebSockets.
+# Details:
+Maintain a mapping of connected WebSocket clients to user IDs (e.g., store `userId` on `ws` object after authentication via socket, or have clients send their JWT for initial socket auth). When an event occurs (e.g., order fill from `TradeExecution`): identify the relevant user(s). Send a targeted WebSocket message. Example: `{ type: 'USER_NOTIFICATION', message: 'Your buy order for 1 SIM_BTC at 10000 SIM_USD was filled.', details: {...} }` or `{ type: 'BALANCE_UPDATE', currency: 'SIM_USD', newBalance: 5000 }`.
+
+# Test Strategy:
+Specific users receive notifications relevant to their actions (e.g., trade confirmations, balance changes). Other users do not receive these notifications. Messages are correctly formatted.

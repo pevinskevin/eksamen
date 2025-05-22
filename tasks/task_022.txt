@@ -1,0 +1,11 @@
+# Task ID: 22
+# Title: FE: Display Real-time User Notifications
+# Status: pending
+# Dependencies: 10, 15, 21
+# Priority: medium
+# Description: Develop frontend logic to listen for user-specific WebSocket notifications and display them to the user (e.g., as toast messages or in a notification feed). Dynamically update displayed balances if a balance update notification is received.
+# Details:
+In Svelte client, listen for `USER_NOTIFICATION` and `BALANCE_UPDATE` messages. For `USER_NOTIFICATION`, display the message using a toast component (e.g., `svelte-toast`) or add to a list. For `BALANCE_UPDATE`, update the Svelte store holding user balances, which should reactively update the UI (e.g., `AccountDashboard.svelte`).
+
+# Test Strategy:
+User sees notifications for their own trade events. Balances displayed on the dashboard update automatically when a balance notification is received via WebSocket.

@@ -1,0 +1,11 @@
+# Task ID: 13
+# Title: FE: Trading Form & My Open Orders Display
+# Status: pending
+# Dependencies: 6, 8, 10, 12
+# Priority: high
+# Description: Develop Svelte components for a trading form (select crypto, buy/sell, quantity, price) and a display area for the user's currently open orders. Orders submitted via the form should be sent to the backend API.
+# Details:
+Create `TradingForm.svelte` component. Inputs for cryptocurrency selection (dropdown populated from crypto list), order type (buy/sell buttons), quantity, price. On submit, `fetch` POST to `/orders/place`. Create `MyOpenOrders.svelte` component. Fetch user's open orders from a new backend endpoint (e.g., `/orders/mine`) and display them in a table.
+
+# Test Strategy:
+User can fill and submit the trading form. Order data is sent to backend. User's open orders are fetched and displayed correctly. Client-side validation for form inputs.

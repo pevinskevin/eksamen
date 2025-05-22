@@ -1,0 +1,11 @@
+# Task ID: 16
+# Title: BE: In-Memory Order Book Implementation
+# Status: pending
+# Dependencies: 11, 12
+# Priority: high
+# Description: Design and implement in-memory data structures on the backend to hold the live order book for each cryptocurrency pair (e.g., bids and asks sorted by price). Implement logic to add new orders (from the Order Placement API) to this in-memory book and remove/update them when they are matched or cancelled. Refer to `depthcache-documentation.md` for potential strategies.
+# Details:
+Create a service/module for managing order books, e.g., `OrderBookService.js`. For each trading pair (e.g., 'SIM_BTC/SIM_USD'), maintain two sorted lists/arrays: one for bids (buy orders, sorted high to low price) and one for asks (sell orders, sorted low to high price). Each entry should store price, quantity, timestamp, order_id. When a new order comes from `/orders/place` and isn't immediately matched, add it to the appropriate side of the book. Consider using efficient data structures if performance becomes a concern (e.g., balanced trees or heaps, though arrays with sorting might suffice for simulation). The `depthcache-documentation.md` might provide insights on structure and management.
+
+# Test Strategy:
+New orders are correctly added to the in-memory order book, maintaining price-time priority. Test adding buy and sell orders at various prices and quantities. Verify internal state of the order book.

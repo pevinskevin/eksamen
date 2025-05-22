@@ -1,0 +1,11 @@
+# Task ID: 25
+# Title: BE/FE: Crypto Wallet Integration - Simulated Withdrawals
+# Status: pending
+# Dependencies: 4, 9, 11, 23, 24
+# Priority: low
+# Description: Implement basic crypto wallet integration for simulated withdrawals. Frontend: form for withdrawal address and amount. Backend: API to receive request, check balance, simulate transfer (log it, no actual testnet transaction unless time permits), debit user's `CryptoHolding` balance, and create a `Transaction` record.
+# Details:
+FE: 'Withdraw Crypto' section. User selects crypto, enters amount and their external testnet wallet address. Submit to backend. BE: `/wallet/initiate-withdrawal` POST endpoint. Validate user has sufficient balance in `CryptoHoldings`. If yes: debit balance. Create `Transactions` record (type='withdrawal_crypto', status='pending' or 'completed' for simulation). For actual testnet transaction (advanced): use `ethers.js` or `@solana/web3.js` with exchange's private key to send funds. For simulation, just log the intent.
+
+# Test Strategy:
+User can request a withdrawal. If sufficient balance, simulated balance is debited. A transaction record is created. If actual testnet tx implemented, verify on explorer.

@@ -157,5 +157,5 @@ dev-debug.log
 # OS specific
 .DS_Store
 # Task files
-tasks.json
-tasks/ 
+.cursor
+.roo

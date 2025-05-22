@@ -1,0 +1,11 @@
+# Task ID: 10
+# Title: FE: Display Account Balances
+# Status: pending
+# Dependencies: 6, 9
+# Priority: high
+# Description: Create Svelte components to display the authenticated user's fiat and cryptocurrency balances, fetched from the backend API.
+# Details:
+Create an `AccountDashboard.svelte` or similar component. When the component mounts and the user is authenticated, use `fetch` to GET data from `/account/balances`. Display the balances clearly, separating fiat and different cryptocurrencies.
+
+# Test Strategy:
+Logged-in user sees their correct fiat and crypto balances displayed. If no balances, an appropriate message is shown. Updates if balances change (e.g., after a trade, to be tested later).

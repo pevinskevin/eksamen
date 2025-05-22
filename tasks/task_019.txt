@@ -1,0 +1,11 @@
+# Task ID: 19
+# Title: BE: Real-time Order Book Broadcasting
+# Status: pending
+# Dependencies: 14, 16, 18
+# Priority: high
+# Description: When the in-memory order book changes (order added, trade occurs, order cancelled), broadcast these updates via WebSockets to all connected and subscribed frontend clients. Decide on data format (full book snapshot or deltas).
+# Details:
+Modify `OrderBookService.js` or `MatchingEngine.js`. After any change to an order book (new order added, order filled/cancelled): serialize the current state of the relevant order book (e.g., top N bids/asks for a specific crypto pair). Broadcast this data over WebSockets to clients subscribed to that pair. Message format example: `{ type: 'ORDER_BOOK_UPDATE', pair: 'SIM_BTC/SIM_USD', data: { bids: [...], asks: [...] } }`. Initially, sending a snapshot of the visible part of the book is simpler than deltas.
+
+# Test Strategy:
+Frontend clients receive WebSocket messages when the order book changes. The data received should reflect the current state of the order book on the server for the subscribed pair.

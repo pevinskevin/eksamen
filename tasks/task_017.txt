@@ -1,0 +1,11 @@
+# Task ID: 17
+# Title: BE: Order Matching Engine Development
+# Status: pending
+# Dependencies: 16
+# Priority: high
+# Description: Develop the core order matching engine logic. This engine will take an incoming order and attempt to match it against resting orders in the in-memory order book based on price-time priority. It should handle partial and full fills. Refer to `depthcache-documentation.md` for potential strategies.
+# Details:
+In `OrderBookService.js` or a dedicated `MatchingEngine.js`. When a new order arrives: If buy order, iterate through asks (lowest price first). If sell order, iterate through bids (highest price first). If prices cross/match: determine fill quantity (min of incoming order qty and resting order qty). If partial fill, update remaining quantity of the involved order(s). If full fill, mark order(s) for removal. Price-time priority: match best price first; if multiple orders at best price, match oldest first (FIFO based on timestamp).
+
+# Test Strategy:
+Test various scenarios: new buy order matching existing sell order(s), new sell matching existing buy(s). Test partial fills, multiple fills for one incoming order, and orders that don't match and get added to the book. Verify price-time priority.

@@ -1,0 +1,11 @@
+# Task ID: 24
+# Title: BE/FE: Crypto Wallet Integration - Simulated Deposits
+# Status: pending
+# Dependencies: 4, 9, 11, 23
+# Priority: low
+# Description: Implement basic crypto wallet integration for simulated deposits. Frontend: display a unique (or shared for simulation) testnet deposit address for a selected crypto. Backend: mechanism to (manually or via script) monitor this address on a testnet (e.g., Sepolia for ETH, Solana testnet for SOL). On detecting a 'deposit', credit user's `CryptoHolding` balance and create a `Transaction` record.
+# Details:
+FE: 'Deposit Crypto' section. User selects crypto (e.g., 'SIM_ETH_Sepolia'). Display a fixed testnet address controlled by the application. BE: For simulation, this might be a manual process initially: admin checks testnet explorer (Etherscan Sepolia) for incoming transactions to the exchange's address. If a deposit is confirmed, admin manually triggers an API endpoint or DB update to credit user's `CryptoHoldings` for the specific crypto and create a `Transactions` record (type='deposit_crypto'). More advanced: script using `ethers.js` or `@solana/web3.js` to periodically query balance/transactions for the exchange's address.
+
+# Test Strategy:
+User is shown a deposit address. After simulating a testnet transfer to this address, their simulated crypto balance is updated on the platform (manually or via script). A transaction record is created.

@@ -1,0 +1,11 @@
+# Task ID: 18
+# Title: BE: Trade Execution & State Updates
+# Status: pending
+# Dependencies: 9, 11, 17
+# Priority: high
+# Description: Implement the logic for when a trade occurs (match found by the engine). This includes: atomically updating user balances in the database (debit/credit fiat and crypto), creating a `Trade` record, and updating the status of involved `Order` records in the database and in-memory order book.
+# Details:
+When matching engine finds a match: 1. Start a database transaction. 2. Debit buyer's fiat, credit seller's fiat. Debit seller's crypto, credit buyer's crypto. Update `Accounts` and `CryptoHoldings` tables. 3. Create a new record in `Trades` table (buyer_id, seller_id, crypto_id, quantity, price, timestamp). 4. Update `Orders` table: change status (e.g., 'partially_filled', 'fully_filled'), decrease `quantity_remaining`. 5. Commit transaction. 6. Update/remove orders from the in-memory order book. Ensure atomicity for balance updates.
+
+# Test Strategy:
+Verify that after a trade: user balances are correctly updated in DB. A trade record is created. Order statuses and remaining quantities are updated in DB and in-memory book. Database transactions ensure atomicity (all updates succeed or all fail).

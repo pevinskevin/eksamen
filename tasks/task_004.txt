@@ -1,0 +1,11 @@
+# Task ID: 4
+# Title: BE: Authentication & Authorization Middleware
+# Status: pending
+# Dependencies: 3
+# Priority: high
+# Description: Implement middleware for authentication (verifying JWT/session) to protect routes that require a logged-in user. Implement basic authorization logic (e.g., role checking middleware) to restrict access to certain functionalities based on user roles (e.g., 'user', 'admin').
+# Details:
+Create an `authMiddleware` function that checks for `Authorization` header (Bearer token) or session cookie. If JWT, verify it using `jsonwebtoken.verify()`. Attach user object (e.g., `req.user = { id: decoded.userId, role: decoded.role }`) to the request. Create an `authorizeMiddleware(rolesArray)` that checks if `req.user.role` is in `rolesArray`. Apply these middlewares to protected routes.
+
+# Test Strategy:
+Protected routes should return 401/403 if no token/invalid token or insufficient role. Valid token/role should allow access. Test with different user roles.

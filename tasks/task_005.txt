@@ -1,0 +1,11 @@
+# Task ID: 5
+# Title: FE: Svelte Project Setup & Basic UI Shell
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Set up the Svelte frontend project (or SvelteKit if preferred). Create a basic application shell with main layout components (e.g., navbar, footer, main content area) and set up client-side routing if using SvelteKit or a separate router.
+# Details:
+Initialize a Svelte project: `npx degit sveltejs/template my-svelte-project` or `npm create svelte@latest my-sveltekit-project`. Set up basic folder structure (components, routes/pages, stores). Create `Navbar.svelte`, `Footer.svelte`, and an `App.svelte` or `+layout.svelte` to structure the main UI. If not using SvelteKit, install a router like `svelte-routing`.
+
+# Test Strategy:
+Verify the Svelte application runs locally. Basic layout components should render. Navigation (if set up) should switch between placeholder pages.

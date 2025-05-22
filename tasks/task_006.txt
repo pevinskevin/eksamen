@@ -1,0 +1,11 @@
+# Task ID: 6
+# Title: FE: User Authentication UI & Logic
+# Status: pending
+# Dependencies: 3, 5
+# Priority: high
+# Description: Develop Svelte components for user registration and login forms. Implement logic to capture user input, perform client-side validation, and use the `fetch` API to send credentials to the backend authentication endpoints. Manage client-side user session (e.g., store JWT in localStorage, update UI based on auth state).
+# Details:
+Create `Register.svelte` and `Login.svelte` components with input fields and submit buttons. Use Svelte stores (e.g., `writable`) for managing user authentication state (token, user info). On form submission, use `fetch` to POST to `/auth/register` or `/auth/login`. Handle responses: store token in localStorage on success, display errors on failure. Implement logout functionality (clear token, reset auth state). Conditionally render UI elements based on auth state (e.g., show Login/Register or Logout/Profile links).
+
+# Test Strategy:
+User can register via the form, data sent to backend. User can log in, token received and stored. UI updates based on login status. Logout clears session. Error messages displayed for invalid input/credentials.

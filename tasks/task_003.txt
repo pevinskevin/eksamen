@@ -1,0 +1,11 @@
+# Task ID: 3
+# Title: BE: User Authentication Endpoints (Registration, Login)
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Implement backend logic for user registration and login. This includes creating a User model, handling password hashing (e.g., using bcryptjs or argon2), storing user data, verifying credentials, and generating session tokens (JWT) or setting up cookie-based sessions.
+# Details:
+Create `/auth/register` and `/auth/login` Express routes. For registration: validate input (email, password), hash password using `bcryptjs` (`npm install bcryptjs`), store user in `Users` table. For login: find user by email, compare hashed password, if valid, generate a JWT (`npm install jsonwebtoken`) containing user_id and role. Return token to client. Define User model functions for DB interactions (e.g., `createUser`, `findUserByEmail`).
+
+# Test Strategy:
+Test registration endpoint: new user created in DB, password hashed. Test login endpoint: valid credentials return a token/session, invalid credentials return an error. Check token content.
