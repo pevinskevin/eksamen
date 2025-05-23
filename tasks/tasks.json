@@ -80,7 +80,7 @@
           "description": "Develop the `Register.svelte` component, including form inputs for user registration (e.g., email, password, confirm password) and implement client-side validation logic for these inputs.",
           "dependencies": [],
           "details": "Form fields: username (optional), email, password, confirm password. Client-side validation: required fields, email format, password strength, password confirmation match. Display appropriate error messages.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -88,7 +88,7 @@
           "description": "Develop the `Login.svelte` component, including form inputs for user login (e.g., email, password) and implement client-side validation logic.",
           "dependencies": [],
           "details": "Form fields: email, password. Client-side validation: required fields, email format. Display appropriate error messages.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -99,7 +99,7 @@
             2
           ],
           "details": "Functions to call `/auth/register` with registration data and `/auth/login` with login credentials. Handle success responses (e.g., receiving a JWT) and error responses (e.g., displaying backend error messages).",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,

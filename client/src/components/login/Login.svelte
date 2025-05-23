@@ -1,14 +1,11 @@
 <script>
     const baseUrl = import.meta.env.VITE_API_BASE_URL
 
-    let email = 'example@test.com';
+    let email = 'admin@test.com';
     let emailError = '';
 
-    let password = '1234';
+    let password = 'test';
     let passwordError = '';
-    
-    let confirmPassword = '1234';
-    let confirmPasswordError = '';
 
     function validateEmail(){
         if (!email){
@@ -28,31 +25,19 @@
         }
     }
 
-    function validateConfirmPassword(){
-        if (!confirmPassword){
-            confirmPasswordError = 'Confirming your password is required.';
-        } else if (password && password !== confirmPassword){
-            confirmPasswordError = 'Passwords do not match.';
-        } else {
-            confirmPasswordError = '';
-        }
-    }
-
     async function handleSubmit(){
         emailError = '';
         passwordError = '';
-        confirmPasswordError = '';
 
         validateEmail();
         validatePassword();
-        validateConfirmPassword();
 
-        if (!emailError && !passwordError && !confirmPasswordError){
-            console.log('Form is valid', email, password, confirmPassword);
+        if (!emailError && !passwordError){
+            console.log('Form is valid', email, password, );
             console.log('Form submitted!');
 
             try {
-                const response = await fetch(`${baseUrl}/api/register`, {
+                const response = await fetch(`${baseUrl}/api/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -63,7 +48,7 @@
                 const responseData = await response.json();
 
                 if (response.ok){
-                    console.log(responseData.message);
+                    console.log(responseData.message, '- Login successful.');
                 } else console.log(responseData.errorMessage);
 
             } catch (error) {
@@ -90,12 +75,5 @@
         <p style="color: red;">{passwordError}</p>
     {/if}
 
-    <label for="confirm-password-input">Confirm Password</label>
-    <input type="password" id="confirm-password-input" placeholder="Repeat password" bind:value={confirmPassword}>
-    {#if confirmPasswordError}
-        <p style="color: red;">{confirmPasswordError}</p>
-    {/if}
-    
     <button type="submit">Submit</button>
 </form>
-

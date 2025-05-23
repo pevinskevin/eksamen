@@ -11,19 +11,19 @@ Create `Register.svelte` and `Login.svelte` components with input fields and sub
 User can register via the form, data sent to backend. User can log in, token received and stored. UI updates based on login status. Logout clears session. Error messages displayed for invalid input/credentials.
 
 # Subtasks:
-## 1. Create Register.svelte Component [pending]
+## 1. Create Register.svelte Component [done]
 ### Dependencies: None
 ### Description: Develop the `Register.svelte` component, including form inputs for user registration (e.g., email, password, confirm password) and implement client-side validation logic for these inputs.
 ### Details:
 Form fields: username (optional), email, password, confirm password. Client-side validation: required fields, email format, password strength, password confirmation match. Display appropriate error messages.
 
-## 2. Create Login.svelte Component [pending]
+## 2. Create Login.svelte Component [done]
 ### Dependencies: None
 ### Description: Develop the `Login.svelte` component, including form inputs for user login (e.g., email, password) and implement client-side validation logic.
 ### Details:
 Form fields: email, password. Client-side validation: required fields, email format. Display appropriate error messages.
 
-## 3. Implement API Communication for Auth Endpoints [pending]
+## 3. Implement API Communication for Auth Endpoints [done]
 ### Dependencies: 6.1, 6.2
 ### Description: Implement `fetch` API calls from the Svelte components (or a dedicated service) to interact with the backend `/auth/register` and `/auth/login` endpoints. Handle request submission and response processing.
 ### Details:

@@ -26,11 +26,11 @@ router.post('/login', async (req, res) => {
             return res
                 .status(401)
                 .send({ errorMessage: 'Provided password is incorrect. Please try again.' });
+        } else {
+            req.session.role = user.role;
+            req.session.userId = user.user_id;
+            return res.status(200).send({ message: 'User successfully validated' });
         }
-        req.session.role = user.role;
-        req.session.userId = user.user_id;
-        
-        return res.status(200).send({ message: 'User successfully validated' });
     } catch (error) {
         console.log(error);
         return res.status(404).send({
@@ -60,7 +60,7 @@ router.post('/register', async (req, res) => {
         };
         await db.query(query);
 
-        // const sendEmail = await main(req.body.email, req.body.username);
+        const sendEmail = await main(req.body.email, req.body.username);
 
         return res.status(200).send({ message: 'User successfully registered.' });
     } catch (error) {

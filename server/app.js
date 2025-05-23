@@ -20,6 +20,14 @@ const io = new Server(server, {
 
 // -- Misc. Setup --
 import cors from 'cors';
+app.use(
+    cors({
+        origin: 'http://localhost:5173',
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+    })
+);
+
 import session from 'express-session';
 app.use(
     session({
@@ -32,6 +40,7 @@ app.use(
         },
     })
 );
+
 import { rateLimit } from 'express-rate-limit';
 import helmet from 'helmet';
 app.use(helmet());
