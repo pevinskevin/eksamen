@@ -9,3 +9,35 @@ Create `Register.svelte` and `Login.svelte` components with input fields and sub
 
 # Test Strategy:
 User can register via the form, data sent to backend. User can log in, token received and stored. UI updates based on login status. Logout clears session. Error messages displayed for invalid input/credentials.
+
+# Subtasks:
+## 1. Create Register.svelte Component [pending]
+### Dependencies: None
+### Description: Develop the `Register.svelte` component, including form inputs for user registration (e.g., email, password, confirm password) and implement client-side validation logic for these inputs.
+### Details:
+Form fields: username (optional), email, password, confirm password. Client-side validation: required fields, email format, password strength, password confirmation match. Display appropriate error messages.
+
+## 2. Create Login.svelte Component [pending]
+### Dependencies: None
+### Description: Develop the `Login.svelte` component, including form inputs for user login (e.g., email, password) and implement client-side validation logic.
+### Details:
+Form fields: email, password. Client-side validation: required fields, email format. Display appropriate error messages.
+
+## 3. Implement API Communication for Auth Endpoints [pending]
+### Dependencies: 6.1, 6.2
+### Description: Implement `fetch` API calls from the Svelte components (or a dedicated service) to interact with the backend `/auth/register` and `/auth/login` endpoints. Handle request submission and response processing.
+### Details:
+Functions to call `/auth/register` with registration data and `/auth/login` with login credentials. Handle success responses (e.g., receiving a JWT) and error responses (e.g., displaying backend error messages).
+
+## 4. Manage Client-Side Authentication State [pending]
+### Dependencies: 6.3
+### Description: Implement mechanisms for managing the client-side authentication state. This includes storing the JWT (e.g., in `localStorage` or `sessionStorage`) upon successful authentication and using Svelte stores to make the authentication status and user data globally accessible.
+### Details:
+Create a Svelte store (e.g., `authStore.js`) to hold user object and token. Functions to save token to localStorage, load token from localStorage on app init, and clear token. Update store based on login/registration success.
+
+## 5. Implement Logout and Conditional UI Rendering [pending]
+### Dependencies: 6.4
+### Description: Implement logout functionality that clears the authentication state (JWT from storage, Svelte store). Update the UI to render conditionally based on the user's authentication status (e.g., show user profile/logout vs. login/register links).
+### Details:
+Create a logout function/button that clears the token from localStorage and resets the auth store. Implement route guards or conditional rendering in Svelte components (`{#if $authStore.isAuthenticated}`) to protect routes and show/hide UI elements.
+

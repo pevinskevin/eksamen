@@ -1,11 +1,20 @@
 # Task ID: 4
 # Title: BE: Authentication & Authorization Middleware
-# Status: pending
+# Status: done
 # Dependencies: 3
 # Priority: high
-# Description: Implement middleware for authentication (verifying JWT/session) to protect routes that require a logged-in user. Implement basic authorization logic (e.g., role checking middleware) to restrict access to certain functionalities based on user roles (e.g., 'user', 'admin').
+# Description: Implement middleware for session-based authentication to protect routes that require a logged-in user. The primary focus for this task is on implementing robust authentication middleware. Role-based authorization (e.g., admin/user distinctions) is deferred for now. Ownership-based access control, where necessary, will be handled within specific route handlers rather than a generic authorization middleware.
 # Details:
-Create an `authMiddleware` function that checks for `Authorization` header (Bearer token) or session cookie. If JWT, verify it using `jsonwebtoken.verify()`. Attach user object (e.g., `req.user = { id: decoded.userId, role: decoded.role }`) to the request. Create an `authorizeMiddleware(rolesArray)` that checks if `req.user.role` is in `rolesArray`. Apply these middlewares to protected routes.
+Create an `authMiddleware` function. This function should:
+1. Check for an active session (e.g., by inspecting `req.session` and verifying the presence of `req.session.userId`).
+2. If a valid session exists (e.g., `req.session.userId` is present), ensure user information (e.g., user ID from `req.session.userId`, role from `req.session.role`) is readily accessible for subsequent handlers. This can be achieved by populating `req.user` (e.g., `req.user = { id: req.session.userId, role: req.session.role }`) or by ensuring route handlers can directly and reliably use `req.session` for this information.
+3. If authentication fails (no active session, or session data is invalid/missing required fields like `userId`), the middleware should send an appropriate error response (e.g., 401 Unauthorized).
+4. Apply this `authMiddleware` to all routes that require a user to be logged in.
+Note: General role-based authorization middleware (e.g., checking for 'admin' vs 'user' roles) is deferred. Specific access control logic, such as ownership checks, will be implemented directly within the relevant route handlers after authentication, using the user information made available by this session-based middleware.
 
 # Test Strategy:
-Protected routes should return 401/403 if no token/invalid token or insufficient role. Valid token/role should allow access. Test with different user roles.
+1. Test that protected routes return a 401 Unauthorized status code when no active session is present (e.g., no session cookie sent, or session store does not recognize the session ID).
+2. Test that protected routes return a 401 Unauthorized status code when a session exists but is invalid or lacks essential user identifiers (e.g., `req.session.userId` is missing).
+3. Test that protected routes allow access (e.g., return a 2xx status code or proceed to the next handler) when a valid session with required user information (e.g., `req.session.userId`) is present.
+4. Verify that user information (e.g., `req.user` if populated, or directly via `req.session`) is correctly populated and accessible with user details (ID, role) after successful session validation.
+(Role-based authorization tests are deferred for this task).

@@ -2,7 +2,7 @@ import { Router } from 'express';
 const router = Router();
 import db from '../database/connection.js';
 import { comparePassword, hashPassword } from '../util/hashing.js';
-import authorize from '../middleware/authorisation.js';
+import isAuthenticated from '../middleware/authorisation.js';
 import main from '../nodemailer/nodemailer.js';
 
 router.get('/test', (req, res) => {
@@ -29,6 +29,7 @@ router.post('/login', async (req, res) => {
         }
         req.session.role = user.role;
         req.session.userId = user.user_id;
+        
         return res.status(200).send({ message: 'User successfully validated' });
     } catch (error) {
         console.log(error);
