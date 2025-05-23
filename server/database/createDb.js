@@ -1,0 +1,254 @@
+import { Client } from 'pg';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+// Create a new client for each operation
+function createClient() {
+    return new Client({
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT,
+        database: process.env.DB_DATABASE,
+    });
+}
+
+async function createTables() {
+    const client = createClient();
+
+    try {
+        await client.connect();
+        console.log('Creating database schema...');
+
+        // Step 1: Create ENUM types
+        console.log('Creating ENUM types...');
+
+        await client.query(`
+      -- User roles
+      CREATE TYPE user_role AS ENUM ('user', 'admin');
+      
+      -- Order types
+      CREATE TYPE order_type AS ENUM ('buy', 'sell');
+      CREATE TYPE order_variant AS ENUM ('limit', 'market');
+      CREATE TYPE order_status AS ENUM ('open', 'partially_filled', 'fully_filled', 'cancelled');
+      
+      -- Transaction types
+      CREATE TYPE transaction_type AS ENUM (
+        'deposit_fiat', 
+        'withdrawal_fiat', 
+        'deposit_crypto', 
+        'withdrawal_crypto'
+      );
+      CREATE TYPE transaction_status AS ENUM ('pending', 'completed', 'failed');
+    `);
+        console.log('✓ Created ENUM types');
+
+        // Step 2: Create tables using the ENUMs
+
+        // User table
+        await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        user_id SERIAL PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        role user_role DEFAULT 'user',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+        console.log('✓ Created users table');
+
+        // Cryptocurrency table
+        await client.query(`
+      CREATE TABLE IF NOT EXISTS cryptocurrencies (
+        cryptocurrency_id SERIAL PRIMARY KEY,
+        symbol VARCHAR(20) UNIQUE NOT NULL,
+        name VARCHAR(100) NOT NULL,
+        description TEXT,
+        icon_url VARCHAR(500)
+      )
+    `);
+        console.log('✓ Created cryptocurrencies table');
+
+        // Account table (for USD balance)
+        await client.query(`
+      CREATE TABLE IF NOT EXISTS accounts (
+        account_id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(user_id),
+        currency_code VARCHAR(10) DEFAULT 'SIM_USD',
+        balance DECIMAL(20, 8) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, currency_code)
+      )
+    `);
+        console.log('✓ Created accounts table');
+
+        // CryptoHolding table
+        await client.query(`
+      CREATE TABLE IF NOT EXISTS crypto_holdings (
+        holding_id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(user_id),
+        cryptocurrency_id INTEGER REFERENCES cryptocurrencies(cryptocurrency_id),
+        balance DECIMAL(20, 8) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, cryptocurrency_id)
+      )
+    `);
+        console.log('✓ Created crypto_holdings table');
+
+        // Order table
+        await client.query(`
+      CREATE TABLE IF NOT EXISTS orders (
+        order_id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(user_id),
+        cryptocurrency_id INTEGER REFERENCES cryptocurrencies(cryptocurrency_id),
+        type order_type NOT NULL,
+        order_type order_variant NOT NULL,
+        quantity_total DECIMAL(20, 8) NOT NULL,
+        quantity_remaining DECIMAL(20, 8) NOT NULL,
+        price DECIMAL(20, 8),
+        status order_status DEFAULT 'open',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+        console.log('✓ Created orders table');
+
+        // Trade table
+        await client.query(`
+      CREATE TABLE IF NOT EXISTS trades (
+        trade_id SERIAL PRIMARY KEY,
+        buy_order_id INTEGER REFERENCES orders(order_id),
+        sell_order_id INTEGER REFERENCES orders(order_id),
+        cryptocurrency_id INTEGER REFERENCES cryptocurrencies(cryptocurrency_id),
+        quantity DECIMAL(20, 8) NOT NULL,
+        price DECIMAL(20, 8) NOT NULL,
+        buyer_user_id INTEGER REFERENCES users(user_id),
+        seller_user_id INTEGER REFERENCES users(user_id),
+        trade_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+        console.log('✓ Created trades table');
+
+        // Transaction table
+        await client.query(`
+      CREATE TABLE IF NOT EXISTS transactions (
+        transaction_id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(user_id),
+        type transaction_type NOT NULL,
+        currency_code_or_crypto_id VARCHAR(50) NOT NULL,
+        amount DECIMAL(20, 8) NOT NULL,
+        status transaction_status DEFAULT 'pending',
+        external_transaction_id VARCHAR(255),
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+        console.log('✓ Created transactions table');
+
+        // Step 3: Insert sample cryptocurrencies
+        await client.query(`
+      INSERT INTO cryptocurrencies (symbol, name, description)
+      VALUES 
+        ('BTCUSDT', 'Bitcoin', 'Simulated Bitcoin paired with USDT'),
+        ('ETHUSDT', 'Ethereum', 'Simulated Ethereum paired with USDT'),
+        ('BNBUSDT', 'Binance Coin', 'Simulated BNB paired with USDT')
+      ON CONFLICT (symbol) DO NOTHING
+    `);
+        console.log('✓ Added sample cryptocurrencies');
+
+        const testPasswordHash = 'admin_hashed'; // In real app: await bcrypt.hash('admin', 10)
+
+        await client.query(
+            `
+      INSERT INTO users (email, password_hash, role)
+      VALUES ('admin@test.com', $1, 'admin')
+      ON CONFLICT (email) DO NOTHING
+    `,
+            [testPasswordHash]
+        );
+        console.log('✓ Added test admin user (admin@test.com / password: admin)');
+
+        // Also create a fiat account for the admin user
+        await client.query(`
+      INSERT INTO accounts (user_id, currency_code, balance)
+      SELECT user_id, 'SIM_USD', 10000.00
+      FROM users 
+      WHERE email = 'admin@test.com'
+      ON CONFLICT (user_id, currency_code) DO NOTHING
+    `);
+        console.log('✓ Added $10,000 SIM_USD balance for admin');
+
+        console.log('\n✅ Database schema created successfully!');
+    } catch (err) {
+        // Check if error is because types already exist
+        if (err.code === '42710') {
+            console.log("Note: Some types already exist, that's okay!");
+        } else {
+            console.error('Error:', err.message);
+            throw err;
+        }
+    } finally {
+        await client.end();
+    }
+}
+
+// Optional: Function to drop everything (useful for development)
+async function dropTables() {
+    const client = createClient();
+
+    try {
+        await client.connect();
+        console.log('Dropping all tables and types...');
+
+        // Drop tables first (they depend on the types)
+        await client.query(`
+      DROP TABLE IF EXISTS transactions CASCADE;
+      DROP TABLE IF EXISTS trades CASCADE;
+      DROP TABLE IF EXISTS orders CASCADE;
+      DROP TABLE IF EXISTS crypto_holdings CASCADE;
+      DROP TABLE IF EXISTS accounts CASCADE;
+      DROP TABLE IF EXISTS cryptocurrencies CASCADE;
+      DROP TABLE IF EXISTS users CASCADE;
+    `);
+
+        // Then drop the types
+        await client.query(`
+      DROP TYPE IF EXISTS transaction_status CASCADE;
+      DROP TYPE IF EXISTS transaction_type CASCADE;
+      DROP TYPE IF EXISTS order_status CASCADE;
+      DROP TYPE IF EXISTS order_variant CASCADE;
+      DROP TYPE IF EXISTS order_type CASCADE;
+      DROP TYPE IF EXISTS user_role CASCADE;
+    `);
+
+        console.log('✅ Dropped everything successfully!');
+    } catch (err) {
+        console.error('Error dropping:', err.message);
+    } finally {
+        await client.end();
+    }
+}
+
+// Check command line arguments
+const command = process.argv[2];
+
+async function main() {
+    if (command === '--drop') {
+        await dropTables();
+    } else if (command === '--reset') {
+        await dropTables();
+        await createTables();
+    } else {
+        await createTables();
+    }
+}
+
+main().catch(console.error);
+
+// Usage:
+// node createDb.js          # Create tables
+// node createDb.js --drop   # Drop everything
+// node createDb.js --reset  # Drop and recreate everything
