@@ -1,6 +1,6 @@
 # Task ID: 2
 # Title: BE: Database Selection & Initial Schema Design (Users, Cryptocurrencies, Balances)
-# Status: pending
+# Status: done
 # Dependencies: 1
 # Priority: high
 # Description: Research and finalize the choice of database (leaning PostgreSQL as per PRD). Design the initial database schema for core entities: Users, Cryptocurrencies, Accounts (for fiat balances), and CryptoHoldings (for crypto balances). Implement migration scripts to create these tables.

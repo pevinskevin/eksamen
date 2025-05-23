@@ -1,6 +1,6 @@
 # Task ID: 5
 # Title: FE: Svelte Project Setup & Basic UI Shell
-# Status: pending
+# Status: done
 # Dependencies: None
 # Priority: high
 # Description: Set up the Svelte frontend project (or SvelteKit if preferred). Create a basic application shell with main layout components (e.g., navbar, footer, main content area) and set up client-side routing if using SvelteKit or a separate router.

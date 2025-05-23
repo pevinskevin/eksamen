@@ -8,7 +8,7 @@
       "testStrategy": "Verify that the Node.js project is initialized, Express is installed, and the basic server starts without errors, responding to a GET request at the root path. Linting and formatting tools should be configurable.",
       "priority": "high",
       "dependencies": [],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -21,7 +21,7 @@
       "dependencies": [
         1
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -58,7 +58,7 @@
       "testStrategy": "Verify the Svelte application runs locally. Basic layout components should render. Navigation (if set up) should switch between placeholder pages.",
       "priority": "high",
       "dependencies": [],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {

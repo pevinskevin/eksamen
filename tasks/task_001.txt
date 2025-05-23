@@ -1,6 +1,6 @@
 # Task ID: 1
 # Title: BE: Project Setup & Basic Express Server
-# Status: pending
+# Status: done
 # Dependencies: None
 # Priority: high
 # Description: Initialize the Node.js backend project with Express.js. Set up project structure, linting (e.g., ESLint), formatting (e.g., Prettier), and a basic Express server that listens on a port. This forms the absolute foundation for all backend development.

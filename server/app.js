@@ -19,6 +19,22 @@ const io = new Server(server, {
 });
 
 // -- Misc. Setup --
+import cors from 'cors';
+import session from 'express-session';
+app.use(
+    session({
+        secret: `${process.env.SESSION_SECRET}`,
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            secure: false,
+            maxAge: 60000 * 15 /* 15 minutes. */,
+        },
+    })
+);
+import { rateLimit } from 'express-rate-limit';
+import helmet from 'helmet';
+app.use(helmet());
 app.use(express.json());
 
 // -- Index Page Setup --
