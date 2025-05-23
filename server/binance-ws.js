@@ -20,14 +20,14 @@ binance.websockets.depthCache(
         let bidsArrayForDisplay = [];
         let asksArrayForDisplay = [];
 
-        function loopBidsElements(value, key) {
+        function pushToBidsArrayForDisplay(value, key) {
             bidsArrayForDisplay.push({ priceband: key, quantity: value });
         }
-        function loopAsksElements(value, key) {
+        function pushToAsksArrayForDisplay(value, key) {
             asksArrayForDisplay.push({ priceband: key, quantity: value });
         }
 
-        // Takes nested array, aggregates values and pushes to map.
+        // Takes nested array, aggregates order quantities in one dollar incremenets and pushes to map.
         function floorPriceAndAggregateQuantity(array, map) {
             array.forEach((element) => {
                 const flooredPrice = Math.floor(Number(element[0]));
@@ -45,16 +45,16 @@ binance.websockets.depthCache(
         const bidsObject = binance.sortBids(depth.bids, Infinity);
         const askObject = binance.sortAsks(depth.asks, Infinity);
 
-        // structure [ [String price, Number quantity], [String price, Number quantity]... ]
-        let bidsArray = Object.entries(bidsObject);
+        // structure [ [String price, Number orderQuantity], [String price, Number orderQuantity]... ]
+        const bidsArray = Object.entries(bidsObject);
         floorPriceAndAggregateQuantity(bidsArray, aggregatedBidsInOneDollarIncrements);
+        aggregatedBidsInOneDollarIncrements.forEach(pushToBidsArrayForDisplay);
 
-        let asksArray = Object.entries(askObject);
+        const asksArray = Object.entries(askObject);
         floorPriceAndAggregateQuantity(asksArray, aggregatedAsksInOneDollarIncrements);
+        aggregatedAsksInOneDollarIncrements.forEach(pushToAsksArrayForDisplay);
 
-        aggregatedBidsInOneDollarIncrements.forEach(loopBidsElements);
-        aggregatedAsksInOneDollarIncrements.forEach(loopAsksElements);
-        let dataToEmit = { bids: bidsArrayForDisplay, asks: asksArrayForDisplay };
+        const dataToEmit = { bids: bidsArrayForDisplay, asks: asksArrayForDisplay };
 
         marketDataEmitter.emit('marketUpdate', dataToEmit);
     },
