@@ -1,6 +1,6 @@
 # Task ID: 3
 # Title: BE: User Authentication Endpoints (Registration, Login)
-# Status: pending
+# Status: done
 # Dependencies: 2
 # Priority: high
 # Description: Implement backend logic for user registration and login. This includes creating a User model, handling password hashing (e.g., using bcryptjs or argon2), storing user data, verifying credentials, and generating session tokens (JWT) or setting up cookie-based sessions.

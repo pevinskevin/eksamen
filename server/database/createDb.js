@@ -5,13 +5,7 @@ dotenv.config();
 
 // Create a new client for each operation
 function createClient() {
-    return new Client({
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        host: process.env.DB_HOST,
-        port: process.env.DB_PORT,
-        database: process.env.DB_DATABASE,
-    });
+    return new Client();
 }
 
 async function createTables() {
