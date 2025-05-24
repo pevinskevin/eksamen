@@ -6,7 +6,7 @@ import main from '../nodemailer/nodemailer.js';
 
 router.get('/test', (req, res) => {
     console.log(req.session, req.session.id, req.session.role || 'No session role');
-    res.send({ message: 'Hi!' });
+    res.send({ data: 'Hi!' });
 });
 
 // login
@@ -24,23 +24,21 @@ router.post('/login', async (req, res) => {
         if (!matchingPasswords) {
             return res
                 .status(401)
-                .send({ errorMessage: 'Provided password is incorrect. Please try again.' });
+                .send({ error: 'Provided password is incorrect. Please try again.' });
         } else {
             req.session.role = user.role;
             req.session.userId = user.user_id;
             return res.status(200).send({
-                message: 'Login successful.',
-                user: {
-                    userId: user.user_id,
-                    email: user.email,
-                    role: user.role,
+                data: {
+                    user: { userId: user.user_id, email: user.email, role: user.role },
                 },
+                message: 'Login successful.',
             });
         }
     } catch (error) {
         console.log(error);
         return res.status(404).send({
-            errorMessage: "Provided user name is incorrect, or doesn't exist. Please try again.",
+            error: "Provided user name is incorrect, or doesn't exist. Please try again."
         });
     }
 });
@@ -54,14 +52,14 @@ router.post('/logout', (req, res) => {
     );
 
     if (!req.session.role) {
-        return res.status(401).send({ errorMessage: 'User is not logged in.' });
+        return res.status(401).send({ error: 'User is not logged in.' });
     } else {
         req.session.destroy((err) => {
             if (err) {
                 console.error('Session destruction error:', err);
                 return res
                     .status(500)
-                    .send({ errorMessage: 'Could not log out due to server error.' });
+                    .send({ error: 'Could not log out due to server error.' });
             }
         });
         return res.status(200).send({ message: 'User successfully logged out.' });
@@ -71,7 +69,7 @@ router.post('/logout', (req, res) => {
 router.post('/register', async (req, res) => {
     try {
         if (req.body.email === '' || req.body.password === '')
-            return res.status(400).send({ message: 'Error: Username or password is missing.' });
+            return res.status(404).send({ error: 'Error: Username or password is missing.' });
 
         const hashedPassword = await hashPassword(req.body.password);
 
@@ -86,7 +84,7 @@ router.post('/register', async (req, res) => {
 
         return res.status(200).send({ message: 'User successfully registered.' });
     } catch (error) {
-        res.status(404).send({ errorMessage: `${error}` });
+        res.status(404).send({ error: `${error}` });
     }
 });
 

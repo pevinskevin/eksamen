@@ -1,5 +1,5 @@
 function isAuthenticated(req, res, next) {
-    if (!req.session)
+    if (typeof req.session.userId !== 'number' || req.session.userId < 0)
         return res.status(401).json({
             message: 'Authentication required. Please log in',
         });

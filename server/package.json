@@ -4,7 +4,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node database/createDb.js --reset && nodemon app.js"
+    "dev": "node database/createDb.js --reset && nodemon app.js",
+    "auth": "node scripts/runAuth.js",
+    "account": "node scripts/runAccount.js",
+    "account-balance": "node scripts/workflowOrchestrator.js get-account-balance"
   },
   "keywords": [],
   "author": "",
@@ -12,12 +15,15 @@
   "type": "module",
   "description": "",
   "dependencies": {
+    "axios": "^1.9.0",
+    "axios-cookiejar-support": "^6.0.2",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "node-binance-api": "^1.0.9",
     "pg": "^8.16.0",
     "socket.io": "^4.8.1",
     "task-master-ai": "^0.14.0",
+    "tough-cookie": "^5.1.2",
     "ws": "^8.18.2"
   }
 }

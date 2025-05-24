@@ -61,10 +61,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 import authRouter from './routers/authRouter.js';
-app.use('/api', authRouter);
-
-import accountRouter from './routers/accountRouter.js'
-app.use('/api', accountRouter)
+import accountRouter from './routers/accountRouter.js';
+app.use('/api', authRouter, accountRouter);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => {
