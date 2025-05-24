@@ -72,7 +72,7 @@
         3,
         5
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -109,7 +109,7 @@
             3
           ],
           "details": "Create a Svelte store (e.g., `authStore.js`) to hold user object and token. Functions to save token to localStorage, load token from localStorage on app init, and clear token. Update store based on login/registration success.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 5,
@@ -119,7 +119,7 @@
             4
           ],
           "details": "Create a logout function/button that clears the token from localStorage and resets the auth store. Implement route guards or conditional rendering in Svelte components (`{#if $authStore.isAuthenticated}`) to protect routes and show/hide UI elements.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
@@ -162,7 +162,46 @@
         4
       ],
       "status": "pending",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Account and CryptoHolding Database Models & Services",
+          "description": "Define database schemas and implement service layer logic for `Accounts` (fiat) and `CryptoHoldings` (crypto).",
+          "dependencies": [],
+          "details": "This includes defining all necessary fields, relationships, data types, and basic CRUD operations for both models. `Accounts` will manage fiat currency balances (e.g., SIM_USD), and `CryptoHoldings` will manage cryptocurrency balances.",
+          "status": "done"
+        },
+        {
+          "id": 2,
+          "title": "Create Authenticated GET API for User Balances",
+          "description": "Develop an authenticated GET API endpoint (e.g., `/account/balances`) to fetch combined fiat and crypto balances for the logged-in user.",
+          "dependencies": [
+            1
+          ],
+          "details": "The endpoint must integrate with the authentication system. It will query the `Accounts` and `CryptoHoldings` data, aggregating balances for the specific user making the request.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Implement New User Initial Balance Seeding Logic",
+          "description": "Develop the backend logic to automatically seed initial fiat (e.g., SIM_USD) and/or crypto balances for new users upon successful registration.",
+          "dependencies": [
+            1
+          ],
+          "details": "This logic should be triggered during the user registration process. Specify the default amounts and types of currencies/cryptocurrencies to be credited to new user accounts.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Ensure Correct User ID Filtering in Balance API Queries",
+          "description": "Implement and verify that all API queries for fetching balances correctly join and filter data by `user_id` to ensure data integrity and security.",
+          "dependencies": [
+            2
+          ],
+          "details": "This involves rigorous testing of the `/account/balances` endpoint to confirm that it only returns data belonging to the authenticated user, preventing any cross-user data exposure. Review query construction for `Accounts` and `CryptoHoldings`.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 10,

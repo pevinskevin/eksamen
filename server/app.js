@@ -25,6 +25,7 @@ app.use(
         origin: 'http://localhost:5173',
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
         allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true,
     })
 );
 
@@ -61,6 +62,9 @@ const __dirname = path.dirname(__filename);
 
 import authRouter from './routers/authRouter.js';
 app.use('/api', authRouter);
+
+import accountRouter from './routers/accountRouter.js'
+app.use('/api', accountRouter)
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => {

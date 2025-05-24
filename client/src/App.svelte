@@ -1,13 +1,36 @@
 <script>
-  import Register from "./components/register/Register.svelte";
-  import Login from "./components/login/Login.svelte";
+    const baseUrl = import.meta.env.VITE_API_BASE_URL;
+    import authStore from './store/authStore';
+    import Register from './components/register/Register.svelte';
+    import Login from './components/login/Login.svelte';
+
+    async function handleLogout() {
+        try {
+            const response = await fetch(`${baseUrl}/api/logout`, {
+                method: 'POST',
+                credentials: 'include',
+            });
+
+            const responseData = await response.json();
+
+            if (response.ok) {
+                console.log(responseData.message);
+                authStore.logout();
+            } else console.log(responseData.errorMessage);
+        } catch (error) {
+            console.log(error);
+        }
+    }
 </script>
 
-<Register>
-  
-</Register>
+{#if !$authStore.isAuthenticated}
+    <Register></Register>
+{/if}
 
-<Login>
-  
-</Login>
+{#if !$authStore.isAuthenticated}
+    <Login></Login>
+{/if}
 
+{#if $authStore.isAuthenticated}
+    <button on:click={handleLogout}>Logout</button>
+{/if}

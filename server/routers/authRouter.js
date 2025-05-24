@@ -2,7 +2,6 @@ import { Router } from 'express';
 const router = Router();
 import db from '../database/connection.js';
 import { comparePassword, hashPassword } from '../util/hashing.js';
-import isAuthenticated from '../middleware/authorisation.js';
 import main from '../nodemailer/nodemailer.js';
 
 router.get('/test', (req, res) => {
@@ -29,7 +28,14 @@ router.post('/login', async (req, res) => {
         } else {
             req.session.role = user.role;
             req.session.userId = user.user_id;
-            return res.status(200).send({ message: 'User successfully validated' });
+            return res.status(200).send({
+                message: 'Login successful.',
+                user: {
+                    userId: user.user_id,
+                    email: user.email,
+                    role: user.role,
+                },
+            });
         }
     } catch (error) {
         console.log(error);
@@ -40,11 +46,26 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/logout', (req, res) => {
+    console.log(
+        'Logout Attempt - Session object:',
+        JSON.stringify(req.session, 'UserId:', req.session.userId),
+        'UserId:',
+        req.session.userId
+    );
+
     if (!req.session.role) {
-        return res.status(401).send({ message: 'User is not logged in.' });
+        return res.status(401).send({ errorMessage: 'User is not logged in.' });
+    } else {
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('Session destruction error:', err);
+                return res
+                    .status(500)
+                    .send({ errorMessage: 'Could not log out due to server error.' });
+            }
+        });
+        return res.status(200).send({ message: 'User successfully logged out.' });
     }
-    req.session.destroy();
-    return res.status(200).send({ message: 'User successfully logged out.' });
 });
 
 router.post('/register', async (req, res) => {
@@ -58,6 +79,7 @@ router.post('/register', async (req, res) => {
             text: 'INSERT INTO users (email, password_hash, role) VALUES ($1, $2, $3)',
             values: [req.body.email, hashedPassword, 'user'],
         };
+
         await db.query(query);
 
         const sendEmail = await main(req.body.email, req.body.username);
