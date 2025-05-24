@@ -27,7 +27,7 @@ router.get('/balances', isAuthenticated, async (req, res) => {
     }
 });
 
-router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {
+router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {    
     try {
         const user_id = req.user.id;
         const symbol = req.params.symbol.toUpperCase();
@@ -46,7 +46,7 @@ router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {
         const cryptocurrencyId = idResult.rows[0].cryptocurrency_id;
 
         const symbolHoldingsQuery = {
-            text: 'SELECT * FROM crypto_holdings WHERE cryptocurrency_id = $1 AND user_id = $2',
+            text: 'SELECT symbol, balance FROM crypto_holdings WHERE cryptocurrency_id = $1 AND user_id = $2',
             values: [cryptocurrencyId, user_id],
         };
         const holdingsResult = await db.query(symbolHoldingsQuery);

@@ -219,12 +219,17 @@ async function dropTables() {
         await client.connect();
         console.log('Dropping all tables and types...');
 
-        // Drop views first, then tables
+        // Attempt to drop 'crypto_holdings' first as a table (old structure)
+        await client.query(`
+      DROP TABLE IF EXISTS crypto_holdings CASCADE;
+    `);
+
+        // Then attempt to drop 'crypto_holdings' as a view (new structure)
         await client.query(`
       DROP VIEW IF EXISTS crypto_holdings CASCADE;
     `);
 
-        // Drop tables (they depend on the types)
+        // Drop other tables including the new base table
         await client.query(`
       DROP TABLE IF EXISTS transactions CASCADE;
       DROP TABLE IF EXISTS trades CASCADE;
