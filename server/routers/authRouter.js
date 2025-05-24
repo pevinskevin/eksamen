@@ -18,7 +18,6 @@ router.post('/login', async (req, res) => {
         };
 
         const user = (await db.query(query)).rows.at(0);
-        console.log(user);
 
         const matchingPasswords = await comparePassword(req.body.password, user.password_hash);
         if (!matchingPasswords) {
@@ -38,7 +37,7 @@ router.post('/login', async (req, res) => {
     } catch (error) {
         console.log(error);
         return res.status(404).send({
-            error: "Provided user name is incorrect, or doesn't exist. Please try again."
+            error: "Provided user name is incorrect, or doesn't exist. Please try again.",
         });
     }
 });
@@ -57,9 +56,7 @@ router.post('/logout', (req, res) => {
         req.session.destroy((err) => {
             if (err) {
                 console.error('Session destruction error:', err);
-                return res
-                    .status(500)
-                    .send({ error: 'Could not log out due to server error.' });
+                return res.status(500).send({ error: 'Could not log out due to server error.' });
             }
         });
         return res.status(200).send({ message: 'User successfully logged out.' });
@@ -73,12 +70,19 @@ router.post('/register', async (req, res) => {
 
         const hashedPassword = await hashPassword(req.body.password);
 
-        const query = {
+        const insertUserQuery = {
             text: 'INSERT INTO users (email, password_hash, role) VALUES ($1, $2, $3)',
             values: [req.body.email, hashedPassword, 'user'],
         };
 
-        await db.query(query);
+        await db.query(insertUserQuery);
+
+        const seedUserQuery = {
+            text: 'INSERT INTO accounts (user_id, currency_code, balance) SELECT user_id, $1, $2 FROM users WHERE email = $3',
+            values: ['SIM_USD', 10000.0, req.body.email],
+        };
+
+        await db.query(seedUserQuery);
 
         const sendEmail = await main(req.body.email, req.body.username);
 
