@@ -1,5 +1,5 @@
 import { login, logout } from './authScripts.js';
-import { getAccountBalances } from './accountScripts.js';
+import { getAccountBalances, getBTCBalance } from './accountScripts.js';
 
 async function runGetAccountBalanceWorkflow() {
     console.log('Starting: Get Account Balance Workflow...');
@@ -8,10 +8,10 @@ async function runGetAccountBalanceWorkflow() {
         console.log('Login successful:', loginResponse);
 
         const balanceResponse = await getAccountBalances();
-        console.log('Account balances:', balanceResponse);
+        console.log('Account balances:', JSON.stringify(balanceResponse, null, 2));
 
-        const logoutResponse = await logout();
-        console.log('Logout successful:', logoutResponse);
+        const btcusdtResponse = await getBTCBalance();
+        console.log('BTCUSDT balance:', JSON.stringify(btcusdtResponse, null, 2));
 
         console.log('Workflow completed successfully.');
         return balanceResponse; // Or whatever final result is relevant

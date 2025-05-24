@@ -5,8 +5,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node database/createDb.js --reset && nodemon app.js",
-    "auth": "node scripts/runAuth.js",
-    "account": "node scripts/runAccount.js",
     "account-balance": "node scripts/workflowOrchestrator.js get-account-balance"
   },
   "keywords": [],

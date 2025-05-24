@@ -79,9 +79,9 @@ async function createTables() {
     `);
         console.log('✓ Created accounts table');
 
-        // CryptoHolding table
+        // CryptoHolding table (base table)
         await client.query(`
-      CREATE TABLE IF NOT EXISTS crypto_holdings (
+      CREATE TABLE IF NOT EXISTS crypto_holdings_base (
         holding_id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(user_id),
         cryptocurrency_id INTEGER REFERENCES cryptocurrencies(cryptocurrency_id),
@@ -89,9 +89,16 @@ async function createTables() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(user_id, cryptocurrency_id)
-      )
+      );
+
+      CREATE OR REPLACE VIEW crypto_holdings AS
+      SELECT 
+        chb.*,
+        c.symbol
+      FROM crypto_holdings_base chb
+      JOIN cryptocurrencies c ON chb.cryptocurrency_id = c.cryptocurrency_id;
     `);
-        console.log('✓ Created crypto_holdings table');
+        console.log('✓ Created crypto_holdings_base table and crypto_holdings view');
 
         // Order table
         await client.query(`
@@ -146,9 +153,9 @@ async function createTables() {
         await client.query(`
       INSERT INTO cryptocurrencies (symbol, name, description)
       VALUES 
-        ('BTCUSDT', 'Bitcoin', 'Simulated Bitcoin paired with USDT'),
-        ('ETHUSDT', 'Ethereum', 'Simulated Ethereum paired with USDT'),
-        ('BNBUSDT', 'Binance Coin', 'Simulated BNB paired with USDT')
+        ('BTC', 'Bitcoin', 'Simulated Bitcoin'),
+        ('ETH', 'Ethereum', 'Simulated Ethereum'),
+        ('BNB', 'Binance Coin', 'Simulated BNB')
       ON CONFLICT (symbol) DO NOTHING
     `);
         console.log('✓ Added sample cryptocurrencies');
@@ -164,6 +171,21 @@ async function createTables() {
             [testPasswordHash]
         );
         console.log('✓ Added test admin user (admin@test.com / password: test)');
+        // Create crypto holdings for admin user for BTC, ETH, and BNB
+        await client.query(`
+      INSERT INTO crypto_holdings_base (user_id, cryptocurrency_id, balance)
+      SELECT u.user_id, c.cryptocurrency_id, 
+        CASE 
+          WHEN c.symbol = 'BTC' THEN 1.5
+          WHEN c.symbol = 'ETH' THEN 10.0
+          WHEN c.symbol = 'BNB' THEN 50.0
+        END as balance
+      FROM users u
+      CROSS JOIN cryptocurrencies c
+      WHERE u.email = 'admin@test.com'
+      ON CONFLICT (user_id, cryptocurrency_id) DO NOTHING
+    `);
+        console.log('✓ Added sample crypto holdings for admin');
 
         // Also create a fiat account for the admin user
         await client.query(`
@@ -197,12 +219,17 @@ async function dropTables() {
         await client.connect();
         console.log('Dropping all tables and types...');
 
-        // Drop tables first (they depend on the types)
+        // Drop views first, then tables
+        await client.query(`
+      DROP VIEW IF EXISTS crypto_holdings CASCADE;
+    `);
+
+        // Drop tables (they depend on the types)
         await client.query(`
       DROP TABLE IF EXISTS transactions CASCADE;
       DROP TABLE IF EXISTS trades CASCADE;
       DROP TABLE IF EXISTS orders CASCADE;
-      DROP TABLE IF EXISTS crypto_holdings CASCADE;
+      DROP TABLE IF EXISTS crypto_holdings_base CASCADE;
       DROP TABLE IF EXISTS accounts CASCADE;
       DROP TABLE IF EXISTS cryptocurrencies CASCADE;
       DROP TABLE IF EXISTS users CASCADE;

@@ -16,3 +16,12 @@ export const getAccountBalances = async () => {
         throw error.response?.data || error.message;
     }
 };
+
+export const getBTCBalance = async () => {
+    try {
+        const response = await sharedAxiosInstance.get(`${BASE_URL}/account/crypto/BTC`);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};
