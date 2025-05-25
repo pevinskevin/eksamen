@@ -26,9 +26,6 @@
         }
     }
 
-
-    
-
     onMount(() => {
         fetchAccountBalance();
         console.log(accountBalance);
@@ -40,6 +37,21 @@
 <h2>Account</h2>
 
 <h4>Fiat Holdings</h4>
-
+{#if accountBalance && accountBalance.account}
+<p>We have monies YAY! ٩(＾◡＾)۶</p>
+{#each accountBalance.account as fiatAccount}
+<p>{fiatAccount.currency_code}: {fiatAccount.balance}</p>
+{/each}
+{:else} 
+<p>Broke boi.</p>
+{/if}
 
 <h4>Cryptocurrency Holdings</h4>
+{#if accountBalance && accountBalance.holdings}
+<p>We have cwypto YAY! ٩(＾◡＾)۶</p>
+{#each accountBalance.holdings as cryptoAccount}
+<p>{cryptoAccount.symbol}: {cryptoAccount.balance}</p>
+{/each}
+{:else}
+<p>Broke boi.</p>
+{/if}

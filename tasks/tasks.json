@@ -214,7 +214,7 @@
         6,
         9
       ],
-      "status": "in-progress",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -222,7 +222,7 @@
           "description": "Develop the basic structure for the `AccountDashboard.svelte` component (or equivalent for the chosen frontend framework). This component will serve as the container for displaying account balances.",
           "dependencies": [],
           "details": "Focus on creating the file, basic HTML/Svelte structure, and any necessary initial styling placeholders. No data fetching or display logic at this stage.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -232,7 +232,7 @@
             1
           ],
           "details": "This logic might reside within the `AccountDashboard.svelte` component (e.g., in its script section or a lifecycle function) or in a separate service/store that the component consumes. Ensure proper handling of authentication tokens and API error states (e.g., network issues, unauthorized).",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -243,7 +243,7 @@
             2
           ],
           "details": "Consider formatting for currency and cryptocurrency values. Implement user-friendly messages for loading, errors, or when no balances are available. Ensure the UI is responsive and accessible.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
@@ -315,7 +315,7 @@
         5,
         14
       ],
-      "status": "pending",
+      "status": "in-progress",
       "subtasks": []
     },
     {

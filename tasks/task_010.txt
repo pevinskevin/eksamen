@@ -1,6 +1,6 @@
 # Task ID: 10
 # Title: FE: Display Account Balances
-# Status: in-progress
+# Status: done
 # Dependencies: 6, 9
 # Priority: high
 # Description: Create Svelte components to display the authenticated user's fiat and cryptocurrency balances, fetched from the backend API.
@@ -11,19 +11,19 @@ Create an `AccountDashboard.svelte` or similar component. When the component mou
 Logged-in user sees their correct fiat and crypto balances displayed. If no balances, an appropriate message is shown. Updates if balances change (e.g., after a trade, to be tested later).
 
 # Subtasks:
-## 1. Create Account Dashboard Component Shell [pending]
+## 1. Create Account Dashboard Component Shell [done]
 ### Dependencies: None
 ### Description: Develop the basic structure for the `AccountDashboard.svelte` component (or equivalent for the chosen frontend framework). This component will serve as the container for displaying account balances.
 ### Details:
 Focus on creating the file, basic HTML/Svelte structure, and any necessary initial styling placeholders. No data fetching or display logic at this stage.
 
-## 2. Implement Balance Fetching Logic [pending]
+## 2. Implement Balance Fetching Logic [done]
 ### Dependencies: 10.1
 ### Description: Implement the client-side logic to make authenticated API calls to the backend to retrieve the user's fiat and crypto account balances. This includes handling API responses and errors.
 ### Details:
 This logic might reside within the `AccountDashboard.svelte` component (e.g., in its script section or a lifecycle function) or in a separate service/store that the component consumes. Ensure proper handling of authentication tokens and API error states (e.g., network issues, unauthorized).
 
-## 3. Display Balances in UI with Edge Case Handling [pending]
+## 3. Display Balances in UI with Edge Case Handling [done]
 ### Dependencies: 10.1, 10.2
 ### Description: Integrate the fetched balance data into the `AccountDashboard.svelte` component's template. Clearly display the various fiat and crypto balances, and implement UI to handle cases such as zero balances, non-existent balances (if applicable), loading states, and error states from fetching.
 ### Details:

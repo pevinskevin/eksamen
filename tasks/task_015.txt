@@ -1,6 +1,6 @@
 # Task ID: 15
 # Title: FE: WebSocket Client Integration
-# Status: pending
+# Status: in-progress
 # Dependencies: 5, 14
 # Priority: high
 # Description: Implement WebSocket client logic in the Svelte frontend to connect to the backend WebSocket server. Handle opening of the connection and receiving basic messages.
