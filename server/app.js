@@ -61,6 +61,9 @@ app.use('/api', authRouter, cryptoRouter);
 import accountRouter from './routers/accountRouter.js';
 app.use('/api/account', accountRouter);
 
+import orderRouter from './routers/orderRouter.js';
+app.use('api/order', orderRouter);
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
