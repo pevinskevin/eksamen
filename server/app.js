@@ -43,17 +43,11 @@ app.use(
 );
 
 import { rateLimit } from 'express-rate-limit';
+
 import helmet from 'helmet';
 app.use(helmet());
+
 app.use(express.json());
-
-// -- Index Page Setup --
-import { binance, marketDataEmitter } from './binance-ws.js';
-
-// -- Market Update Emitter Setup --
-marketDataEmitter.on('marketUpdate', (updatedDataObject) => {
-    io.emit('orderBookUpdate', updatedDataObject);
-});
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -66,19 +60,25 @@ app.use('/api', authRouter);
 import accountRouter from './routers/accountRouter.js';
 app.use('/api/account', accountRouter);
 
-
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// -- --
+// -- socket.io Setup  --
 io.on('connection', (socket) => {
     console.log('A user successfuly connected via WebSocket:', socket.id);
 
     socket.on('disconnect', () => {
         console.log('User disconnected', socket.id);
     });
+});
+
+// -- Index Page Setup --
+import { marketDataEmitter } from './binance-ws.js';
+// -- Market Update Emitter Setup --
+marketDataEmitter.on('marketUpdate', (updatedDataObject) => {
+    io.emit('orderBookUpdate', updatedDataObject);
 });
 
 // -- Listener --

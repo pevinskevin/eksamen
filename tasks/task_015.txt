@@ -1,11 +1,37 @@
 # Task ID: 15
 # Title: FE: WebSocket Client Integration
-# Status: in-progress
+# Status: done
 # Dependencies: 5, 14
 # Priority: high
-# Description: Implement WebSocket client logic in the Svelte frontend to connect to the backend WebSocket server. Handle opening of the connection and receiving basic messages.
+# Description: Implement Socket.IO client logic in the Svelte frontend to connect to the backend Socket.IO server. Handle connection establishment and receive 'orderBookUpdate' events containing Binance market data.
 # Details:
-In a Svelte store or a root component (`App.svelte` or `+layout.svelte`), establish a WebSocket connection: `const socket = new WebSocket('ws://localhost:3000'); socket.onopen = () => console.log('Connected to WebSocket'); socket.onmessage = event => console.log('Message from server:', event.data); socket.onclose = () => console.log('Disconnected from WebSocket');`. Ensure this runs client-side.
+Integrate the Socket.IO client library (`socket.io-client`) into the Svelte frontend. In a Svelte store or a suitable client-side component (e.g., `+layout.svelte` or a dedicated service), establish a Socket.IO connection: `import { io } from 'socket.io-client'; const socket = io('http://localhost:8080'); socket.on('connect', () => console.log('Connected to Socket.IO server')); socket.on('disconnect', () => console.log('Disconnected from Socket.IO server')); socket.on('orderBookUpdate', (data) => console.log('Order book update:', data));`. Ensure this runs client-side. The backend already logs user connections/disconnections, so frontend logging for these events is primarily for client-side debugging.
 
 # Test Strategy:
-Svelte frontend successfully connects to the backend WebSocket server. Console logs confirm connection and any test messages sent from server are received.
+Svelte frontend successfully connects to the backend Socket.IO server at 'http://localhost:8080'. Console logs confirm connection. Verify that 'orderBookUpdate' events are received and that the payload contains Binance market data. Backend logs should also show client connection/disconnection.
+
+# Subtasks:
+## 1. Install socket.io-client library [done]
+### Dependencies: None
+### Description: Install the socket.io-client library in the frontend project to enable Socket.IO communication.
+### Details:
+
+
+## 2. Create Socket.IO store structure [done]
+### Dependencies: None
+### Description: Create socketStore.js with writable stores for socket connection, connection status, and order book data. Include connectSocket and disconnectSocket functions.
+### Details:
+
+
+## 3. Implement connection and disconnect event listeners [done]
+### Dependencies: None
+### Description: Add event listeners for 'connect' and 'disconnect' events, logging connection status to the browser console and updating the isConnected store.
+### Details:
+
+
+## 4. Implement orderBookUpdate event listener [done]
+### Dependencies: None
+### Description: Add event listener for 'orderBookUpdate' events, logging the received Binance market data to the browser console and updating the orderBookData store.
+### Details:
+
+

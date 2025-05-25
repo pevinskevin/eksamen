@@ -1,6 +1,7 @@
 <script>
     const baseUrl = import.meta.env.VITE_API_BASE_URL;
     import authStore from '../../store/authStore.js';
+    import { connectSocket } from '../../store/socketStore.js';
 
     let email = 'admin@test.com';
     let emailError = '';
@@ -51,8 +52,7 @@
 
                 if (response.ok) {
                     authStore.login(responseData.data.user);
-                    console.log(responseData.message);
-                    console.log($authStore.user);
+                    connectSocket();
                 } else console.log(responseData.error);
             } catch (error) {
                 console.log(error);

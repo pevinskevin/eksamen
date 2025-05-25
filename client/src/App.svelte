@@ -1,9 +1,11 @@
 <script>
     const baseUrl = import.meta.env.VITE_API_BASE_URL;
-    import authStore from './store/authStore';
     import Register from './components/register/Register.svelte';
     import Login from './components/login/Login.svelte';
     import AccountDashboard from './components/accountDashboard/AccountDashboard.svelte';
+
+    import authStore from './store/authStore';
+    import { disconnectSocket } from './store/socketStore';
 
     async function handleLogout() {
         try {
@@ -17,6 +19,7 @@
             if (response.ok) {
                 console.log(responseData.message);
                 authStore.logout();
+                disconnectSocket();
             } else console.log(responseData.errorMessage);
         } catch (error) {
             console.log(error);
