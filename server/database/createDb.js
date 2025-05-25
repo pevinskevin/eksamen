@@ -212,7 +212,7 @@ async function createTables() {
 }
 
 // Optional: Function to drop everything (useful for development)
-async function dropTables() {
+export async function dropTables() {
     const client = createClient();
 
     try {

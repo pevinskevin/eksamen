@@ -5,7 +5,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node database/createDb.js --reset && nodemon app.js",
-    "account-balance": "node scripts/workflowOrchestrator.js get-account-balance"
+    "account-balance": "node scripts/workflowOrchestrator.js get-account-balance",
+    "crypto:list": "node scripts/workflowOrchestrator.js get-all-cryptocurrencies",
+    "crypto:get": "node scripts/workflowOrchestrator.js get-cryptocurrency-by-id",
+    "crypto:create": "node scripts/workflowOrchestrator.js create-cryptocurrency",
+    "crypto:update": "node scripts/workflowOrchestrator.js update-cryptocurrency",
+    "crypto:delete": "node scripts/workflowOrchestrator.js delete-cryptocurrency",
+    "crypto:search": "node scripts/workflowOrchestrator.js search-cryptocurrency",
+    "crypto:stats": "node scripts/workflowOrchestrator.js get-cryptocurrency-stats",
+    "crypto:demo": "node scripts/workflowOrchestrator.js crypto-demo"
   },
   "keywords": [],
   "author": "",

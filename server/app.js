@@ -55,7 +55,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 import authRouter from './routers/authRouter.js';
-app.use('/api', authRouter);
+import cryptoRouter from './routers/cryptoRouter.js';
+app.use('/api', authRouter, cryptoRouter);
 
 import accountRouter from './routers/accountRouter.js';
 app.use('/api/account', accountRouter);
@@ -74,9 +75,8 @@ io.on('connection', (socket) => {
     });
 });
 
-// -- Index Page Setup --
-import { marketDataEmitter } from './binance-ws.js';
 // -- Market Update Emitter Setup --
+import { marketDataEmitter } from './binance-ws.js';
 marketDataEmitter.on('marketUpdate', (updatedDataObject) => {
     io.emit('orderBookUpdate', updatedDataObject);
 });
