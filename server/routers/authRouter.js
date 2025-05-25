@@ -12,9 +12,10 @@ router.get('/test', (req, res) => {
 // login
 router.post('/login', async (req, res) => {
     try {
+        const { email } = req.body;
         const query = {
             text: 'SELECT * FROM users where email = $1',
-            values: [req.body.email],
+            values: [email],
         };
 
         const user = (await db.query(query)).rows.at(0);
@@ -60,27 +61,29 @@ router.post('/register', async (req, res) => {
         if (req.body.email === '' || req.body.password === '')
             return res.status(404).send({ error: 'Error: Username or password is missing.' });
 
-        const hashedPassword = await hashPassword(req.body.password);
+        const { password, email, username } = req.body;
 
-        const insertUserQuery = {
+        const hashedPassword = await hashPassword(password);
+
+        const userInsertQuery = {
             text: 'INSERT INTO users (email, password_hash, role) VALUES ($1, $2, $3)',
-            values: [req.body.email, hashedPassword, 'user'],
+            values: [email, hashedPassword, 'user'],
         };
 
-        await db.query(insertUserQuery);
+        await db.query(userInsertQuery);
 
         const seedUserQuery = {
             text: 'INSERT INTO accounts (user_id, currency_code, balance) SELECT user_id, $1, $2 FROM users WHERE email = $3',
-            values: ['SIM_USD', 10000.0, req.body.email],
+            values: ['SIM_USD', 10000.0, email],
         };
 
         await db.query(seedUserQuery);
 
-        const sendEmail = await main(req.body.email, req.body.username);
+        const sendEmail = await main(email, username);
 
         return res.status(200).send({ message: 'User successfully registered.' });
     } catch (error) {
-        res.status(404).send({ error: `${error}` });
+        res.status(404).send({ error });
     }
 });
 

@@ -5,9 +5,10 @@ import isAuthenticated from '../middleware/authorisation.js';
 
 router.get('/balances', isAuthenticated, async (req, res) => {
     try {
+        const { id } = req.user;
         const accountQuery = {
             text: 'SELECT * FROM accounts WHERE accounts.user_id = $1;',
-            values: [req.user.id],
+            values: [id],
         };
         const accountResult = (await db.query(accountQuery)).rows;
 
@@ -27,7 +28,7 @@ router.get('/balances', isAuthenticated, async (req, res) => {
     }
 });
 
-router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {    
+router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {
     try {
         const user_id = req.user.id;
         const symbol = req.params.symbol.toUpperCase();
