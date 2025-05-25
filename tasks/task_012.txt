@@ -3,9 +3,88 @@
 # Status: pending
 # Dependencies: 4, 9, 11
 # Priority: high
-# Description: Implement a backend API endpoint for users to place new buy or sell (limit) orders. This endpoint must validate the order (e.g., sufficient funds in user's account) and store it in the `Orders` table with an 'open' status.
+# Description: Implement a backend API endpoint for users to place new buy or sell orders, supporting both 'limit' and 'market' order types as per the updated request structure. This endpoint must validate the order through a 4-layer architecture (Input Validation, Business Rules Validation, Balance Validation, Error Handling) and, if valid, store it in the `Orders` table with an 'open' status. The request structure is { cryptocurrency_id, type, order_type, quantity, price (optional for market orders) }.
 # Details:
-Create `/orders/place` POST endpoint, protected by auth middleware. Request body: { cryptocurrency_id, type: 'buy'/'sell', quantity, price }. Backend logic: 1. Validate input. 2. Check user balance: if 'buy', check SIM_USD balance >= quantity * price. If 'sell', check relevant crypto balance >= quantity. 3. If valid, create a new record in `Orders` table with status 'open', quantity_remaining = quantity_total. Respond with success/failure.
+Create `POST /orders` endpoint (as per REST conventions, protected by auth middleware). 
+Request body: `{ cryptocurrency_id: int, type: 'buy'/'sell', order_type: 'limit'/'market', quantity: float, price: float (required for 'limit' orders, optional for 'market' orders) }`.
+
+Backend Logic (4-Layer Validation Architecture):
+1.  **Layer 1: Input Validation (No Database Calls)**: Validate data types, required fields (price is conditional on `order_type`), and formats (e.g., positive numbers for quantity/price, valid enum values for type/order_type).
+2.  **Layer 2: Business Rules Validation (Lightweight DB Calls)**: Check `cryptocurrency_id` existence in the `cryptocurrencies` table. Basic validation of quantity/price (e.g. positive values, though primarily handled in Layer 1).
+3.  **Layer 3: Balance Validation (Critical Financial Check)**:
+    *   If 'buy' order: Check user's SIM_USD balance in the `accounts` table. For limit orders, ensure `balance >= quantity * price`. (Market order cost estimation for balance check needs separate clarification if fully implemented under this task).
+    *   If 'sell' order: Check user's relevant cryptocurrency balance in the `crypto_holdings_base` table, ensuring `crypto_balance >= quantity`.
+4.  **Order Creation**: If all validations pass, create a new record in the `Orders` table with status 'open', `quantity_remaining = quantity_total`, and include `order_type`.
+5.  **Layer 4: Error Handling & Response**: Respond with success or a standardized JSON error (using HTTP status codes like 400, 422, 500) providing detailed messages.
 
 # Test Strategy:
-Authenticated users can submit valid orders. Orders are stored in DB. Insufficient balance attempts are rejected. Invalid order parameters are rejected.
+Authenticated users can submit valid limit and market orders. Orders are stored correctly in the DB, including `order_type` and appropriate `price` (null for market if not provided). 
+Layer 1 Validations: Test rejections for invalid data types, missing required fields (e.g., price for limit order, or `order_type`), invalid enum values, non-positive quantity/price. 
+Layer 2 Validations: Test rejections for non-existent `cryptocurrency_id`. 
+Layer 3 Validations: Test rejections for insufficient SIM_USD (buy orders) or crypto (sell orders) balance. Verify correct tables (`accounts`, `crypto_holdings_base`) are checked. 
+Layer 4 Validations: Ensure standardized JSON error responses with correct HTTP status codes (400, 422, 500) for all failure scenarios. Test successful order placement for both 'buy' and 'sell' types, and for 'limit' and 'market' order types.
+
+# Subtasks:
+## 1. Define POST /orders/ Endpoint and Basic Structure [pending]
+### Dependencies: None
+### Description: Create the Express route for `POST /orders/`. Integrate existing authentication middleware to protect the endpoint. Set up the basic request handler structure within the appropriate Express router.
+### Details:
+This involves: 1. Locating or creating the relevant Express router file (e.g., `orderRoutes.js`). 2. Defining the `POST /orders/` route, adhering to RESTful conventions. 3. Applying the project's standard authentication middleware to this route. 4. Creating an initial placeholder controller/handler function for this route.
+<info added on 2025-05-25T15:00:29.180Z>
+Using RESTful POST /orders/ endpoint instead of /orders/place as this follows proper REST conventions. The basic structure is already in place in orderRouter.js with authentication middleware applied.
+</info added on 2025-05-25T15:00:29.180Z>
+
+## 2. Implement Layer 1 & 2 Validation (Input & Business Rules) [pending]
+### Dependencies: 12.1
+### Description: Develop and integrate server-side validation for the order placement request body, covering Layer 1 (Input Validation - no DB calls) and Layer 2 (Business Rules Validation - lightweight DB calls). This includes `cryptocurrency_id`, `type`, `order_type`, `quantity`, and `price`.
+### Details:
+This involves:
+**Layer 1: Input Validation (No Database Calls)**
+1.  Validate data types for all fields: `cryptocurrency_id` (integer), `type` (string), `order_type` (string), `quantity` (number), `price` (number, if present).
+2.  Validate required fields: `cryptocurrency_id`, `type`, `order_type`, `quantity` are always required.
+3.  Conditional `price` validation: `price` is required if `order_type` is 'limit'; optional if `order_type` is 'market'. If provided for market, it might be ignored or used as a ceiling, per system design.
+4.  Validate enum values: `type` must be 'buy' or 'sell'. `order_type` must be 'limit' or 'market'.
+5.  Validate numeric formats: `quantity` must be a positive number. `price` (if provided) must be a positive number. Adhere to any precision/min/max rules.
+
+**Layer 2: Business Rules Validation (Lightweight DB Calls)**
+1.  Validate `cryptocurrency_id`: Ensure it exists in the `cryptocurrencies` table.
+2.  Basic quantity/price validation (e.g., positive values) - primarily covered in Layer 1, re-verify if any DB-dependent rules apply here (e.g., lot sizes, tick sizes if defined).
+
+Ensure validation errors from both layers lead to appropriate early responses (e.g., HTTP 400 Bad Request or 422 Unprocessable Entity).
+
+## 3. Implement Layer 3: Balance Validation [pending]
+### Dependencies: 12.2
+### Description: Create logic for Layer 3 (Balance Validation) to check the authenticated user's available balance. For 'buy' orders, check SIM_USD balance in the `accounts` table. For 'sell' orders, check the relevant cryptocurrency balance in the `crypto_holdings_base` table.
+### Details:
+This involves:
+1.  Retrieving the authenticated user's ID (from the auth middleware).
+2.  For 'buy' orders:
+    a.  Query the `accounts` table for the user's available SIM_USD balance.
+    b.  If `order_type` is 'limit', ensure `available_SIM_USD_balance >= quantity * price`.
+    c.  If `order_type` is 'market', the mechanism for determining the funds to hold (e.g., based on quantity and current market price or a buffer) needs to be defined. For this task, prioritize limit order logic.
+3.  For 'sell' orders:
+    a.  Query the `crypto_holdings_base` table for the user's available balance of the specified `cryptocurrency_id`.
+    b.  Ensure `available_crypto_balance >= quantity`.
+4.  Ensure the balance check considers only *available* funds (e.g., not funds locked in other open orders).
+5.  This logic is critical and should be callable from the order placement handler after Layer 1 and Layer 2 validations pass. If balance is insufficient, respond with an appropriate error (e.g., HTTP 400 or 422).
+
+## 4. Implement Order Creation in PostgreSQL Database [pending]
+### Dependencies: 12.3
+### Description: If all validations (Layers 1-3) pass and the user has sufficient funds, implement the logic to create a new order record in the `Orders` table in the PostgreSQL database with an initial status of 'open'. Include `order_type` in the stored record.
+### Details:
+This involves:
+1.  Constructing the data object for the new order, including `user_id`, `cryptocurrency_id`, `type` (buy/sell), `order_type` (limit/market), `quantity_total` (from request `quantity`), `price` (from request `price` for limit orders; can be null for market orders if not provided or not applicable at creation), `status` ('open'), and `quantity_remaining` (initially equal to `quantity_total`), `created_at` (timestamp).
+2.  Using the project's database access layer (e.g., ORM, query builder, or raw SQL client) to insert the new record into the `Orders` table.
+3.  Ensure the operation is robust. Consider if this operation should be part of a larger transaction if funds are to be locked/deducted simultaneously (though fund movement might be handled by a separate ledger service or subsequent step).
+
+## 5. Implement Layer 4: Error Handling and Response Formatting [pending]
+### Dependencies: 12.2, 12.3, 12.4
+### Description: Ensure robust error handling throughout the order placement process as per Layer 4. Provide clear, standardized JSON error responses for various failure scenarios, using appropriate HTTP status codes (e.g., 400, 422, 500).
+### Details:
+This involves:
+1.  Defining or adhering to a project-wide standardized JSON error response format (e.g., `{ "error": { "message": "...", "code": "..." } }`).
+2.  Handling errors from Layer 1 & 2 (Input and Business Rule Validation) with HTTP 400 (Bad Request) or HTTP 422 (Unprocessable Entity) for client-side errors. Include detailed messages indicating which field or rule failed.
+3.  Handling errors from Layer 3 (Balance Validation - e.g., insufficient funds) with an appropriate HTTP status (e.g., HTTP 400 or 422), with a clear message.
+4.  Handling potential errors during database interaction (Order Creation in Subtask 4) with HTTP 500 (Internal Server Error) for unexpected server-side issues.
+5.  Ensuring all success responses (e.g., HTTP 201 Created for new order) also follow a consistent format, returning relevant information about the created order.
+

@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import db from '../database/connection.js';
 const router = Router();
+import isAuthenticated from '../middleware/authorisation.js';
+
 
 // Get all cryptocurrencies
-router.get('/cryptocurrencies', async (req, res) => {
+router.get('/cryptocurrencies', isAuthenticated, async (req, res) => {
     try {
         const query = {
             text: 'SELECT * FROM cryptocurrencies',
@@ -26,7 +28,7 @@ router.get('/cryptocurrencies', async (req, res) => {
 });
 
 // Get cryptocurrency by ID
-router.get('/cryptocurrencies/:id', async (req, res) => {
+router.get('/cryptocurrencies/:id', isAuthenticated, async (req, res) => {
     try {
         const { id } = req.params;
         const query = {
@@ -58,7 +60,7 @@ router.get('/cryptocurrencies/:id', async (req, res) => {
 });
 
 // Create new cryptocurrency
-router.post('/cryptocurrencies', async (req, res) => {
+router.post('/cryptocurrencies', isAuthenticated, async (req, res) => {
     try {
         const { symbol, name, description, icon_url } = req.body;
 
@@ -94,7 +96,7 @@ router.post('/cryptocurrencies', async (req, res) => {
 });
 
 // Update cryptocurrency by ID
-router.put('/cryptocurrencies/:id', async (req, res) => {
+router.put('/cryptocurrencies/:id', isAuthenticated, async (req, res) => {
     try {
         const { id } = req.params;
         const { symbol, name, description, icon_url } = req.body;
@@ -137,7 +139,7 @@ router.put('/cryptocurrencies/:id', async (req, res) => {
 });
 
 // Delete cryptocurrency by ID
-router.delete('/cryptocurrencies/:id', async (req, res) => {
+router.delete('/cryptocurrencies/:id', isAuthenticated, async (req, res) => {
     try {
         const { id } = req.params;
 

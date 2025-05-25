@@ -176,8 +176,36 @@
         5,
         7
       ],
-      "status": "in-progress",
-      "subtasks": []
+      "status": "done",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create CryptocurrencyList component structure",
+          "description": "Create a new Svelte component to display the list of cryptocurrencies with basic structure and imports.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 8
+        },
+        {
+          "id": 2,
+          "title": "Implement API fetch logic for cryptocurrencies",
+          "description": "Add function to fetch cryptocurrency data from the backend /api/crypto/cryptocurrencies endpoint using fetch API.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 8
+        },
+        {
+          "id": 3,
+          "title": "Create UI template for cryptocurrency display",
+          "description": "Design and implement the HTML template to display cryptocurrency list with proper styling and layout.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 8
+        }
+      ]
     },
     {
       "id": 9,

@@ -62,7 +62,7 @@ import accountRouter from './routers/accountRouter.js';
 app.use('/api/account', accountRouter);
 
 import orderRouter from './routers/orderRouter.js';
-app.use('api/order', orderRouter);
+app.use('/api/order', orderRouter);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => {
