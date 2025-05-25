@@ -2,29 +2,23 @@ import { Router } from 'express';
 const router = Router();
 import db from '../database/connection.js';
 import isAuthenticated from '../middleware/authorisation.js';
+import { getFiatBalance, getCryptoBalance } from '../services/accountService.js';
 
 router.get('/balances', isAuthenticated, async (req, res) => {
     try {
-        const { id } = req.user;
-        const accountQuery = {
-            text: 'SELECT * FROM accounts WHERE accounts.user_id = $1;',
-            values: [id],
-        };
-        const accountResult = (await db.query(accountQuery)).rows;
-
-        const cryptoHoldingsQuery = {
-            text: 'SELECT * FROM crypto_holdings where crypto_holdings.user_id = $1',
-            values: [req.user.id],
-        };
-        const cryptoHoldingsResult = (await db.query(cryptoHoldingsQuery)).rows;
-
+        const accountResult = await getFiatBalance(req.user, db);
+        const cryptoHoldingsResult = await getCryptoBalance(req.user, db);
         res.send({
             message: 'Yay it worked - yummy data coming your way!! ٩(＾◡＾)۶ ',
             data: { account: accountResult, holdings: cryptoHoldingsResult },
         });
     } catch (error) {
-        console.error('Error fetching balances:', error);
-        res.status(500).send({ errorMessage: 'Server error while fetching balances.' });
+        if (
+            error.message === 'No Fiat Account registered to user.' ||
+            error.message === 'No crypto account registered to user.'
+        )
+            res.status(404).send({ error: error.message });
+        else res.status(500).send({ errorMessage: 'Server error while fetching balances.' });
     }
 });
 
