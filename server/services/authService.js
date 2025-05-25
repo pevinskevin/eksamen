@@ -23,46 +23,24 @@ export async function login(body, db) {
     return user;
 }
 
-export async function logout(req, res) {
-    if (!req.session.role) {
-        return res.status(401).send({ error: 'User is not logged in.' });
-    } else {
-        req.session.destroy((err) => {
-            if (err) {
-                return res.status(500).send({ error: 'Could not log out due to server error.' });
-            }
-        });
-        return res.status(200).send({ message: 'User successfully logged out.' });
-    }
-}
+export async function register(body, db) {
+    const { password, email, username } = body;
 
-export async function register(req, res, db) {
-    try {
-        if (req.body.email === '' || req.body.password === '')
-            return res.status(404).send({ error: 'Error: Username or password is missing.' });
+    const hashedPassword = await hashPassword(password);
 
-        const { password, email, username } = req.body;
+    const createUserQuery = {
+        text: 'INSERT INTO users (email, password_hash, role) VALUES ($1, $2, $3)',
+        values: [email, hashedPassword, 'user'],
+    };
 
-        const hashedPassword = await hashPassword(password);
+    await db.query(createUserQuery);
 
-        const userInsertQuery = {
-            text: 'INSERT INTO users (email, password_hash, role) VALUES ($1, $2, $3)',
-            values: [email, hashedPassword, 'user'],
-        };
+    const seedUserQuery = {
+        text: 'INSERT INTO accounts (user_id, currency_code, balance) SELECT user_id, $1, $2 FROM users WHERE email = $3',
+        values: ['SIM_USD', 10000.0, email],
+    };
 
-        await db.query(userInsertQuery);
+    await db.query(seedUserQuery);
 
-        const seedUserQuery = {
-            text: 'INSERT INTO accounts (user_id, currency_code, balance) SELECT user_id, $1, $2 FROM users WHERE email = $3',
-            values: ['SIM_USD', 10000.0, email],
-        };
-
-        await db.query(seedUserQuery);
-
-        const sendEmail = await main(email, username);
-
-        return res.status(200).send({ message: 'User successfully registered.' });
-    } catch (error) {
-        res.status(404).send({ error });
-    }
+    const sendEmail = await main(email, username);
 }
