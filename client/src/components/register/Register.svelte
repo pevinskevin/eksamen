@@ -1,5 +1,5 @@
 <script>
-    const baseUrl = import.meta.env.VITE_API_BASE_URL;
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
     let email = 'example@test.com';
     let emailError = '';
@@ -52,7 +52,7 @@
             console.log('Register form submitted!');
 
             try {
-                const response = await fetch(`${baseUrl}/api/register`, {
+                const response = await fetch(`${apiBaseUrl}/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -1,30 +1,13 @@
 <script>
-    const baseUrl = import.meta.env.VITE_API_BASE_URL;
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
     import Register from './components/register/Register.svelte';
     import Login from './components/login/Login.svelte';
     import AccountDashboard from './components/accountDashboard/AccountDashboard.svelte';
+    import CryptocurrencyList from './components/cryptocurrencyList/CryptocurrencyList.svelte';
+    import Logout from './components/logout/Logout.svelte';
 
     import authStore from './store/authStore';
-    import { disconnectSocket } from './store/socketStore';
-
-    async function handleLogout() {
-        try {
-            const response = await fetch(`${baseUrl}/api/logout`, {
-                method: 'POST',
-                credentials: 'include',
-            });
-
-            const responseData = await response.json();
-
-            if (response.ok) {
-                console.log(responseData.message);
-                authStore.logout();
-                disconnectSocket();
-            } else console.log(responseData.errorMessage);
-        } catch (error) {
-            console.log(error);
-        }
-    }
 </script>
 
 {#if !$authStore.isAuthenticated}
@@ -34,5 +17,6 @@
 
 {#if $authStore.isAuthenticated}
     <AccountDashboard></AccountDashboard>
-    <button on:click={handleLogout}>Logout</button>
+    <CryptocurrencyList></CryptocurrencyList>
+    <Logout></Logout>
 {/if}

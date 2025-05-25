@@ -16,7 +16,6 @@ socket.on('disconnect', () => {
 });
 
 socket.on('orderBookUpdate', (data) => {
-    console.log('Received order book data:', data);
     orderBookData.set(data);
 });
 

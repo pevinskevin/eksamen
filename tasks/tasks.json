@@ -133,8 +133,37 @@
       "dependencies": [
         2
       ],
-      "status": "pending",
-      "subtasks": []
+      "status": "done",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Define/Update Cryptocurrency Database Model",
+          "description": "Create or update the data model/schema for cryptocurrencies. This includes defining fields such as ID, name, symbol, current_price, and any other relevant attributes for database storage and interaction.",
+          "dependencies": [],
+          "details": "Specify data types, constraints (e.g., unique, not null), and relationships for the Cryptocurrency entity. This model will be used by the API and seeding script. Ensure it aligns with requirements for listing active cryptocurrencies.",
+          "status": "done"
+        },
+        {
+          "id": 2,
+          "title": "Implement GET /cryptocurrencies API Endpoint",
+          "description": "Develop a GET API endpoint (e.g., `/api/cryptocurrencies`) that retrieves and returns a list of all active cryptocurrencies from the database. This endpoint will use the Cryptocurrency model defined in subtask 1.",
+          "dependencies": [
+            1
+          ],
+          "details": "The endpoint should interact with the database to fetch all records from the `Cryptocurrencies` table. Ensure it returns data in a standard JSON format. Implement logic to filter for 'active' cryptocurrencies if this is a requirement.",
+          "status": "done"
+        },
+        {
+          "id": 3,
+          "title": "Develop Cryptocurrency Data Seeding Script",
+          "description": "Create a script (e.g., SQL, Node.js, or using an ORM's seeding mechanism) to populate the `Cryptocurrencies` table with initial sample data. This data will be used for development and testing the API.",
+          "dependencies": [
+            1
+          ],
+          "details": "The script should insert a predefined list of common cryptocurrencies (e.g., Bitcoin, Ethereum, Litecoin) with their respective details into the database, adhering to the model/schema defined in subtask 1. Include data for fields like name, symbol, and an initial price.",
+          "status": "done"
+        }
+      ]
     },
     {
       "id": 8,
@@ -147,8 +176,36 @@
         5,
         7
       ],
-      "status": "pending",
-      "subtasks": []
+      "status": "in-progress",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create CryptocurrencyList component structure",
+          "description": "Create a new Svelte component to display the list of cryptocurrencies with basic structure and imports.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 8
+        },
+        {
+          "id": 2,
+          "title": "Implement API fetch logic for cryptocurrencies",
+          "description": "Add function to fetch cryptocurrency data from the backend /api/crypto/cryptocurrencies endpoint using fetch API.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 8
+        },
+        {
+          "id": 3,
+          "title": "Create UI template for cryptocurrency display",
+          "description": "Design and implement the HTML template to display cryptocurrency list with proper styling and layout.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 8
+        }
+      ]
     },
     {
       "id": 9,

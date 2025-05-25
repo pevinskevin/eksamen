@@ -1,5 +1,5 @@
 <script>
-    const baseUrl = import.meta.env.VITE_API_BASE_URL;
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
     import authStore from '../../store/authStore.js';
     import { connectSocket } from '../../store/socketStore.js';
 
@@ -39,7 +39,7 @@
             console.log('Login form submitted!');
 
             try {
-                const response = await fetch(`${baseUrl}/api/login`, {
+                const response = await fetch(`${apiBaseUrl}/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

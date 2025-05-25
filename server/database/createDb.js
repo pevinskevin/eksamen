@@ -89,16 +89,28 @@ async function createTables() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(user_id, cryptocurrency_id)
-      );
+      )
+    `);
+        console.log('✓ Created crypto_holdings_base table');
 
+        // Create the crypto_holdings view AFTER the base tables exist
+        await client.query(`
       CREATE OR REPLACE VIEW crypto_holdings AS
       SELECT 
-        chb.*,
-        c.symbol
+        chb.holding_id,
+        chb.user_id,
+        chb.cryptocurrency_id,
+        chb.balance,
+        chb.created_at,
+        chb.updated_at,
+        c.symbol,
+        c.name,
+        c.description,
+        c.icon_url
       FROM crypto_holdings_base chb
-      JOIN cryptocurrencies c ON chb.cryptocurrency_id = c.cryptocurrency_id;
+      JOIN cryptocurrencies c ON chb.cryptocurrency_id = c.cryptocurrency_id
     `);
-        console.log('✓ Created crypto_holdings_base table and crypto_holdings view');
+        console.log('✓ Created crypto_holdings view');
 
         // Order table
         await client.query(`
@@ -171,6 +183,7 @@ async function createTables() {
             [testPasswordHash]
         );
         console.log('✓ Added test admin user (admin@test.com / password: test)');
+
         // Create crypto holdings for admin user for BTC, ETH, and BNB
         await client.query(`
       INSERT INTO crypto_holdings_base (user_id, cryptocurrency_id, balance)
@@ -219,17 +232,12 @@ export async function dropTables() {
         await client.connect();
         console.log('Dropping all tables and types...');
 
-        // Attempt to drop 'crypto_holdings' first as a table (old structure)
-        await client.query(`
-      DROP TABLE IF EXISTS crypto_holdings_base CASCADE;
-    `);
-
-        // Then attempt to drop 'crypto_holdings' as a view (new structure)
+        // Drop the view first
         await client.query(`
       DROP VIEW IF EXISTS crypto_holdings CASCADE;
     `);
 
-        // Drop other tables including the new base table
+        // Drop tables in correct order (reverse of creation, respecting foreign keys)
         await client.query(`
       DROP TABLE IF EXISTS transactions CASCADE;
       DROP TABLE IF EXISTS trades CASCADE;
