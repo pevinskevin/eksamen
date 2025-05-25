@@ -50,10 +50,10 @@
                 const responseData = await response.json();
 
                 if (response.ok) {
-                    authStore.login(responseData.user);
+                    authStore.login(responseData.data.user);
                     console.log(responseData.message);
                     console.log($authStore.user);
-                } else console.log(responseData.errorMessage);
+                } else console.log(responseData.error);
             } catch (error) {
                 console.log(error);
             }
@@ -76,6 +76,5 @@
         <p style="color: red;">{passwordError}</p>
     {/if}
 
-    <button type="submit">Submit</button>
+    <button type="submit">Login</button>
 </form>
-

@@ -161,8 +161,47 @@
         2,
         4
       ],
-      "status": "pending",
-      "subtasks": []
+      "status": "done",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Account and CryptoHolding Database Models & Services",
+          "description": "Define database schemas and implement service layer logic for `Accounts` (fiat) and `CryptoHoldings` (crypto).",
+          "dependencies": [],
+          "details": "This includes defining all necessary fields, relationships, data types, and basic CRUD operations for both models. `Accounts` will manage fiat currency balances (e.g., SIM_USD), and `CryptoHoldings` will manage cryptocurrency balances.",
+          "status": "done"
+        },
+        {
+          "id": 2,
+          "title": "Create Authenticated GET API for User Balances",
+          "description": "Develop an authenticated GET API endpoint (e.g., `/account/balances`) to fetch combined fiat and crypto balances for the logged-in user.",
+          "dependencies": [
+            1
+          ],
+          "details": "The endpoint must integrate with the authentication system. It will query the `Accounts` and `CryptoHoldings` data, aggregating balances for the specific user making the request.",
+          "status": "done"
+        },
+        {
+          "id": 3,
+          "title": "Implement New User Initial Balance Seeding Logic",
+          "description": "Develop the backend logic to automatically seed initial fiat (e.g., SIM_USD) and/or crypto balances for new users upon successful registration.",
+          "dependencies": [
+            1
+          ],
+          "details": "This logic should be triggered during the user registration process. Specify the default amounts and types of currencies/cryptocurrencies to be credited to new user accounts.\n<info added on 2025-05-24T15:54:51.474Z>\nUpon new user registration, only an initial fiat balance (SIM_USD 10000.00) will be seeded into the 'accounts' table. No initial cryptocurrency balances will be seeded. The existing implementation in `server/routers/authRouter.js` correctly handles this fiat seeding.\n</info added on 2025-05-24T15:54:51.474Z>",
+          "status": "done"
+        },
+        {
+          "id": 4,
+          "title": "Ensure Correct User ID Filtering in Balance API Queries",
+          "description": "Implement and verify that all API queries for fetching balances correctly join and filter data by `user_id` to ensure data integrity and security.",
+          "dependencies": [
+            2
+          ],
+          "details": "This involves rigorous testing of the `/account/balances` endpoint to confirm that it only returns data belonging to the authenticated user, preventing any cross-user data exposure. Review query construction for `Accounts` and `CryptoHoldings`.",
+          "status": "done"
+        }
+      ]
     },
     {
       "id": 10,
@@ -175,7 +214,7 @@
         6,
         9
       ],
-      "status": "pending",
+      "status": "in-progress",
       "subtasks": []
     },
     {

@@ -43,19 +43,11 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/logout', (req, res) => {
-    console.log(
-        'Logout Attempt - Session object:',
-        JSON.stringify(req.session, 'UserId:', req.session.userId),
-        'UserId:',
-        req.session.userId
-    );
-
     if (!req.session.role) {
         return res.status(401).send({ error: 'User is not logged in.' });
     } else {
         req.session.destroy((err) => {
             if (err) {
-                console.error('Session destruction error:', err);
                 return res.status(500).send({ error: 'Could not log out due to server error.' });
             }
         });

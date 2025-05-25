@@ -57,14 +57,18 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ email: email, password: password }),
+                    body: JSON.stringify({ email, password }),
+                    credentials: 'include'
                 });
 
                 const responseData = await response.json();
 
                 if (response.ok) {
                     console.log(responseData.message);
-                } else console.log(responseData.errorMessage);
+                    // Redirect to login page or show success message
+                } else {
+                    console.log(responseData.error);
+                }
             } catch (error) {
                 console.log(error);
             }

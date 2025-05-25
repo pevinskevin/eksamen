@@ -221,7 +221,7 @@ async function dropTables() {
 
         // Attempt to drop 'crypto_holdings' first as a table (old structure)
         await client.query(`
-      DROP TABLE IF EXISTS crypto_holdings CASCADE;
+      DROP TABLE IF EXISTS crypto_holdings_base CASCADE;
     `);
 
         // Then attempt to drop 'crypto_holdings' as a view (new structure)

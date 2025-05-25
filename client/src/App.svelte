@@ -3,6 +3,7 @@
     import authStore from './store/authStore';
     import Register from './components/register/Register.svelte';
     import Login from './components/login/Login.svelte';
+    import AccountDashboard from './components/accountDashboard/AccountDashboard.svelte';
 
     async function handleLogout() {
         try {
@@ -24,13 +25,11 @@
 </script>
 
 {#if !$authStore.isAuthenticated}
+    <Login></Login>
     <Register></Register>
 {/if}
 
-{#if !$authStore.isAuthenticated}
-    <Login></Login>
-{/if}
-
 {#if $authStore.isAuthenticated}
+    <AccountDashboard></AccountDashboard>
     <button on:click={handleLogout}>Logout</button>
 {/if}
