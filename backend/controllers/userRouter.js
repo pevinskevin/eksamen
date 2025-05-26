@@ -58,7 +58,6 @@ router.post('/register', async (req, res) => {
         const user = await userService.register(req.body.email, req.body.password);
         return res.status(200).send({ message: 'User successfully registered.' + user });
     } catch (error) {
-        console.log('Server error', error);
         res.status(500).send({ message: `Server error: ${error}` });
     }
 });

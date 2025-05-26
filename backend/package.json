@@ -3,17 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node database/createDb.js --reset && nodemon app.js",
-    "account-balance": "node scripts/workflowOrchestrator.js get-account-balance",
-    "crypto:list": "node scripts/workflowOrchestrator.js get-all-cryptocurrencies",
-    "crypto:get": "node scripts/workflowOrchestrator.js get-cryptocurrency-by-id",
-    "crypto:create": "node scripts/workflowOrchestrator.js create-cryptocurrency",
-    "crypto:update": "node scripts/workflowOrchestrator.js update-cryptocurrency",
-    "crypto:delete": "node scripts/workflowOrchestrator.js delete-cryptocurrency",
-    "crypto:search": "node scripts/workflowOrchestrator.js search-cryptocurrency",
-    "crypto:stats": "node scripts/workflowOrchestrator.js get-cryptocurrency-stats",
-    "crypto:demo": "node scripts/workflowOrchestrator.js crypto-demo"
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
+    "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
+    "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
+    "dev": "node database/createDb.js --reset && nodemon app.js"
   },
   "keywords": [],
   "author": "",
@@ -33,6 +26,11 @@
     "ws": "^8.18.2"
   },
   "devDependencies": {
-    "jest": "^29.7.0"
+    "@types/jest": "^29.5.14",
+    "bcryptjs": "^3.0.2",
+    "express-session": "^1.18.1",
+    "jest": "^29.7.0",
+    "nodemailer": "^7.0.3",
+    "supertest": "^7.1.1"
   }
 }
