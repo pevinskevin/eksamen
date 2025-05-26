@@ -43,7 +43,6 @@ router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {
         if (error.message.includes('not found') || error.message.includes('No holdings found')) {
             res.status(404).send({ message: error.message });
         } else {
-            console.error(`Error fetching holding for symbol ${req.params.symbol}:`, error);
             res.status(500).send({
                 errorMessage: 'Server error while fetching cryptocurrency holding.',
             });

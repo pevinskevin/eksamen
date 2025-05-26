@@ -1,25 +1,29 @@
 import { Router } from 'express';
-import db from '../database/connection.js';
+
+import CryptoRepository from '../repositories/CryptoRepository.js';
+import db from '../database/connection.js'; // db is needed for CryptoRepository constructor
+const cryptoRepository = new CryptoRepository(db);
+
+import CryptoService from '../services/cryptoService.js';
+const cryptoService = new CryptoService(cryptoRepository);
+
 const router = Router();
 import isAuthenticated from '../middleware/authorisation.js';
-
 
 // Get all cryptocurrencies
 router.get('/cryptocurrencies', isAuthenticated, async (req, res) => {
     try {
-       
-        console.log('Query executed:', query.text);
+        const cryptocurrencies = await cryptoService.getAllCryptocurrencies();
         res.status(200).json({
             success: true,
-            data: responseData,
-            count: responseData.length,
+            data: cryptocurrencies,
         });
     } catch (error) {
-        console.error('Error fetching cryptocurrencies:', error);
-        res.status(500).json({
+        console.error('Error in GET /cryptocurrencies:', error.message);
+        const statusCode = error.statusCode || 500;
+        res.status(statusCode).json({
             success: false,
-            error: 'Failed to fetch cryptocurrencies',
-            message: error.message,
+            error: error.message || 'Failed to retrieve cryptocurrencies',
         });
     }
 });
@@ -28,30 +32,17 @@ router.get('/cryptocurrencies', isAuthenticated, async (req, res) => {
 router.get('/cryptocurrencies/:id', isAuthenticated, async (req, res) => {
     try {
         const { id } = req.params;
-        const query = {
-            text: 'SELECT * FROM cryptocurrencies WHERE cryptocurrency_id = $1',
-            values: [id],
-        };
-        const responseData = (await db.query(query)).rows;
-
-        if (responseData.length === 0) {
-            return res.status(404).json({
-                success: false,
-                error: 'Cryptocurrency not found',
-            });
-        }
-
-        console.log('Query executed:', query.text, 'with values:', query.values);
+        const cryptocurrency = await cryptoService.getCryptocurrencyById(id);
         res.status(200).json({
             success: true,
-            data: responseData[0],
+            data: cryptocurrency,
         });
     } catch (error) {
-        console.error('Error fetching cryptocurrency by ID:', error);
-        res.status(500).json({
+        console.error(`Error in GET /cryptocurrencies/${req.params.id}:`, error.message);
+        const statusCode = error.statusCode || 500;
+        res.status(statusCode).json({
             success: false,
-            error: 'Failed to fetch cryptocurrency',
-            message: error.message,
+            error: error.message || 'Failed to retrieve cryptocurrency',
         });
     }
 });
@@ -59,35 +50,18 @@ router.get('/cryptocurrencies/:id', isAuthenticated, async (req, res) => {
 // Create new cryptocurrency
 router.post('/cryptocurrencies', isAuthenticated, async (req, res) => {
     try {
-        const { symbol, name, description, icon_url } = req.body;
-
-        // Basic validation
-        if (!symbol || !name) {
-            return res.status(400).json({
-                success: false,
-                error: 'Symbol and name are required fields',
-            });
-        }
-
-        const query = {
-            text: 'INSERT INTO cryptocurrencies (symbol, name, description, icon_url) VALUES ($1, $2, $3, $4) RETURNING *',
-            values: [symbol, name, description || null, icon_url || null],
-        };
-
-        const responseData = (await db.query(query)).rows[0];
-        console.log('Query executed:', query.text, 'with values:', query.values);
-
+        const createdCrypto = await cryptoService.createCryptocurrency(req.body);
         res.status(201).json({
             success: true,
-            data: responseData,
+            data: createdCrypto,
             message: 'Cryptocurrency created successfully',
         });
     } catch (error) {
-        console.error('Error creating cryptocurrency:', error);
-        res.status(500).json({
+        console.error('Error in POST /cryptocurrencies:', error.message);
+        const statusCode = error.statusCode || 500;
+        res.status(statusCode).json({
             success: false,
-            error: 'Failed to create cryptocurrency',
-            message: error.message,
+            error: error.message || 'Failed to create cryptocurrency',
         });
     }
 });
@@ -96,41 +70,18 @@ router.post('/cryptocurrencies', isAuthenticated, async (req, res) => {
 router.put('/cryptocurrencies/:id', isAuthenticated, async (req, res) => {
     try {
         const { id } = req.params;
-        const { symbol, name, description, icon_url } = req.body;
-
-        // Check if cryptocurrency exists
-        const checkQuery = {
-            text: 'SELECT cryptocurrency_id FROM cryptocurrencies WHERE cryptocurrency_id = $1',
-            values: [id],
-        };
-        const existingCrypto = (await db.query(checkQuery)).rows;
-
-        if (existingCrypto.length === 0) {
-            return res.status(404).json({
-                success: false,
-                error: 'Cryptocurrency not found',
-            });
-        }
-
-        const query = {
-            text: 'UPDATE cryptocurrencies SET symbol = COALESCE($2, symbol), name = COALESCE($3, name), description = COALESCE($4, description), icon_url = COALESCE($5, icon_url) WHERE cryptocurrency_id = $1 RETURNING *',
-            values: [id, symbol, name, description, icon_url],
-        };
-
-        const responseData = (await db.query(query)).rows[0];
-        console.log('Query executed:', query.text, 'with values:', query.values);
-
+        const updatedCrypto = await cryptoService.updateCryptocurrency(id, req.body);
         res.status(200).json({
             success: true,
-            data: responseData,
+            data: updatedCrypto,
             message: 'Cryptocurrency updated successfully',
         });
     } catch (error) {
-        console.error('Error updating cryptocurrency:', error);
-        res.status(500).json({
+        console.error(`Error in PUT /cryptocurrencies/${req.params.id}:`, error.message);
+        const statusCode = error.statusCode || 500;
+        res.status(statusCode).json({
             success: false,
-            error: 'Failed to update cryptocurrency',
-            message: error.message,
+            error: error.message || 'Failed to update cryptocurrency',
         });
     }
 });
@@ -139,40 +90,18 @@ router.put('/cryptocurrencies/:id', isAuthenticated, async (req, res) => {
 router.delete('/cryptocurrencies/:id', isAuthenticated, async (req, res) => {
     try {
         const { id } = req.params;
-
-        // Check if cryptocurrency exists
-        const checkQuery = {
-            text: 'SELECT cryptocurrency_id FROM cryptocurrencies WHERE cryptocurrency_id = $1',
-            values: [id],
-        };
-        const existingCrypto = (await db.query(checkQuery)).rows;
-
-        if (existingCrypto.length === 0) {
-            return res.status(404).json({
-                success: false,
-                error: 'Cryptocurrency not found',
-            });
-        }
-
-        const query = {
-            text: 'DELETE FROM cryptocurrencies WHERE cryptocurrency_id = $1 RETURNING *',
-            values: [id],
-        };
-
-        const responseData = (await db.query(query)).rows[0];
-        console.log('Query executed:', query.text, 'with values:', query.values);
-
+        const deletedCrypto = await cryptoService.deleteCryptocurrency(id);
         res.status(200).json({
             success: true,
-            data: responseData,
+            data: deletedCrypto,
             message: 'Cryptocurrency deleted successfully',
         });
     } catch (error) {
-        console.error('Error deleting cryptocurrency:', error);
-        res.status(500).json({
+        console.error(`Error in DELETE /cryptocurrencies/${req.params.id}:`, error.message);
+        const statusCode = error.statusCode || 500;
+        res.status(statusCode).json({
             success: false,
-            error: 'Failed to delete cryptocurrency',
-            message: error.message,
+            error: error.message || 'Failed to delete cryptocurrency',
         });
     }
 });
