@@ -2,7 +2,7 @@ import { Router } from 'express';
 const router = Router();
 
 import db from '../database/connection.js';
-import UserRepository from '../repositories/userRepository.js';
+import UserRepository from './UserRepository.js';
 const userRepository = new UserRepository(db);
 
 import UserService from '../services/userService.js';
