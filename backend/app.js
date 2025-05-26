@@ -49,25 +49,17 @@ app.use(helmet());
 
 app.use(express.json());
 
-import path from 'path';
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-import authRouter from './routers/authRouter.js';
-import cryptoRouter from './routers/cryptoRouter.js';
-app.use('/api', authRouter, cryptoRouter);
-
-import accountRouter from './routers/accountRouter.js';
+import accountRouter from './controllers/accountRouter.js';
 app.use('/api/account', accountRouter);
 
-import orderRouter from './routers/orderRouter.js';
-app.use('/api/order', orderRouter);
+import cryptoRouter from './controllers/cryptoRouter.js';
+app.use('/api', cryptoRouter);
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+import userRouter from './controllers/userRouter.js';
+app.use('/api', userRouter);
+
+import orderRouter from './controllers/orderRouter.js';
+app.use('/api/order', orderRouter);
 
 // -- socket.io Setup  --
 io.on('connection', (socket) => {
@@ -79,7 +71,7 @@ io.on('connection', (socket) => {
 });
 
 // -- Market Update Emitter Setup --
-import { marketDataEmitter } from './binance-ws.js';
+import { marketDataEmitter } from './orderbook/binance-ws.js';
 marketDataEmitter.on('marketUpdate', (updatedDataObject) => {
     io.emit('orderBookUpdate', updatedDataObject);
 });

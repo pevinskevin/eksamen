@@ -31,5 +31,8 @@
     "task-master-ai": "^0.14.0",
     "tough-cookie": "^5.1.2",
     "ws": "^8.18.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }

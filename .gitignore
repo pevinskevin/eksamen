@@ -159,3 +159,6 @@ dev-debug.log
 # Task files
 .cursor
 .roo
+
+# local MCP
+mcp-test-runner-local/

@@ -1,11 +1,16 @@
 import { Router } from 'express';
 const router = Router();
+
 import db from '../database/connection.js';
-import { login, register } from '../services/authService.js';
+import UserRepository from '../repositories/userRepository.js';
+const userRepository = new UserRepository(db);
+
+import UserService from '../services/userService.js';
+const userService = new UserService(userRepository);
 
 router.post('/login', async (req, res) => {
     try {
-        const user = await login(req.body, db);
+        const user = await userService.login(req.body.email, req.body.password);
         req.session.role = user.role;
         req.session.userId = user.user_id;
         res.status(200).send({
@@ -50,8 +55,8 @@ router.post('/register', async (req, res) => {
     try {
         if (req.body.email === '' || req.body.password === '')
             return res.status(404).send({ error: 'Error: Username or password is missing.' });
-        await register(req.body, db);
-        return res.status(200).send({ message: 'User successfully registered.' });
+        const user = await userService.register(req.body.email, req.body.password);
+        return res.status(200).send({ message: 'User successfully registered.' + user });
     } catch (error) {
         console.log('Server error', error);
         res.status(500).send({ message: `Server error: ${error}` });
