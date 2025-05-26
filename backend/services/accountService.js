@@ -1,26 +1,31 @@
-export async function getFiatBalance(user, db) {
-    const { id } = user;
-    const accountQuery = {
-        text: 'SELECT * FROM accounts WHERE accounts.user_id = $1;',
-        values: [id],
-    };
-    const accountResult = (await db.query(accountQuery)).rows;
+export default class AccountService {
+    constructor(accountRepository) {
+        this.accountRepository = accountRepository;
+    }
 
-    if (accountResult.length === 0) throw new Error('No fiat account registered to user.');
+    async getFiatBalance(id) {
+        const balance = await this.accountRepository.readFiatBalance(id);
+        if (!balance) throw new Error('No fiat account registered to user.');
+        return balance;
+    }
 
-    return accountResult;
-}
+    async getCryptoBalance(id) {
+        const balance = await this.accountRepository.readCryptoBalance(id);
+        if (!balance) throw new Error('No crypto account registered to user.');
+        return balance;
+    }
 
-export async function getCryptoBalance(user, db) {
-    const { id } = user;
+    async getCryptoHoldingBySymbol(userId, symbol) {
+        const holding = await this.accountRepository.readCryptoHoldingBySymbol(userId, symbol);
 
-    const cryptoHoldingsQuery = {
-        text: 'SELECT * FROM crypto_holdings where crypto_holdings.user_id = $1',
-        values: [id],
-    };
-    const cryptoHoldingsResult = (await db.query(cryptoHoldingsQuery)).rows;
+        if (holding === null) {
+            throw new Error(`Cryptocurrency with symbol '${symbol}' not found.`);
+        }
 
-    if (cryptoHoldingsResult.length === 0) throw new Error('No crypto account registered to user.');
+        if (Array.isArray(holding) && holding.length === 0) {
+            throw new Error(`No holdings found for symbol '${symbol}' for this user.`);
+        }
 
-    return cryptoHoldingsResult;
+        return holding;
+    }
 }

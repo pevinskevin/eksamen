@@ -1,16 +1,22 @@
 import { Router } from 'express';
 const router = Router();
+
 import db from '../database/connection.js';
+import AccountRepository from '../repositories/AccountRepository.js';
+const accountRepository = new AccountRepository(db);
+
+import AccountService from '../services/AccountService.js';
+const accountService = new AccountService(accountRepository);
+
 import isAuthenticated from '../middleware/authorisation.js';
-import { getFiatBalance, getCryptoBalance } from '../services/accountService.js';
 
 router.get('/balances', isAuthenticated, async (req, res) => {
     try {
-        const accountResult = await getFiatBalance(req.user, db);
-        const cryptoHoldingsResult = await getCryptoBalance(req.user, db);
+        const fiatBalance = await accountService.getFiatBalance(req.user.id);
+        const cryptoBalance = await accountService.getCryptoBalance(req.user.id);
         res.send({
             message: 'Yay it worked - yummy data coming your way!! ٩(＾◡＾)۶ ',
-            data: { account: accountResult, holdings: cryptoHoldingsResult },
+            data: { account: fiatBalance, holdings: cryptoBalance },
         });
     } catch (error) {
         if (
@@ -24,45 +30,24 @@ router.get('/balances', isAuthenticated, async (req, res) => {
 
 router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {
     try {
-        const user_id = req.user.id;
+        const userId = req.user.id;
         const symbol = req.params.symbol.toUpperCase();
 
-        const idQuery = {
-            text: 'SELECT cryptocurrency_id FROM cryptocurrencies WHERE symbol = $1',
-            values: [symbol],
-        };
-        const idResult = await db.query(idQuery);
-
-        if (idResult.rows.length === 0) {
-            return res
-                .status(404)
-                .send({ message: `Cryptocurrency with symbol '${symbol}' not found.` });
-        }
-        const cryptocurrencyId = idResult.rows[0].cryptocurrency_id;
-
-        const symbolHoldingsQuery = {
-            text: 'SELECT symbol, balance FROM crypto_holdings WHERE cryptocurrency_id = $1 AND user_id = $2',
-            values: [cryptocurrencyId, user_id],
-        };
-        const holdingsResult = await db.query(symbolHoldingsQuery);
-
-        if (holdingsResult.rows.length === 0) {
-            return res
-                .status(404)
-                .send({ message: `No holdings found for symbol '${symbol}' for this user.` });
-        }
-
-        const specificHolding = holdingsResult.rows[0];
+        const specificHolding = await accountService.getCryptoHoldingBySymbol(userId, symbol);
 
         res.send({
             message: 'Yay it worked - yummy data coming your way!! ٩(＾◡＾)۶ ',
             data: specificHolding,
         });
     } catch (error) {
-        console.error(`Error fetching holding for symbol ${req.params.symbol}:`, error);
-        res.status(500).send({
-            errorMessage: 'Server error while fetching cryptocurrency holding.',
-        });
+        if (error.message.includes('not found') || error.message.includes('No holdings found')) {
+            res.status(404).send({ message: error.message });
+        } else {
+            console.error(`Error fetching holding for symbol ${req.params.symbol}:`, error);
+            res.status(500).send({
+                errorMessage: 'Server error while fetching cryptocurrency holding.',
+            });
+        }
     }
 });
 

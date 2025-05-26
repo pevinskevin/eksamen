@@ -1,4 +1,5 @@
 export default {
+    transform: {},
     testEnvironment: 'node',
     testMatch: ['**/__tests__/**/*.test.js'],
     collectCoverageFrom: [
@@ -10,4 +11,7 @@ export default {
     ],
     coverageDirectory: 'coverage',
     coverageReporters: ['text', 'lcov', 'html'],
+    moduleNameMapper: {
+        '^(\\.\\.?\\/.+)\\.js$': '$1',
+    },
 };

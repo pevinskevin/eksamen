@@ -7,10 +7,7 @@ import isAuthenticated from '../middleware/authorisation.js';
 // Get all cryptocurrencies
 router.get('/cryptocurrencies', isAuthenticated, async (req, res) => {
     try {
-        const query = {
-            text: 'SELECT * FROM cryptocurrencies',
-        };
-        const responseData = (await db.query(query)).rows;
+       
         console.log('Query executed:', query.text);
         res.status(200).json({
             success: true,
