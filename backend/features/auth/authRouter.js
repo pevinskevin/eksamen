@@ -1,7 +1,7 @@
 import { Router } from 'express';
 const router = Router();
 
-import db from '../database/connection.js';
+import db from '../../database/connection.js';
 import AuthRepository from './AuthRepository.js';
 import AuthService from './AuthService.js';
 

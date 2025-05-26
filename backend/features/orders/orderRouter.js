@@ -1,10 +1,10 @@
 import { Router } from 'express';
 const router = Router();
-import isAuthenticated from '../middleware/authorisation.js';
+import isAuthenticated from '../../middleware/authorisation.js';
 
 import OrderService from './OrderService.js';
 import OrderRepository from './OrderRepository.js';
-import db from '../database/connection.js';
+import db from '../../database/connection.js';
 
 const orderRepository = new OrderRepository(db);
 const orderService = new OrderService(orderRepository);

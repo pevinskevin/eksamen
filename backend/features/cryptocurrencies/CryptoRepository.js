@@ -61,7 +61,6 @@ export default class CryptoRepository {
             const result = await this.db.query(query);
             return result.rows[0];
         } catch (error) {
-            console.error('Error in CryptoRepository.update:', error.message, error.stack);
             throw new Error('Repository error updating cryptocurrency: ' + error.message);
         }
     }
@@ -86,7 +85,6 @@ export default class CryptoRepository {
             const result = await this.db.query(query);
             return result.rows[0];
         } catch (error) {
-            console.error('Error in CryptoRepository.deleteById:', error.message, error.stack);
             throw new Error('Repository error deleting cryptocurrency: ' + error.message);
         }
     }

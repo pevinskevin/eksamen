@@ -51,19 +51,19 @@ app.use(express.json());
 
 // -- Router Setup --
 
-import accountRouter from './accounts/accountRouter.js';
+import accountRouter from './features/accounts/accountRouter.js';
 app.use('/api/account', accountRouter);
 
-import authRouter from './auth/authRouter.js'
+import authRouter from './features/auth/authRouter.js';
 app.use('/api', authRouter)
 
-import cryptoRouter from './cryptocurrencies/cryptoRouter.js';
+import cryptoRouter from './features/cryptocurrencies/cryptoRouter.js';
 app.use('/api', cryptoRouter);
 
-import userRouter from './users/userRouter.js';
+import userRouter from './features/users/userRouter.js';
 app.use('/api', userRouter);
 
-import orderRouter from './orders/orderRouter.js';
+import orderRouter from './features/orders/orderRouter.js';
 app.use('/api/order', orderRouter);
 
 // ------------------

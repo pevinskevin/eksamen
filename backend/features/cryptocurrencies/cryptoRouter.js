@@ -3,8 +3,8 @@ const router = Router();
 
 import CryptoRepository from './CryptoRepository.js';
 import CryptoService from './CryptoService.js';
-import db from '../database/connection.js'; //
-import isAuthenticated from '../middleware/authorisation.js';
+import db from '../../database/connection.js'; //
+import isAuthenticated from '../../middleware/authorisation.js';
 
 const cryptoRepository = new CryptoRepository(db);
 const cryptoService = new CryptoService(cryptoRepository);

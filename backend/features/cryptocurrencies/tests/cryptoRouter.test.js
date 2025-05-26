@@ -27,13 +27,13 @@ jest.unstable_mockModule('../CryptoService.js', () => ({
 
 // Mock the middleware
 // The path for authorisation.js must be correct relative to cryptoRouter.js
-jest.unstable_mockModule('../../middleware/authorisation.js', () => ({
+jest.unstable_mockModule('../../../middleware/authorisation.js', () => ({
     default: jest.fn((req, res, next) => mockIsAuthenticated(req, res, next)), // Ensure our mock is callable
 }));
 
 // Mock db connection (router imports it directly for repository instantiation, though repo is mocked via service here)
 // This is more of a safeguard if any deeper unmocked import tries to use it.
-jest.unstable_mockModule('../../database/connection.js', () => ({
+jest.unstable_mockModule('../../../database/connection.js', () => ({
     default: {},
 }));
 

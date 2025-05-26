@@ -29,7 +29,7 @@ jest.mock('../AccountRepository.js', () => ({
 }));
 
 // Mock the actual db connection to prevent any real db calls if mocks aren't perfect
-jest.mock('../../database/connection', () => ({
+jest.mock('../../../database/connection', () => ({
     default: {},
 }));
 
@@ -318,7 +318,7 @@ describe('Account Router', () => {
     afterAll(async () => {
         // Dynamically import the original db instance and call .end()
         try {
-            const dbModule = await import('../../database/connection.js');
+            const dbModule = await import('../../../database/connection.js');
             if (dbModule.default && typeof dbModule.default.end === 'function') {
                 await dbModule.default.end();
             }

@@ -2,6 +2,7 @@ export default class UserRepository {
     constructor(db) {
         this.db = db;
     }
+
     async create(email, hashedPassword) {
         try {
             const createUserQuery = {
@@ -13,6 +14,7 @@ export default class UserRepository {
             throw new Error('userRepository error:' + error);
         }
     }
+    
     async seedUserFiatAccount(email) {
         try {
             const seedUserQuery = {

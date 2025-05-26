@@ -1,4 +1,4 @@
-import { comparePassword } from '../util/hashing.js';
+import { comparePassword } from '../../util/hashing.js';
 
 export default class AuthService {
     constructor(authRepository) {

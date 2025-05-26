@@ -15,7 +15,7 @@ jest.unstable_mockModule('../AuthService.js', () => ({
     default: jest.fn().mockImplementation(() => mockAuthService),
 }));
 
-jest.unstable_mockModule('../../database/connection.js', () => ({
+jest.unstable_mockModule('../../../database/connection.js', () => ({
     default: {},
 }));
 

@@ -5,7 +5,7 @@ const mockHashPassword = jest.fn();
 const mockComparePassword = jest.fn();
 
 // Mock the modules before importing them
-jest.unstable_mockModule('../../util/hashing.js', () => ({
+jest.unstable_mockModule('../../../util/hashing.js', () => ({
     hashPassword: mockHashPassword,
     comparePassword: mockComparePassword,
 }));

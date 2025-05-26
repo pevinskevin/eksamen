@@ -9,7 +9,6 @@ export default class CryptoService {
         } catch (error) {
             // It's often good practice to log the original error for debugging
             // and then throw a new error or a more specific error for the service layer.
-            console.error('Error in CryptoService.getAllCryptocurrencies:', error.message);
             throw new Error('Service error retrieving all cryptocurrencies: ' + error.message);
         }
     }
@@ -25,10 +24,6 @@ export default class CryptoService {
             }
             return cryptocurrency[0]; // findById in repo returns an array
         } catch (error) {
-            console.error(
-                `Error in CryptoService.getCryptocurrencyById for id ${id}:`,
-                error.message
-            );
             if (error.statusCode) throw error; // Re-throw if it already has a status code
             throw new Error('Service error retrieving cryptocurrency by ID: ' + error.message);
         }
@@ -46,7 +41,6 @@ export default class CryptoService {
         try {
             return await this.cryptoRepository.create(cryptoData);
         } catch (error) {
-            console.error('Error in CryptoService.createCryptocurrency:', error.message);
             // Check if it's a known repository error or a generic one
             if (error.message.startsWith('Repository error')) {
                 const serviceError = new Error(
@@ -69,10 +63,6 @@ export default class CryptoService {
             }
             return updatedCrypto;
         } catch (error) {
-            console.error(
-                `Error in CryptoService.updateCryptocurrency for id ${id}:`,
-                error.message
-            );
             if (error.statusCode) throw error;
             throw new Error('Service error updating cryptocurrency: ' + error.message);
         }
@@ -88,10 +78,6 @@ export default class CryptoService {
             }
             return deletedCrypto;
         } catch (error) {
-            console.error(
-                `Error in CryptoService.deleteCryptocurrency for id ${id}:`,
-                error.message
-            );
             if (error.statusCode) throw error;
             throw new Error('Service error deleting cryptocurrency: ' + error.message);
         }

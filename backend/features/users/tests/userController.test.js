@@ -15,7 +15,7 @@ jest.unstable_mockModule('../UserService.js', () => ({
     default: jest.fn().mockImplementation(() => mockUserService),
 }));
 
-jest.unstable_mockModule('../../database/connection.js', () => ({
+jest.unstable_mockModule('../../../database/connection.js', () => ({
     // Keep db mock if controller uses it directly or via repo
     default: {},
 }));
