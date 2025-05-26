@@ -1,25 +1,10 @@
-import { comparePassword, hashPassword } from '../util/hashing.js';
 import { welcomeNewUser } from '../nodemailer/nodemailer.js';
+import { hashPassword } from '../util/hashing.js';
 
 export default class UserService {
     constructor(userRepository) {
         this.userRepository = userRepository;
     }
-
-    async login(email, password) {
-        const user = await this.userRepository.findByEmail(email);
-
-        if (!user) {
-            throw new Error('User not found.');
-        }
-
-        const matchingPasswords = await comparePassword(password, user.password_hash);
-        if (!matchingPasswords) {
-            throw new Error('Provided password is incorrect.');
-        }
-        return user;
-    }
-
     async register(email, password) {
         try {
             const hashedPassword = await hashPassword(password);

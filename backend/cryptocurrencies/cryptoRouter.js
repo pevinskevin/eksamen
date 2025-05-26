@@ -1,14 +1,13 @@
 import { Router } from 'express';
+const router = Router();
 
 import CryptoRepository from './CryptoRepository.js';
-import db from '../database/connection.js'; // db is needed for CryptoRepository constructor
-const cryptoRepository = new CryptoRepository(db);
-
 import CryptoService from './CryptoService.js';
-const cryptoService = new CryptoService(cryptoRepository);
-
-const router = Router();
+import db from '../database/connection.js'; //
 import isAuthenticated from '../middleware/authorisation.js';
+
+const cryptoRepository = new CryptoRepository(db);
+const cryptoService = new CryptoService(cryptoRepository);
 
 // Get all cryptocurrencies
 router.get('/cryptocurrencies', isAuthenticated, async (req, res) => {

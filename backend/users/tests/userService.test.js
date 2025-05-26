@@ -2,13 +2,12 @@ import { jest } from '@jest/globals';
 
 // Create mock functions first
 const mockHashPassword = jest.fn();
-const mockComparePassword = jest.fn();
 const mockWelcomeNewUser = jest.fn();
 
 // Mock the modules before importing them
 jest.unstable_mockModule('../../util/hashing.js', () => ({
     hashPassword: mockHashPassword,
-    comparePassword: mockComparePassword,
+    // comparePassword is not needed for these tests
 }));
 
 jest.unstable_mockModule('../../nodemailer/nodemailer.js', () => ({
@@ -16,79 +15,21 @@ jest.unstable_mockModule('../../nodemailer/nodemailer.js', () => ({
 }));
 
 // Now import the module under test
-const { default: UserService } = await import('../UserService.js');
+const { default: UserService } = await import('../UserService.js'); // Adjusted import
 
 const mockUserRepository = {
-    findByEmail: jest.fn(),
+    // Adjusted name
     create: jest.fn(),
     seedUserFiatAccount: jest.fn(),
 };
 
 describe('UserService', () => {
-    let userService;
+    // Adjusted describe
+    let userService; // Adjusted variable name
 
     beforeEach(() => {
-        userService = new UserService(mockUserRepository);
+        userService = new UserService(mockUserRepository); // Adjusted instantiation
         jest.clearAllMocks();
-    });
-
-    describe('login', () => {
-        it('should login user successfully with correct credentials', async () => {
-            const mockUser = {
-                user_id: 1,
-                email: 'test@example.com',
-                password_hash: 'hashedpassword',
-                role: 'user',
-            };
-
-            mockUserRepository.findByEmail.mockResolvedValue(mockUser);
-            mockComparePassword.mockResolvedValue(true);
-
-            const result = await userService.login('test@example.com', 'password123');
-
-            expect(mockUserRepository.findByEmail).toHaveBeenCalledWith('test@example.com');
-            expect(mockComparePassword).toHaveBeenCalledWith('password123', 'hashedpassword');
-            expect(result).toEqual(mockUser);
-        });
-
-        it('should throw error when user not found', async () => {
-            mockUserRepository.findByEmail.mockResolvedValue(null);
-
-            await expect(
-                userService.login('nonexistent@example.com', 'password123')
-            ).rejects.toThrow('User not found.');
-
-            expect(mockUserRepository.findByEmail).toHaveBeenCalledWith('nonexistent@example.com');
-            expect(mockComparePassword).not.toHaveBeenCalled();
-        });
-
-        it('should throw error when password is incorrect', async () => {
-            const mockUser = {
-                user_id: 1,
-                email: 'test@example.com',
-                password_hash: 'hashedpassword',
-                role: 'user',
-            };
-
-            mockUserRepository.findByEmail.mockResolvedValue(mockUser);
-            mockComparePassword.mockResolvedValue(false);
-
-            await expect(userService.login('test@example.com', 'wrongpassword')).rejects.toThrow(
-                'Provided password is incorrect.'
-            );
-
-            expect(mockUserRepository.findByEmail).toHaveBeenCalledWith('test@example.com');
-            expect(mockComparePassword).toHaveBeenCalledWith('wrongpassword', 'hashedpassword');
-        });
-
-        it('should handle repository errors during login', async () => {
-            const repositoryError = new Error('Database connection failed');
-            mockUserRepository.findByEmail.mockRejectedValue(repositoryError);
-
-            await expect(userService.login('test@example.com', 'password123')).rejects.toThrow(
-                'Database connection failed'
-            );
-        });
     });
 
     describe('register', () => {
@@ -156,7 +97,7 @@ describe('UserService', () => {
 
             try {
                 await userService.register('newuser@example.com', 'password123');
-                throw new Error('userService.register should have thrown an error');
+                throw new Error('userService.register should have thrown an error'); // Adjusted service name
             } catch (error) {
                 expect(error.message).toBe('register() error:Error: Account seeding failed');
             }

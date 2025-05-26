@@ -12,6 +12,7 @@ export default class CryptoRepository {
             throw new Error('Repository error:' + error);
         }
     }
+
     async findById(id) {
         try {
             const query = {

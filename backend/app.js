@@ -49,17 +49,24 @@ app.use(helmet());
 
 app.use(express.json());
 
-import accountRouter from './controllers/accountRouter.js';
+// -- Router Setup --
+
+import accountRouter from './accounts/accountRouter.js';
 app.use('/api/account', accountRouter);
 
-import cryptoRouter from './controllers/cryptoRouter.js';
+import authRouter from './auth/authRouter.js'
+app.use('/api', authRouter)
+
+import cryptoRouter from './cryptocurrencies/cryptoRouter.js';
 app.use('/api', cryptoRouter);
 
-import userRouter from './controllers/userRouter.js';
+import userRouter from './users/userRouter.js';
 app.use('/api', userRouter);
 
-import orderRouter from './controllers/orderRouter.js';
+import orderRouter from './orders/orderRouter.js';
 app.use('/api/order', orderRouter);
+
+// ------------------
 
 // -- socket.io Setup  --
 io.on('connection', (socket) => {

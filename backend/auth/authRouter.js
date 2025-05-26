@@ -2,15 +2,15 @@ import { Router } from 'express';
 const router = Router();
 
 import db from '../database/connection.js';
-import UserRepository from './UserRepository.js';
-const userRepository = new UserRepository(db);
+import AuthRepository from './AuthRepository.js';
+import AuthService from './AuthService.js';
 
-import UserService from './UserService.js';
-const userService = new UserService(userRepository);
+const authRepository = new AuthRepository(db);
+const authService = new AuthService(authRepository);
 
 router.post('/login', async (req, res) => {
     try {
-        const user = await userService.login(req.body.email, req.body.password);
+        const user = await authService.login(req.body.email, req.body.password);
         req.session.role = user.role;
         req.session.userId = user.user_id;
         res.status(200).send({
@@ -47,17 +47,6 @@ router.post('/logout', async (req, res) => {
         }
     } catch (error) {
         console.log('Error:', error);
-        res.status(500).send({ message: `Server error: ${error}` });
-    }
-});
-
-router.post('/register', async (req, res) => {
-    try {
-        if (req.body.email === '' || req.body.password === '')
-            return res.status(404).send({ error: 'Error: Username or password is missing.' });
-        const user = await userService.register(req.body.email, req.body.password);
-        return res.status(200).send({ message: 'User successfully registered.' + user });
-    } catch (error) {
         res.status(500).send({ message: `Server error: ${error}` });
     }
 });
