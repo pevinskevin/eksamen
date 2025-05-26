@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import AccountRepository from '../../repositories/AccountRepository.js';
+import AccountRepository from '../AccountRepository.js';
 
 // Mock the database connection
 const mockDb = {

@@ -16,7 +16,7 @@ jest.unstable_mockModule('../../nodemailer/nodemailer.js', () => ({
 }));
 
 // Now import the module under test
-const { default: UserService } = await import('../../services/userService.js');
+const { default: UserService } = await import('../UserService.js');
 
 const mockUserRepository = {
     findByEmail: jest.fn(),

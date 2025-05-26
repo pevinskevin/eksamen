@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import CryptoRepository from '../../repositories/CryptoRepository.js';
+import CryptoRepository from '../CryptoRepository.js';
 
 // Mock the database connection
 const mockDb = {

@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import AccountService from '../../services/AccountService.js';
+import AccountService from '../AccountService.js';
 
 // Mock AccountRepository
 const mockAccountRepository = {

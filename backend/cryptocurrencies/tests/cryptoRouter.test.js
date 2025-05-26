@@ -21,7 +21,7 @@ const mockIsAuthenticated = (req, res, next) => {
 
 // Mock the actual modules before importing the router
 // The path must be relative to cryptoRouter.js or where Jest resolves modules from
-jest.unstable_mockModule('../../services/cryptoService.js', () => ({
+jest.unstable_mockModule('../CryptoService.js', () => ({
     default: jest.fn(() => mockCryptoService),
 }));
 
@@ -37,8 +37,11 @@ jest.unstable_mockModule('../../database/connection.js', () => ({
     default: {},
 }));
 
+// Mock the actual db connection
+jest.mock('../CryptoRepository.js', () => jest.fn(() => mockCryptoRepositoryInstance));
+
 // Dynamically import the router *after* mocks are set up
-const { default: cryptoRouter } = await import('../../controllers/cryptoRouter.js');
+const { default: cryptoRouter } = await import('../cryptoRouter.js');
 
 const app = express();
 app.use(express.json()); // To parse JSON request bodies

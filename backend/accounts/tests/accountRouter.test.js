@@ -18,13 +18,13 @@ import sessionModule from 'express-session';
 
 // Mock modules before importing the router
 // IMPORTANT: The path to AccountService and isAuthenticated must be correct relative to accountRouter.js
-jest.mock('../../services/AccountService', () => ({
+jest.mock('../AccountService.js', () => ({
     default: jest.fn().mockImplementation(() => mockAccountService),
 }));
 
 // Mock AccountRepository if it is directly instantiated in the router or its dependencies are not fully mocked
 const mockAccountRepository = jest.fn().mockImplementation(() => ({}));
-jest.mock('../../repositories/AccountRepository', () => ({
+jest.mock('../AccountRepository.js', () => ({
     default: mockAccountRepository,
 }));
 
@@ -80,12 +80,12 @@ describe('Account Router', () => {
         };
 
         // Replace the module with our mock implementation for each test
-        jest.unstable_mockModule('../../services/AccountService.js', () => ({
+        jest.unstable_mockModule('../AccountService.js', () => ({
             default: jest.fn(() => mockAccountService),
         }));
 
         jest.resetModules(); // Important to ensure the router gets the fresh mock
-        const accountRouterModule = await import('../../controllers/accountRouter.js');
+        const accountRouterModule = await import('../accountRouter.js');
         const accountRouterInstance = accountRouterModule.default;
         app.use('/api/accounts', accountRouterInstance);
     });

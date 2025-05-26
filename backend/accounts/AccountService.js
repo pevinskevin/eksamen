@@ -1,3 +1,5 @@
+import AccountRepository from './AccountRepository.js';
+
 export default class AccountService {
     constructor(accountRepository) {
         this.accountRepository = accountRepository;

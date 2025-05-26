@@ -5,7 +5,7 @@ import db from '../database/connection.js';
 import UserRepository from './UserRepository.js';
 const userRepository = new UserRepository(db);
 
-import UserService from '../services/userService.js';
+import UserService from './UserService.js';
 const userService = new UserService(userRepository);
 
 router.post('/login', async (req, res) => {

@@ -1,10 +1,10 @@
 import { Router } from 'express';
 
-import CryptoRepository from '../repositories/CryptoRepository.js';
+import CryptoRepository from './CryptoRepository.js';
 import db from '../database/connection.js'; // db is needed for CryptoRepository constructor
 const cryptoRepository = new CryptoRepository(db);
 
-import CryptoService from '../services/cryptoService.js';
+import CryptoService from './CryptoService.js';
 const cryptoService = new CryptoService(cryptoRepository);
 
 const router = Router();

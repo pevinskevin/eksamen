@@ -11,7 +11,7 @@ const mockUserService = {
 };
 
 // Mock modules before importing
-jest.unstable_mockModule('../../services/userService.js', () => ({
+jest.unstable_mockModule('../UserService.js', () => ({
     default: jest.fn().mockImplementation(() => mockUserService),
 }));
 
@@ -19,12 +19,12 @@ jest.unstable_mockModule('../../database/connection.js', () => ({
     default: {},
 }));
 
-jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
+jest.unstable_mockModule('../UserRepository.js', () => ({
     default: mockUserRepository,
 }));
 
 // Import the router after mocking
-const { default: userRouter } = await import('../../controllers/userRouter.js');
+const { default: userRouter } = await import('../userRouter.js');
 
 const app = express();
 

@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import CryptoService from '../../services/cryptoService.js';
+import CryptoService from '../CryptoService.js';
 
 // Mock CryptoRepository
 const mockCryptoRepository = {
@@ -9,6 +9,8 @@ const mockCryptoRepository = {
     update: jest.fn(),
     deleteById: jest.fn(),
 };
+
+jest.mock('../CryptoRepository.js', () => jest.fn(() => mockCryptoRepository));
 
 describe('CryptoService', () => {
     let cryptoService;
