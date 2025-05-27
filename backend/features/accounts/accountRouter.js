@@ -4,7 +4,7 @@ const router = Router();
 import AccountRepository from './AccountRepository.js';
 import AccountService from './AccountService.js';
 import db from '../../database/connection.js';
-import isAuthenticated from '../../middleware/authorisation.js';
+import isAuthenticated from '../../shared/middleware/authorisation.js';
 
 const accountRepository = new AccountRepository(db);
 const accountService = new AccountService(accountRepository);

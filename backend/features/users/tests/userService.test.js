@@ -5,12 +5,12 @@ const mockHashPassword = jest.fn();
 const mockWelcomeNewUser = jest.fn();
 
 // Mock the modules before importing them
-jest.unstable_mockModule('../../../util/hashing.js', () => ({
+jest.unstable_mockModule('../../../shared/utils/hashing.js', () => ({
     hashPassword: mockHashPassword,
     // comparePassword is not needed for these tests
 }));
 
-jest.unstable_mockModule('../../../nodemailer/nodemailer.js', () => ({
+jest.unstable_mockModule('../../../shared/email/nodemailer.js', () => ({
     welcomeNewUser: mockWelcomeNewUser,
 }));
 

@@ -27,7 +27,7 @@ jest.unstable_mockModule('../CryptoService.js', () => ({
 
 // Mock the middleware
 // The path for authorisation.js must be correct relative to cryptoRouter.js
-jest.unstable_mockModule('../../../middleware/authorisation.js', () => ({
+jest.unstable_mockModule('../../../shared/middleware/authorisation.js', () => ({
     default: jest.fn((req, res, next) => mockIsAuthenticated(req, res, next)), // Ensure our mock is callable
 }));
 
@@ -293,7 +293,7 @@ describe('Crypto Router', () => {
             // with the current mock setup.
 
             // This test is more of a placeholder for how one *would* test it if the mock could be easily toggled.
-            // const response = await request(app).get('/api/cryptocurrencies'); // Assuming no session is set by default by supertest
+            // const response = await request(app).get('/api/cryptocurrencies'); // Assuming no session is set by supertest
             // expect(response.status).toBe(401);
             // expect(response.body.message).toBe('Authentication required. Please log in');
 

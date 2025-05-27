@@ -1,6 +1,6 @@
 import { Router } from 'express';
 const router = Router();
-import isAuthenticated from '../../middleware/authorisation.js';
+import isAuthenticated from '../../shared/middleware/authorisation.js';
 
 import OrderService from './OrderService.js';
 import OrderRepository from './OrderRepository.js';

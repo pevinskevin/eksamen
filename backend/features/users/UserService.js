@@ -1,5 +1,5 @@
-import { welcomeNewUser } from '../../nodemailer/nodemailer.js';
-import { hashPassword } from '../../util/hashing.js';
+import { welcomeNewUser } from '../../shared/email/nodemailer.js';
+import { hashPassword } from '../../shared/utils/hashing.js';
 
 export default class UserService {
     constructor(userRepository) {

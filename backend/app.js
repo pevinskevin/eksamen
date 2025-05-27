@@ -78,7 +78,7 @@ io.on('connection', (socket) => {
 });
 
 // -- Market Update Emitter Setup --
-import { marketDataEmitter } from './orderbook/binance-ws.js';
+import { marketDataEmitter } from './features/trading/orderbook/binance-ws.js';
 marketDataEmitter.on('marketUpdate', (updatedDataObject) => {
     io.emit('orderBookUpdate', updatedDataObject);
 });
