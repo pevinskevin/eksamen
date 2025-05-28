@@ -46,6 +46,8 @@ async function createTables() {
         user_id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
+        first_name VARCHAR(100) NOT NULL,
+        last_name VARCHAR(100) NOT NULL,
         role user_role DEFAULT 'user',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -60,7 +62,9 @@ async function createTables() {
         symbol VARCHAR(20) UNIQUE NOT NULL,
         name VARCHAR(100) NOT NULL,
         description TEXT,
-        icon_url VARCHAR(500)
+        icon_url VARCHAR(500),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
         console.log('✓ Created cryptocurrencies table');
@@ -106,7 +110,7 @@ async function createTables() {
         c.symbol,
         c.name,
         c.description,
-        c.icon_url
+        c.icon_url as iconUrl
       FROM crypto_holdings_base chb
       JOIN cryptocurrencies c ON chb.cryptocurrency_id = c.cryptocurrency_id
     `);
@@ -176,8 +180,8 @@ async function createTables() {
 
         await client.query(
             `
-      INSERT INTO users (email, password_hash, role)
-      VALUES ('admin@test.com', $1, 'admin')
+      INSERT INTO users (email, password_hash, first_name, last_name, role)
+      VALUES ('admin@test.com', $1, 'Admin', 'User', 'admin')
       ON CONFLICT (email) DO NOTHING
     `,
             [testPasswordHash]

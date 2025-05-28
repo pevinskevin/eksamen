@@ -3,12 +3,13 @@ export default class UserRepository {
         this.db = db;
     }
 
-    async create(email, hashedPassword) {
+    async create(email, hashedPassword, firstName, lastName) {
         const createUserQuery = {
-            text: 'INSERT INTO users (email, password_hash, role) VALUES ($1, $2, $3)',
-            values: [email, hashedPassword, 'user'],
+            text: 'INSERT INTO users (email, password_hash, first_name, last_name, role) VALUES ($1, $2, $3, $4, $5) RETURNING user_id, email, first_name, last_name, role, created_at',
+            values: [email, hashedPassword, firstName, lastName, 'user'],
         };
-        return await this.db.query(createUserQuery);
+        const result = await this.db.query(createUserQuery);
+        return result.rows[0];
     }
 
     async seedUserFiatAccount(email) {
