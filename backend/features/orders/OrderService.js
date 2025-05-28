@@ -6,43 +6,52 @@ export default class OrderService {
         this.orderRepository = orderRepository;
     }
 
-    async deleteById(id) {}
-
-    async getAll() {}
-
-    async getById(id) {}
-
-    async validate(orderObject) {
-        try {
-            return await parseAsync(orderSchema, orderObject);
-        } catch (error) {
-            console.error('❌ ERROR IN OrderService.validateOrder:', error.message);
-            console.error('📍 Input:', orderObject);
-            throw new Error(`OrderService.validateOrder failed: ${error.message}`);
-        }
+    async deleteByOrderId(userId, orderId) {
+        return await this.orderRepository.delete(userId, orderId);
     }
 
-    async save(cryptocurrencyid, orderType, orderVariant, quantity, price, userid) {
-        try {
-            return await this.orderRepository.save(
-                cryptocurrencyid,
-                orderType,
-                orderVariant,
-                quantity,
-                price,
-                userid
-            );
-        } catch (error) {
-            console.error('❌ ERROR IN OrderService.save:', error.message);
-            console.error('📍 Parameters:', {
-                cryptocurrencyid,
-                orderType,
-                orderVariant,
-                quantity,
-                price,
-                userid,
-            });
-            throw new Error(`OrderService.save failed: ${error.message}`);
-        }
+    async getAll(userId) {
+        return await this.orderRepository.findAll(userId);
+    }
+
+    async getByOrderId(userId, orderId) {
+        return await this.orderRepository.find(userId, orderId);
+    }
+
+    async validate(orderObject) {
+        return await parseAsync(orderSchema, orderObject);
+    }
+
+    async save(cryptocurrencyid, orderType, orderVariant, quantity, price, userId) {
+        return await this.orderRepository.save(
+            cryptocurrencyid,
+            orderType,
+            orderVariant,
+            quantity,
+            price,
+            userId
+        );
+    }
+
+    async updateByOrderId(
+        cryptocurrencyid,
+        orderType,
+        orderVariant,
+        quantity,
+        quantityRemaining,
+        price,
+        userId,
+        orderId
+    ) {
+        return await this.orderRepository.update(
+            cryptocurrencyid,
+            orderType,
+            orderVariant,
+            quantity,
+            quantityRemaining,
+            price,
+            userId,
+            orderId
+        );
     }
 }
