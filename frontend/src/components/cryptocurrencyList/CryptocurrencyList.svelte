@@ -17,7 +17,6 @@
 
             if (response.ok) {
                 cryptocurrenciesArray = responseData.data;
-                console.log(cryptocurrenciesArray);
             } else console.log(responseData.error);
         } catch (error) {
             console.log('Error fetching data', error);
@@ -26,7 +25,6 @@
 
     onMount(() => {
         getCryptocurrencies();
-        console.log(cryptocurrenciesArray);
     });
 </script>
 

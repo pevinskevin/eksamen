@@ -22,6 +22,4 @@ export async function welcomeNewUser(email, username) {
         text: `Hiiiiii OMG WELCOME HAHAHAHA I'M SOOOO HAPPY TO HAVE YOU HERE! ٩(ˊᗜˋ*)و ♡`,
         html: '<b>Hello world?</b>', // html body
     });
-
-    console.log('Message sent: %s', info.messageId);
 }

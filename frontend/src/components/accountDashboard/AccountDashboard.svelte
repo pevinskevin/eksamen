@@ -18,7 +18,6 @@
             const responseData = await response.json();
 
             if (response.ok) {
-                console.log(responseData.message, responseData.data);
                 accountBalance = responseData.data;
             } else console.log(responseData.error);
         } catch (error) {
@@ -28,7 +27,6 @@
 
     onMount(() => {
         fetchAccountBalance();
-        console.log(accountBalance);
     });
 </script>
 

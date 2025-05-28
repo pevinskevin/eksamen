@@ -48,8 +48,6 @@
         validateConfirmPassword();
 
         if (!emailError && !passwordError && !confirmPasswordError) {
-            console.log('Regiter form is valid', email, password, confirmPassword);
-            console.log('Register form submitted!');
 
             try {
                 const response = await fetch(`${apiBaseUrl}/register`, {
@@ -64,7 +62,6 @@
                 const responseData = await response.json();
 
                 if (response.ok) {
-                    console.log(responseData.message);
                     // Redirect to login page or show success message
                 } else {
                     console.log(responseData.error);

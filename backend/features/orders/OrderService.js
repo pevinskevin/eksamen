@@ -5,6 +5,7 @@ export default class OrderService {
     constructor(orderRepository) {
         this.orderRepository = orderRepository;
     }
+
     async validateOrder(orderObject) {
         try {
             return await parseAsync(orderSchema, orderObject);
@@ -15,7 +16,7 @@ export default class OrderService {
         }
     }
 
-    async save(cryptocurrencyid, orderType, orderVariant, quantity, price, userid) {
+    async saveOrder(cryptocurrencyid, orderType, orderVariant, quantity, price, userid) {
         try {
             return await this.orderRepository.save(
                 cryptocurrencyid,

@@ -13,7 +13,6 @@
             const responseData = await response.json();
 
             if (response.ok) {
-                console.log(responseData.message);
                 authStore.logout();
                 disconnectSocket();
             } else console.log(responseData.errorMessage);

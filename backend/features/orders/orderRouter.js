@@ -32,7 +32,7 @@ router.post('/', isAuthenticated, async (req, res) => {
             return res.status(404).send({ error: 'Cryptocurrency not found. Invalid ID.' });
         }
 
-        const savedOrder = await orderService.save(
+        const savedOrder = await orderService.saveOrder(
             cryptocurrencyid,
             orderType,
             orderVariant,

@@ -2,6 +2,10 @@ export default class OrderRepository {
     constructor(db) {
         this.db = db;
     }
+    async find() {}
+
+    async findAll() {}
+
     async save(cryptocurrencyid, orderType, orderVariant, quantity, price, userid) {
         try {
             const quantityRemaining = quantity;
@@ -26,10 +30,13 @@ export default class OrderRepository {
                 orderType,
                 orderVariant,
                 quantity,
+                quantityRemaining,
                 price,
                 userid,
             });
             throw new Error(`OrderRepository.save failed: ${error.message}`);
         }
     }
+    
+    async update() {}
 }
