@@ -6,7 +6,13 @@ export default class OrderService {
         this.orderRepository = orderRepository;
     }
 
-    async validateOrder(orderObject) {
+    async deleteById(id) {}
+
+    async getAll() {}
+
+    async getById(id) {}
+
+    async validate(orderObject) {
         try {
             return await parseAsync(orderSchema, orderObject);
         } catch (error) {
@@ -16,7 +22,7 @@ export default class OrderService {
         }
     }
 
-    async saveOrder(cryptocurrencyid, orderType, orderVariant, quantity, price, userid) {
+    async save(cryptocurrencyid, orderType, orderVariant, quantity, price, userid) {
         try {
             return await this.orderRepository.save(
                 cryptocurrencyid,

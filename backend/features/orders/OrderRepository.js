@@ -2,7 +2,9 @@ export default class OrderRepository {
     constructor(db) {
         this.db = db;
     }
-    async find() {}
+    async delete(id) {}
+
+    async find(id) {}
 
     async findAll() {}
 
@@ -37,6 +39,6 @@ export default class OrderRepository {
             throw new Error(`OrderRepository.save failed: ${error.message}`);
         }
     }
-    
-    async update() {}
+
+    async update(id) {}
 }

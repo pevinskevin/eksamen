@@ -14,25 +14,25 @@ const cryptoService = new CryptoService(cryptoRepository);
 const orderRepository = new OrderRepository(db);
 const orderService = new OrderService(orderRepository);
 
-router.get('/', isAuthenticated, (req, res) => {
+router.get('/', isAuthenticated, async (req, res) => {
     res.send({ message: 'Hiii!! ٩(＾◡＾)۶' });
 });
 
-router.get('/:id', isAuthenticated, (req, res) => {
+router.get('/:id', isAuthenticated, async (req, res) => {
     res.send({ message: 'Hiii!! ٩(＾◡＾)۶' });
 });
 
 router.post('/', isAuthenticated, async (req, res) => {
     try {
         const { cryptocurrencyid, orderType, orderVariant, quantity, price } =
-            await orderService.validateOrder(req.body.data);
+            await orderService.validate(req.body.data);
 
         const cryptocurrencyInDb = await cryptoService.getCryptocurrencyById(cryptocurrencyid);
         if (!cryptocurrencyInDb) {
             return res.status(404).send({ error: 'Cryptocurrency not found. Invalid ID.' });
         }
 
-        const savedOrder = await orderService.saveOrder(
+        const savedOrder = await orderService.save(
             cryptocurrencyid,
             orderType,
             orderVariant,
@@ -53,11 +53,11 @@ router.post('/', isAuthenticated, async (req, res) => {
     }
 });
 
-router.put('/:id', isAuthenticated, (req, res) => {
+router.put('/:id', isAuthenticated, async (req, res) => {
     res.send({ message: 'Hiii!! ٩(＾◡＾)۶' });
 });
 
-router.delete('/:id', isAuthenticated, (req, res) => {
+router.delete('/:id', isAuthenticated, async (req, res) => {
     res.send({ message: 'Hiii!! ٩(＾◡＾)۶' });
 });
 
