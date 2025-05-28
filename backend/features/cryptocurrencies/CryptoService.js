@@ -29,6 +29,10 @@ export default class CryptoService {
         }
     }
 
+    async getCryptocurrencyBySymbol(symbol) {
+            return await this.cryptoRepository.findById(symbol);
+    }
+
     async createCryptocurrency(cryptoData) {
         const { symbol, name } = cryptoData;
         // Basic validation at the service layer

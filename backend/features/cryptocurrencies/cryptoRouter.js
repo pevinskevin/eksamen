@@ -1,7 +1,7 @@
 import { Router } from 'express';
 const router = Router();
 
-import { CryptoService } from '../../shared/factory/factory.js';
+import { cryptoService } from '../../shared/factory/factory.js';
 import isAuthenticated from '../../shared/middleware/authorisation.js';
 
 // Get all cryptocurrencies

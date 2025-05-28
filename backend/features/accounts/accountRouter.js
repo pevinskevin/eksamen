@@ -2,44 +2,49 @@ import { Router } from 'express';
 const router = Router();
 
 import { accountService } from '../../shared/factory/factory';
+import isAuthenticated from '../../shared/middleware/authorisation.js';
 
 router.get('/balances', isAuthenticated, async (req, res) => {
+    let fiatBalance;
+    let cryptoBalances;
     try {
-        const fiatBalance = await accountService.getFiatBalance(req.user.id);
-        const cryptoBalance = await accountService.getCryptoBalance(req.user.id);
-        res.send({
-            message: 'Yay it worked - yummy data coming your way!! ٩(＾◡＾)۶ ',
-            data: { account: fiatBalance, holdings: cryptoBalance },
-        });
+        fiatBalance = await accountService.getFiatBalanceByUserID(req.user.id);
+        if (!fiatBalance)
+            return res.status(404).send({
+                error: '404 something',
+                erorrMessage: 'Account not found. Invalid ID: ' + req.user.id,
+            });
     } catch (error) {
-        if (
-            error.message === 'No Fiat Account registered to user.' ||
-            error.message === 'No crypto account registered to user.'
-        )
-            res.status(404).send({ error: error.message });
-        else res.status(500).send({ errorMessage: 'Server error while fetching balances.' });
+        res.status(500).send({ errorMessage: error.message });
     }
+    try {
+        cryptoBalances = await accountService.getCryptoBalancesByUserId(req.user.id);
+        if (!cryptoBalances)
+            return res.status(404).send({
+                error: '404 something',
+                erorrMessage: 'Account not found. Invalid ID: ' + req.user.id,
+            });
+    } catch (error) {
+        res.status(500).send({ errorMessage: error.message });
+    }
+    res.status(200).send({
+        account: fiatBalance,
+        holdings: cryptoBalances,
+    });
 });
 
 router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {
+    const symbol = req.params.symbol.toUpperCase();
     try {
-        const userId = req.user.id;
-        const symbol = req.params.symbol.toUpperCase();
-
-        const specificHolding = await accountService.getCryptoHoldingBySymbol(userId, symbol);
-
-        res.send({
-            message: 'Yay it worked - yummy data coming your way!! ٩(＾◡＾)۶ ',
-            data: specificHolding,
-        });
-    } catch (error) {
-        if (error.message.includes('not found') || error.message.includes('No holdings found')) {
-            res.status(404).send({ message: error.message });
-        } else {
-            res.status(500).send({
-                errorMessage: 'Server error while fetching cryptocurrency holding.',
+        const holding = await accountService.getCryptoBalanceBySymbolAndUserID(req.user.id, symbol);
+        if (!holding)
+            res.status(404).send({
+                errorMessage: 'Cryptocurrency not found. Invalid symbol: ' + symbol,
             });
-        }
+        else return res.status(200).send({ holding });
+    } catch (error) {
+        res.status(500).send({ errorMessage: error.message });
     }
 });
+
 export default router;

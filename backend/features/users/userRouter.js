@@ -1,12 +1,7 @@
 import { Router } from 'express';
 const router = Router();
 
-import UserRepository from './UserRepository.js';
-import UserService from './UserService.js';
-import db from '../../database/connection.js';
-
-const userRepository = new UserRepository(db);
-const userService = new UserService(userRepository);
+import { userService } from '../../shared/factory/factory.js';
 
 router.post('/register', async (req, res) => {
     try {
