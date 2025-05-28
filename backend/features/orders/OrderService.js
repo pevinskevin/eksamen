@@ -1,4 +1,4 @@
-import { parse, parseAsync } from 'valibot';
+import { parseAsync } from 'valibot';
 import { orderSchema } from './ordersValidation.js';
 
 export default class OrderService {

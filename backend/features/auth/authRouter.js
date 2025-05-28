@@ -1,12 +1,7 @@
 import { Router } from 'express';
 const router = Router();
 
-import db from '../../database/connection.js';
-import AuthRepository from './AuthRepository.js';
-import AuthService from './AuthService.js';
-
-const authRepository = new AuthRepository(db);
-const authService = new AuthService(authRepository);
+import { authService } from '../../shared/factory/factory';
 
 router.post('/login', async (req, res) => {
     try {

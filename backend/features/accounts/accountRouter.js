@@ -1,13 +1,7 @@
 import { Router } from 'express';
 const router = Router();
 
-import AccountRepository from './AccountRepository.js';
-import AccountService from './AccountService.js';
-import db from '../../database/connection.js';
-import isAuthenticated from '../../shared/middleware/authorisation.js';
-
-const accountRepository = new AccountRepository(db);
-const accountService = new AccountService(accountRepository);
+import { accountService } from '../../shared/factory/factory';
 
 router.get('/balances', isAuthenticated, async (req, res) => {
     try {

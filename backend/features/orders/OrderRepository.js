@@ -51,8 +51,7 @@ export default class OrderRepository {
         const result = await this.db.query(query);
         const resultData = result.rows[0];
 
-        if (!resultData) throw new Error('Failed to create order.');
-        else return resultData;
+       return resultData;
     }
 
     async update(
