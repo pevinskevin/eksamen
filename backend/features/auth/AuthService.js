@@ -6,20 +6,16 @@ export default class AuthService {
     }
 
     async login(email, password) {
-        try {
-            const user = await this.authRepository.findByEmail(email);
+        const user = await this.authRepository.findByEmail(email);
 
-            if (!user) {
-                throw new Error('User not found.');
-            }
-
-            const matchingPasswords = await comparePassword(password, user.password_hash);
-            if (!matchingPasswords) {
-                throw new Error('Provided password is incorrect.');
-            }
-            return user;
-        } catch (error) {
-            throw Error('Service error:' + error);
+        if (!user) {
+            throw new Error('User not found.');
         }
+
+        const matchingPasswords = await comparePassword(password, user.password_hash);
+        if (!matchingPasswords) {
+            throw new Error('Provided password is incorrect.');
+        }
+        return user;
     }
 }
