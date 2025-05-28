@@ -23,9 +23,3 @@ import OrderRepository from '../../features/orders/OrderRepository.js';
 import OrderService from '../../features/orders/OrderService.js';
 export const orderRepository = new OrderRepository(db);
 export const orderService = new OrderService(orderRepository);
-
-// User
-import UserRepository from '../../features/users/UserRepository.js';
-import UserService from '../../features/users/UserService.js';
-export const userRepository = new UserRepository(db);
-export const userService = new UserService(userRepository);

@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "main": "app.js",
   "scripts": {
+    "test-auth": "node features/auth/tests/test-auth-endpoints.js",
     "dev": "node database/createDb.js --reset && nodemon app.js"
   },
   "keywords": [],

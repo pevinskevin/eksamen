@@ -6,13 +6,33 @@ import express from 'express';
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// -- OpenAPI Setup
+// -- OpenAPI Setup --
 import swaggerUi from 'swagger-ui-express';
-import pkg from 'express-openapi-validator';
-const { OpenApiValidator } = pkg;
+import OpenApiValidator from 'express-openapi-validator';
+import addFormats from 'ajv-formats';
 import YAML from 'yamljs';
 const apiSpec = YAML.load('./openapi.yml');
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(apiSpec));
+
+// -- OpenAPI Middlewares Setup --
+app.use(
+    OpenApiValidator.middleware({
+        apiSpec: apiSpec,
+        validateRequests: true,
+        validateResponses: false,
+        ajvFormats: addFormats, // email, date etc.
+        formats: {
+            decimal: {
+                type: 'string',
+                validate: (value) => {
+                    // Validate decimal format for financial precision
+                    // Matches: "123.45", "0.001", "1000.00", etc.
+                    return /^\d+(\.\d+)?$/.test(value) && !isNaN(parseFloat(value));
+                },
+            },
+        },
+    })
+);
 
 // -- HTTP Server Setup --
 import http from 'http';
@@ -67,9 +87,6 @@ app.use('/api', authRouter);
 
 import cryptoRouter from './features/cryptocurrencies/cryptoRouter.js';
 app.use('/api', cryptoRouter);
-
-import userRouter from './features/users/userRouter.js';
-app.use('/api', userRouter);
 
 import orderRouter from './features/orders/orderRouter.js';
 app.use('/api/order', orderRouter);
