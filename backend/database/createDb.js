@@ -23,8 +23,8 @@ async function createTables() {
       CREATE TYPE user_role AS ENUM ('user', 'admin');
       
       -- Order types
-      CREATE TYPE order_type AS ENUM ('buy', 'sell');
-      CREATE TYPE order_variant AS ENUM ('limit', 'market');
+      CREATE TYPE order_type AS ENUM ('limit', 'market');
+      CREATE TYPE order_variant AS ENUM ('buy', 'sell');
       CREATE TYPE order_status AS ENUM ('open', 'partially_filled', 'fully_filled', 'cancelled');
       
       -- Transaction types
@@ -118,8 +118,8 @@ async function createTables() {
         order_id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(user_id),
         cryptocurrency_id INTEGER REFERENCES cryptocurrencies(cryptocurrency_id),
-        type order_type NOT NULL,
-        order_type order_variant NOT NULL,
+        order_type order_type NOT NULL,
+        order_variant order_variant NOT NULL,
         quantity_total DECIMAL(20, 8) NOT NULL,
         quantity_remaining DECIMAL(20, 8) NOT NULL,
         price DECIMAL(20, 8),

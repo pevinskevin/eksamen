@@ -6,9 +6,13 @@ export default class AccountService {
     }
 
     async getFiatBalance(id) {
-        const balance = await this.accountRepository.readFiatBalance(id);
-        if (!balance) throw new Error('No fiat account registered to user.');
-        return balance;
+        try {
+            const balance = await this.accountRepository.readFiatBalance(id);
+            if (!balance) throw new Error('No fiat account registered to user.');
+            return balance;
+        } catch (error) {
+            throw Error('Error in AccountService' + error);
+        }
     }
 
     async getCryptoBalance(id) {

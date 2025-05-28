@@ -19,7 +19,7 @@ export default class AuthService {
             }
             return user;
         } catch (error) {
-            throw new Error('Service error:' + error);
+            throw Error('Service error:' + error);
         }
     }
 }
