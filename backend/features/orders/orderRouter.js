@@ -14,22 +14,6 @@ const cryptoService = new CryptoService(cryptoRepository);
 const orderRepository = new OrderRepository(db);
 const orderService = new OrderService(orderRepository);
 
-// Helper function to log errors with context
-const logError = (error, context = {}) => {
-    console.error('=== ORDER ERROR ===');
-    console.error('Timestamp:', new Date().toISOString());
-    console.error('Error Code:', error.code || 'UNKNOWN');
-    console.error('Message:', error.message);
-    console.error('Context:', { ...context, ...error.context });
-    if (error.originalError) {
-        console.error('Original Error:', error.originalError.message);
-        console.error('Stack:', error.originalError.stack);
-    } else {
-        console.error('Stack:', error.stack);
-    }
-    console.error('==================');
-};
-
 router.get('/', isAuthenticated, (req, res) => {
     res.send({ message: 'Hiii!! ٩(＾◡＾)۶' });
 });
@@ -39,23 +23,13 @@ router.get('/:id', isAuthenticated, (req, res) => {
 });
 
 router.post('/', isAuthenticated, async (req, res) => {
-    const requestContext = {
-        userId: req.user?.id,
-        requestBody: req.body,
-        endpoint: 'POST /orders',
-    };
-
     try {
         const { cryptocurrencyid, orderType, orderVariant, quantity, price } =
             await orderService.validateOrder(req.body.data);
 
         const cryptocurrencyInDb = await cryptoService.getCryptocurrencyById(cryptocurrencyid);
         if (!cryptocurrencyInDb) {
-            return res.status(404).send({
-                error: 'Cryptocurrency not found. Invalid ID.',
-                code: 'CRYPTOCURRENCY_NOT_FOUND',
-                cryptocurrencyId: cryptocurrencyid,
-            });
+            return res.status(404).send({ error: 'Cryptocurrency not found. Invalid ID.' });
         }
 
         const savedOrder = await orderService.save(
@@ -66,62 +40,21 @@ router.post('/', isAuthenticated, async (req, res) => {
             price,
             req.user.id
         );
-
-        res.status(201).send({
-            message: 'Success YAY! ٩(＾◡＾)۶',
-            data: savedOrder,
-        });
+        return res.status(201).send({ message: 'Success YAY! ٩(＾◡＾)۶', data: savedOrder });
     } catch (error) {
-        logError(error, requestContext);
+        console.error('❌ ERROR IN orderRouter POST /:', error.message);
+        console.error('📍 User ID:', req.user?.id);
+        console.error('📍 Request body:', req.body);
 
-        // Handle validation errors
-        if (error.code === 'VALIDATION_ERROR') {
-            return res.status(400).send({
-                error: 'Invalid order data',
-                code: error.code,
-                details: error.context?.issues || [],
-                message: error.message,
-            });
+        if (error.issues) {
+            return res.status(400).send({ error: error.message });
         }
-
-        // Handle database errors
-        if (error.code === 'DATABASE_ERROR') {
-            return res.status(500).send({
-                error: 'Database operation failed',
-                code: error.code,
-                message: 'Unable to save order. Please try again.',
-            });
-        }
-
-        // Handle service errors
-        if (error.code === 'SERVICE_ERROR') {
-            return res.status(500).send({
-                error: 'Service operation failed',
-                code: error.code,
-                message: 'Unable to process order. Please try again.',
-            });
-        }
-
-        // Handle cryptocurrency not found errors
-        if (error.code === 'ORDER_INSERT_FAILED') {
-            return res.status(500).send({
-                error: 'Order creation failed',
-                code: error.code,
-                message: 'Unable to create order. Please try again.',
-            });
-        }
-
-        // Handle unexpected errors
-        return res.status(500).send({
-            error: 'Internal server error',
-            code: 'INTERNAL_ERROR',
-            message: 'An unexpected error occurred. Please try again.',
-        });
+        res.status(500).send({ error: error.message });
     }
 });
 
 router.put('/:id', isAuthenticated, (req, res) => {
-    res.send({ message: 'Hiii!! ٩(＾◡＂)۶' });
+    res.send({ message: 'Hiii!! ٩(＾◡＾)۶' });
 });
 
 router.delete('/:id', isAuthenticated, (req, res) => {

@@ -17,46 +17,19 @@ export default class OrderRepository {
                     userid,
                 ],
             };
-
             const result = await this.db.query(query);
-
-            if (!result.rows || result.rows.length === 0) {
-                const error = new Error('Order insertion failed - no rows returned');
-                error.code = 'ORDER_INSERT_FAILED';
-                error.context = {
-                    operation: 'OrderRepository.save',
-                    parameters: {
-                        cryptocurrencyid,
-                        orderType,
-                        orderVariant,
-                        quantity,
-                        price,
-                        userid,
-                    },
-                    query: query.text,
-                };
-                throw error;
-            }
-
             return result.rows[0];
         } catch (error) {
-            // If it's already our custom error, re-throw it
-            if (error.code && error.context) {
-                throw error;
-            }
-
-            // Wrap database errors with context
-            const dbError = new Error(`Database error in OrderRepository.save: ${error.message}`);
-            dbError.code = 'DATABASE_ERROR';
-            dbError.originalError = error;
-            dbError.context = {
-                operation: 'OrderRepository.save',
-                parameters: { cryptocurrencyid, orderType, orderVariant, quantity, price, userid },
-                sqlState: error.code,
-                constraint: error.constraint,
-                detail: error.detail,
-            };
-            throw dbError;
+            console.error('❌ ERROR IN OrderRepository.save:', error.message);
+            console.error('📍 Parameters:', {
+                cryptocurrencyid,
+                orderType,
+                orderVariant,
+                quantity,
+                price,
+                userid,
+            });
+            throw new Error(`OrderRepository.save failed: ${error.message}`);
         }
     }
 }

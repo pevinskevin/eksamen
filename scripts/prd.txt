@@ -1,269 +1,488 @@
 <context>
-# Overview  
-This project is a simulated cryptocurrency exchange platform designed to mimic the core functionalities of a real-world exchange. 
-It will provide users with a hands-on experience of trading digital assets in a safe, sandboxed environment. 
-The platform is targeted towards individuals interested in learning about cryptocurrency trading, developers exploring exchange mechanics, or for educational purposes. 
-Its value lies in offering a realistic trading simulation without financial risk, incorporating features like user authentication, live order books, and simulated buy/sell transactions. 
+# Overview
+This project is a simulated cryptocurrency exchange platform designed to mimic
+the core functionalities of a real-world exchange.
+It will provide users with a hands-on experience of trading digital assets in a
+safe, sandboxed environment.
+The platform is targeted towards individuals interested in learning about
+cryptocurrency trading, developers exploring exchange mechanics, or for
+educational purposes.
+Its value lies in offering a realistic trading simulation without financial
+risk, incorporating features like user authentication, live order books, and
+simulated buy/sell transactions.
 The backend will be built with NodeJS and the frontend with Svelte.
 
-# Core Features  
+# Core Features
 - User Authentication:
-What it does: Allows new users to create an account and existing users to log in securely to access the platform's features.
-Why it's important: It's a fundamental security requirement, protects user data (even simulated), personalizes the user experience, and is an explicit exam requirement.
-How it works at a high level:
-Frontend: Registration and login forms. User enters credentials. fetch is used to send credentials to the backend.
-Backend: Express routes to handle registration (hash password, store user in database) and login (verify credentials, generate a session token/cookie). Sockets might be used to confirm login status or push updates post-login.
-Database: Stores user credentials (e.g., username, hashed password, email).
+  What it does: Allows new users to create an account and existing users to log
+  in securely to access the platform's features.
+  Why it's important: It's a fundamental security requirement, protects user
+  data (even simulated), personalizes the user experience, and is an explicit
+  exam requirement.
+  How it works at a high level:
+  Frontend: Registration and login forms. User enters credentials. fetch is used
+  to send credentials to the backend.
+  Backend: Express routes to handle registration (hash password, store user in
+  database) and login (verify credentials, generate a session token/cookie).
+  Sockets might be used to confirm login status or push updates post-login.
+  Database: Stores user credentials (hashed password, email).
 
 - User Authorization:
-What it does: After a user is authenticated, authorization controls what specific actions they are permitted to perform and what data they can access within the application. For this simulated exchange, it would mean:
-Ensuring users can only view and manage their own account balances, portfolios, and trade history.
-Preventing users from placing trades on behalf of others or accessing other users' sensitive information.
-(Optional, but good for showcasing) Potentially, an admin role could have broader permissions, like viewing system-wide statistics or managing the list of available cryptocurrencies for trading.
-Why it's important: It's a crucial security layer on top of authentication, directly addressing one of the hard exam requirements. It ensures data integrity and user privacy, even in a simulated environment.
-How it works at a high level:
-Backend (Express):
-When a user logs in, their role or permissions (e.g., "user", "admin") are associated with their session/token. These roles would be stored in the database alongside user information.
-For protected routes/actions, middleware functions will check the user's role/permissions from their session/token against the required permissions for that action.
-For example, an API endpoint to place a trade /api/trades/place would verify that the authenticated user is placing a trade for their own account ID. An endpoint like /api/admin/currencies (if we have an admin panel) would check if the user has an "admin" role.
-Frontend (Svelte):
-The UI might dynamically show/hide certain elements or navigation links based on the user's role (e.g., an "Admin Panel" link only visible to admins).
-While the frontend can control UI presentation, the backend must enforce all authorization rules, as frontend checks can be bypassed. fetch requests will be sent as usual, but the backend will reject unauthorized actions.
-Sockets: Could be used to ensure that users only receive real-time updates (e.g., trade confirmations, balance changes) relevant to their own account.
+  What it does: After a user is authenticated, authorization controls what
+  specific actions they are permitted to perform and what data they can access
+  within the application. For this simulated exchange, it would mean:
+  Ensuring users can only view and manage their own account balances,
+  portfolios, and trade history.
+  Preventing users from placing trades on behalf of others or accessing other
+  users' sensitive information.
+  (Optional, but good for showcasing) Potentially, an admin role could have
+  broader permissions, like viewing system-wide statistics or managing the list
+  of available cryptocurrencies for trading.
+  Why it's important: It's a crucial security layer on top of authentication,
+  directly addressing one of the hard exam requirements. It ensures data
+  integrity and user privacy, even in a simulated environment.
+  How it works at a high level:
+  Backend (Express):
+  When a user logs in, their role or permissions (e.g., "user", "admin") are
+  associated with their session/token. These roles would be stored in the
+  database alongside user information.
+  For protected routes/actions, middleware functions will check the user's
+  role/permissions from their session/token against the required permissions for
+  that action.
+  For example, an API endpoint to place a trade /api/trades/place would verify
+  that the authenticated user is placing a trade for their own account ID. An
+  endpoint like /api/admin/currencies (if we have an admin panel) would check
+  if the user has an "admin" role.
+  Frontend (Svelte):
+  The UI might dynamically show/hide certain elements or navigation links based
+  on the user's role (e.g., an "Admin Panel" link only visible to admins).
+  While the frontend can control UI presentation, the backend must enforce all
+  authorization rules, as frontend checks can be bypassed. fetch requests will
+  be sent as usual, but the backend will reject unauthorized actions.
+  Sockets: Could be used to ensure that users only receive real-time updates
+  (e.g., trade confirmations, balance changes) relevant to their own account.
 
 - Real-time Order Book Visualization:
-What it does:
-Displays a live, two-sided list of buy orders (bids) and sell orders (asks) for a selected cryptocurrency, organized by price levels.
-For each price level, it shows the quantity of the cryptocurrency available to be bought or sold.
-The display updates in real-time as new orders are placed, matched (filled), or canceled.
-Why it's important:
-This is a cornerstone of any trading interface, providing transparency into market depth (supply and demand).
-It helps users make informed decisions about what price to trade at.
-Crucially, it directly fulfills the Sockets hard requirement for both frontend and backend, as the data must be streamed live.
-The depthcache-documentation.md you provided suggests this is a key component you've already researched.
-How it works at a high level:
-Backend (Express, Database, Sockets, and the custom Order Book logic possibly informed by depthcache-documentation.md and binance-ws.js):
-The server will maintain an in-memory order book for each tradable cryptocurrency pair (e.g., BTC/USD, ETH/USD). This might be initially populated or influenced by external data (e.g., from binance-ws.js to simulate a live market) but will primarily be driven by user orders within our simulation.
-When users submit buy or sell orders, if they aren't immediately matched by the Order Matching Engine (which we'll detail next), they are added to this order book.
-Sockets: The backend will use WebSockets to broadcast changes to the order book to all connected and subscribed frontend clients. When an order is added, removed (filled/canceled), or modified, the backend sends a message (either the full updated book or just the changes/deltas) through the socket for the relevant cryptocurrency.
-Frontend (Svelte & Sockets):
-When a user selects a cryptocurrency to view, the Svelte frontend will establish or use an existing WebSocket connection to the backend.
-It will subscribe to order book updates for that specific cryptocurrency.
-Upon subscription, or via an initial fetch call, it receives the current state of the order book.
-It then listens for incoming messages on the socket. When an update is received, Svelte will efficiently re-render the order book display (typically two lists: bids and asks, sorted by price, often with cumulative totals). This ensures the user sees changes in near real-time without page reloads.
-Styling will be important here to make it readable (e.g., green for bids, red for asks).
+  What it does:
+  Displays a live, two-sided list of buy orders (bids) and sell orders (asks)
+  for a selected cryptocurrency, organized by price levels.
+  For each price level, it shows the quantity of the cryptocurrency available to
+  be bought or sold.
+  The display updates in real-time as new orders are placed, matched (filled),
+  or canceled.
+  Why it's important:
+  This is a cornerstone of any trading interface, providing transparency into
+  market depth (supply and demand).
+  It helps users make informed decisions about what price to trade at.
+  Crucially, it directly fulfills the Sockets hard requirement for both frontend
+  and backend, as the data must be streamed live.
+  The depthcache-documentation.md you provided suggests this is a key component
+  you've already researched.
+  How it works at a high level:
+  Backend (Express, Database, Sockets, and the custom Order Book logic possibly
+  informed by depthcache-documentation.md and binance-ws.js):
+  The server will maintain an in-memory order book for each tradable
+  cryptocurrency pair (e.g., BTC/USD, ETH/USD). This might be initially
+  populated or influenced by external data (e.g., from binance-ws.js to
+  simulate a live market) but will primarily be driven by user orders within
+  our simulation.
+  When users submit buy or sell orders, if they aren't immediately matched by
+  the Order Matching Engine (which we'll detail next), they are added to this
+  order book.
+  Sockets: The backend will use WebSockets to broadcast changes to the order
+  book to all connected and subscribed frontend clients. When an order is
+  added, removed (filled/canceled), or modified, the backend sends a message
+  (either the full updated book or just the changes/deltas) through the socket
+  for the relevant cryptocurrency.
+  Frontend (Svelte & Sockets):
+  When a user selects a cryptocurrency to view, the Svelte frontend will
+  establish or use an existing WebSocket connection to the backend.
+  It will subscribe to order book updates for that specific cryptocurrency.
+  Upon subscription, or via an initial fetch call, it receives the current
+  state of the order book.
+  It then listens for incoming messages on the socket. When an update is
+  received, Svelte will efficiently re-render the order book display
+  (typically two lists: bids and asks, sorted by price, often with cumulative
+  totals). This ensures the user sees changes in near real-time without page
+  reloads.
+  Styling will be important here to make it readable (e.g., green for bids, red
+  for asks).
 
 - Simulated Trading (Buy/Sell Orders):
-What it does:
-Allows authenticated users to place buy orders (bids) and sell orders (asks) for selected cryptocurrencies.
-Users can specify the quantity and, for limit orders, the desired price. (We might also consider implementing "market orders" which buy/sell at the best currently available price).
-Why it's important: This is the primary way users interact with the market. It's the mechanism that drives changes in the order book and leads to simulated trades. It's a core functional requirement.
-How it works at a high level:
-Frontend (Svelte):
-Provides a trading form where users select the cryptocurrency, order type (buy/sell), quantity, and price (for limit orders).
-Performs basic client-side validation (e.g., numeric inputs, sufficient simulated funds based on locally cached balance info – though final check is on the backend).
-Uses fetch to send the order details to a secure backend API endpoint (e.g., /api/orders/place).
-Backend (Express, Database, Sockets, Order Matching Engine):
-An Express route receives the order request.
-Crucial Steps:
-Authentication/Authorization: Verifies the user is logged in and authorized to trade.
-Validation & Balance Check: Validates order parameters (e.g., valid currency, positive quantity/price). Critically, it checks the user's account balance in the Database to ensure they have enough simulated fiat currency (for buys) or cryptocurrency (for sells) to cover the order. If not, the order is rejected.
-Order Matching Engine: The order is passed to the matching engine.
-The engine attempts to match it against existing orders on the internal order book for that cryptocurrency (as discussed above).
-If a trade (or trades) occurs, the database is updated:
-User balances are adjusted (e.g., buyer's fiat decreases, crypto increases; seller's crypto decreases, fiat increases).
-Trade history is recorded.
-The matched order(s) on the book are updated/removed.
-If the order is not fully matched, the remainder is added to the order book.
-Response & Notifications:
-The backend responds to the frontend's fetch request indicating success (and details of any trade) or failure (with a reason).
-Sockets:
-Sends updates about changes to the order book to all subscribed clients.
-Sends specific notifications to the user who placed the order about its status (e.g., "Order placed," "Order partially filled," "Order filled," "Order failed").
-Sends updates about balance changes to the relevant user(s).
-Database: Stores user account balances (fiat and crypto), records all trades, and holds the state of open orders if the application restarts and needs to repopulate the in-memory order book (though often order books are primarily in-memory for performance).
+  What it does:
+  Allows authenticated users to place buy orders (bids) and sell orders (asks)
+  for selected cryptocurrencies.
+  Users can specify the quantity and, for limit orders, the desired price. (We
+  might also consider implementing "market orders" which buy/sell at the best
+  currently available price).
+  Why it's important: This is the primary way users interact with the market.
+  It's the mechanism that drives changes in the order book and leads to
+  simulated trades. It's a core functional requirement.
+  How it works at a high level:
+  Frontend (Svelte):
+  Provides a trading form where users select the cryptocurrency, order type
+  (buy/sell), quantity, and price (for limit orders).
+  Performs basic client-side validation (e.g., numeric inputs, sufficient
+  simulated funds based on locally cached balance info – though final check is
+  on the backend).
+  Uses fetch to send the order details to a secure backend API endpoint (e.g.,
+  /api/orders/place).
+  Backend (Express, Database, Sockets, Order Matching Engine):
+  An Express route receives the order request.
+  Crucial Steps:
+  Authentication/Authorization: Verifies the user is logged in and authorized
+  to trade.
+  Validation & Balance Check: Validates order parameters (e.g., valid currency,
+  positive quantity/price). Critically, it checks the user's account balance
+  in the Database to ensure they have enough simulated fiat currency (for buys)
+  or cryptocurrency (for sells) to cover the order. If not, the order is
+  rejected.
+  Order Matching Engine: The order is passed to the matching engine.
+  The engine attempts to match it against existing orders on the internal order
+  book for that cryptocurrency (as discussed above).
+  If a trade (or trades) occurs, the database is updated:
+  User balances are adjusted (e.g., buyer's fiat decreases, crypto increases;
+  seller's crypto decreases, fiat increases).
+  Trade history is recorded.
+  The matched order(s) on the book are updated/removed.
+  If the order is not fully matched, the remainder is added to the order book.
+  Response & Notifications:
+  The backend responds to the frontend's fetch request indicating success (and
+  details of any trade) or failure (with a reason).
+  Sockets:
+  Sends updates about changes to the order book to all subscribed clients.
+  Sends specific notifications to the user who placed the order about its
+  status (e.g., "Order placed," "Order partially filled," "Order filled,"
+  "Order failed").
+  Sends updates about balance changes to the relevant user(s).
+  Database: Stores user account balances (fiat and crypto), records all
+  trades, and holds the state of open orders if the application restarts and
+  needs to repopulate the in-memory order book (though often order books are
+  primarily in-memory for performance).
 
 - Order Matching Engine:
-What it does:
-This is the core backend component responsible for processing incoming buy and sell orders.
-It attempts to match buy orders with sell orders based on price and time priority (typically, best price first, then oldest order at that price).
-When a match is found (a "trade" or "fill" occurs), the engine executes the trade, updating the involved orders and triggering updates to user balances and the order book.
-If an incoming order cannot be fully matched immediately, the engine adds the unmatched portion to the appropriate side (buy/sell) of the exchange's internal order book for the specific cryptocurrency.
-Why it's important:
-It is the exchange. Without it, no trading can occur.
-It's a complex piece of logic that directly determines how trades are executed and how the market behaves within your simulation.
-It directly interacts with the Database (for balances, trade history, persisting open orders) and triggers Socket communications (for order book updates, trade notifications).
-Your depthcache-documentation.md likely contains foundational ideas for this.
-How it works at a high level:
-Backend (Node.js/Express - Custom Logic): This will be a significant module or set of modules within your backend application.
-Receives Orders: It gets new orders that have already passed validation (user auth, sufficient funds, etc.) from the "Simulated Trading (Buy/Sell Orders)" feature.
-Order Book Interaction:
-For an incoming buy order (bid): It checks the sell side (asks) of the current internal order book for that cryptocurrency. It looks for asks with a price less than or equal to the bid price, starting with the lowest-priced ask.
-For an incoming sell order (ask): It checks the buy side (bids) of the current internal order book. It looks for bids with a price greater than or equal to the ask price, starting with the highest-priced bid.
-Matching Logic (Price-Time Priority):
-If compatible orders are found on the book:
-Trades are executed against the best-priced resting orders first.
-If multiple orders exist at the best price, they are typically filled based on time priority (oldest order first - FIFO).
-The engine handles partial fills (e.g., an incoming buy order for 1 BTC might be matched against two sell orders of 0.5 BTC each, or one sell order of 0.3 BTC, leaving 0.7 BTC of the buy order to find further matches or be placed on the book).
-Updating State:
-When a trade occurs:
-The quantities of the matched orders are reduced.
-If an order is fully filled, it's removed from the order book.
-User balances are updated in the Database (this needs to be an atomic operation).
-A record of the trade (price, quantity, buyer, seller, timestamp) is created in the Database.
-Socket messages are triggered to update the order book display for all clients and to send trade confirmation/fill notifications to the involved users.
-Placing Unmatched Orders:
-If an incoming order (or the remaining part of it after partial fills) cannot find any more matches, it is added to the internal order book.
-This also triggers a Socket message to update the order book display.
-Order Cancellation: The engine must also handle requests to cancel existing, unfilled orders from the book. This also updates the book and triggers socket messages.
-Persistence (Database): While the active order book is often kept in-memory for performance, open orders should also be persisted in the database so the state can be recovered if the server restarts. The depthcache-documentation.md might elaborate on strategies for this.
+  What it does:
+  This is the core backend component responsible for processing incoming buy
+  and sell orders.
+  It attempts to match buy orders with sell orders based on price and time
+  priority (typically, best price first, then oldest order at that price).
+  When a match is found (a "trade" or "fill" occurs), the engine executes the
+  trade, updating the involved orders and triggering updates to user balances
+  and the order book.
+  If an incoming order cannot be fully matched immediately, the engine adds the
+  unmatched portion to the appropriate side (buy/sell) of the exchange's
+  internal order book for the specific cryptocurrency.
+  Why it's important:
+  It is the exchange. Without it, no trading can occur.
+  It's a complex piece of logic that directly determines how trades are
+  executed and how the market behaves within your simulation.
+  It directly interacts with the Database (for balances, trade history,
+  persisting open orders) and triggers Socket communications (for order book
+  updates, trade notifications).
+  Your depthcache-documentation.md likely contains foundational ideas for this.
+  How it works at a high level:
+  Backend (Node.js/Express - Custom Logic): This will be a significant module
+  or set of modules within your backend application.
+  Receives Orders: It gets new orders that have already passed validation (user
+  auth, sufficient funds, etc.) from the "Simulated Trading (Buy/Sell
+  Orders)" feature.
+  Order Book Interaction:
+  For an incoming buy order (bid): It checks the sell side (asks) of the
+  current internal order book for that cryptocurrency. It looks for asks with a
+  price less than or equal to the bid price, starting with the lowest-priced
+  ask.
+  For an incoming sell order (ask): It checks the buy side (bids) of the
+  current internal order book. It looks for bids with a price greater than or
+  equal to the ask price, starting with the highest-priced bid.
+  Matching Logic (Price-Time Priority):
+  If compatible orders are found on the book:
+  Trades are executed against the best-priced resting orders first.
+  If multiple orders exist at the best price, they are typically filled based
+  on time priority (oldest order first - FIFO).
+  The engine handles partial fills (e.g., an incoming buy order for 1 BTC
+  might be matched against two sell orders of 0.5 BTC each, or one sell order
+  of 0.3 BTC, leaving 0.7 BTC of the buy order to find further matches or be
+  placed on the book).
+  Updating State:
+  When a trade occurs:
+  The quantities of the matched orders are reduced.
+  If an order is fully filled, it's removed from the order book.
+  User balances are updated in the Database (this needs to be an atomic
+  operation).
+  A record of the trade (price, quantity, buyer, seller, timestamp) is created
+  in the Database.
+  Socket messages are triggered to update the order book display for all
+  clients and to send trade confirmation/fill notifications to the involved
+  users.
+  Placing Unmatched Orders:
+  If an incoming order (or the remaining part of it after partial fills) cannot
+  find any more matches, it is added to the internal order book.
+  This also triggers a Socket message to update the order book display.
+  Order Cancellation: The engine must also handle requests to cancel existing,
+  unfilled orders from the book. This also updates the book and triggers
+  socket messages.
+  Persistence (Database): While the active order book is often kept in-memory
+  for performance, open orders should also be persisted in the database so the
+  state can be recovered if the server restarts. The
+  depthcache-documentation.md might elaborate on strategies for this.
 
 - Account Balance Management (Simulated Fiat & Crypto):
-What it does:
-Tracks and displays each user's simulated fiat currency (e.g., USD-Simulated) and cryptocurrency balances (e.g., BTC-Simulated, ETH-Simulated).
-Updates these balances when users:
-Successfully execute trades (e.g., buying crypto decreases fiat and increases crypto; selling crypto increases fiat and decreases crypto).
-(Potentially) Make simulated "deposits" or "withdrawals" – especially for initially funding their fiat account using the Stripe test integration, or moving crypto using Phantom/MetaMask.
-Why it's important:
-Essential for the trading simulation to function, as users need "funds" to trade with.
-Provides users with a clear overview of their simulated portfolio.
-Directly involves the Database hard requirement for the backend to store and manage these balances securely and accurately.
-How it works at a high level:
-Backend (Express & Database):
-Database: A core part of the database schema will be dedicated to user accounts and their balances. This might involve tables like:
-UserAccounts (linking to the main users table, possibly holding a primary fiat balance).
-CryptoHoldings (linking to UserAccounts and Cryptocurrencies, storing the amount held of each crypto).
-Transaction integrity is key here (e.g., ensuring that debits and credits in a trade are atomic).
-API Endpoints:
-Express routes (e.g., /api/account/balances) will allow authenticated users to fetch their current balances.
-Internal logic within the trading and deposit/withdrawal (if implemented) functions will update these database records.
-Sockets: When a user's balance changes due to a trade or other activity, the backend can push an update via WebSockets to the user's frontend client to refresh their displayed balance in real-time.
-Frontend (Svelte):
-Uses fetch to get the user's account balances upon login and potentially at intervals or when specific views are accessed.
-Displays these balances clearly in the user's dashboard or portfolio section.
-Listens for WebSocket messages from the backend regarding balance updates and dynamically refreshes the displayed values.
-Integration with Trading & Payments/Wallets:
-Trading: As described previously, the trading engine will read from and write to these balance records in the database.
-Stripe (Test Mode): If a user "deposits" simulated fiat via Stripe, a successful payment callback from Stripe would trigger the backend to increase the user's simulated fiat balance in the database.
-Phantom/MetaMask: If a user "deposits" simulated crypto, a successful transaction confirmation (on a testnet) picked up by the backend would update their crypto balance. "Withdrawals" would involve the backend instructing the wallet to initiate a transfer and then debiting the balance upon confirmation.
+  What it does:
+  Tracks and displays each user's simulated fiat currency (e.g.,
+  USD-Simulated) and cryptocurrency balances (e.g., BTC-Simulated,
+  ETH-Simulated).
+  Updates these balances when users:
+  Successfully execute trades (e.g., buying crypto decreases fiat and
+  increases crypto; selling crypto increases fiat and decreases crypto).
+  (Potentially) Make simulated "deposits" or "withdrawals" – especially for
+  initially funding their fiat account using the Stripe test integration, or
+  moving crypto using Phantom/MetaMask.
+  Why it's important:
+  Essential for the trading simulation to function, as users need "funds" to
+  trade with.
+  Provides users with a clear overview of their simulated portfolio.
+  Directly involves the Database hard requirement for the backend to store and
+  manage these balances securely and accurately.
+  How it works at a high level:
+  Backend (Express & Database):
+  Database: A core part of the database schema will be dedicated to user
+  accounts and their balances. This might involve tables like:
+  UserAccounts (linking to the main users table, possibly holding a primary
+  fiat balance).
+  CryptoHoldings (linking to UserAccounts and Cryptocurrencies, storing the
+  amount held of each crypto).
+  Transaction integrity is key here (e.g., ensuring that debits and credits in
+  a trade are atomic).
+  API Endpoints:
+  Express routes (e.g., /api/account/balances) will allow authenticated users
+  to fetch their current balances.
+  Internal logic within the trading and deposit/withdrawal (if implemented)
+  functions will update these database records.
+  Sockets: When a user's balance changes due to a trade or other activity, the
+  backend can push an update via WebSockets to the user's frontend client to
+  refresh their displayed balance in real-time.
+  Frontend (Svelte):
+  Uses fetch to get the user's account balances upon login and potentially at
+  intervals or when specific views are accessed.
+  Displays these balances clearly in the user's dashboard or portfolio section.
+  Listens for WebSocket messages from the backend regarding balance updates and
+  dynamically refreshes the displayed values.
+  Integration with Trading & Payments/Wallets:
+  Trading: As described previously, the trading engine will read from and write
+  to these balance records in the database.
+  Stripe (Test Mode): If a user "deposits" simulated fiat via Stripe, a
+  successful payment callback from Stripe would trigger the backend to increase
+  the user's simulated fiat balance in the database.
+  Phantom/MetaMask: If a user "deposits" simulated crypto, a successful
+  transaction confirmation (on a testnet) picked up by the backend would
+  update their crypto balance. "Withdrawals" would involve the backend
+  instructing the wallet to initiate a transfer and then debiting the balance
+  upon confirmation.
 
 - Payment Gateway Integration (Stripe Test Mode):
-What it does:
-Allows users to simulate "depositing" fiat currency (e.g., USD-Simulated) into their exchange account using Stripe's test environment.
-This doesn't involve real money but uses Stripe's testing cards and infrastructure to mimic a real payment flow.
-Why it's important:
-Enhances the realism of the simulation by providing a familiar mechanism for funding an account.
-Demonstrates the ability to integrate with a third-party payment provider, which is a valuable skill.
-Can make the demo more engaging during your exam presentation.
-How it works at a high level:
-Frontend (Svelte):
-A "Deposit Fiat" section in the user's account area.
-User enters an amount they wish to "deposit."
-Integration with Stripe Elements (or a similar Stripe frontend library) to securely collect test card details.
-On submission, the frontend communicates with Stripe to tokenize the card details and then sends this token (or payment method ID) and the deposit amount to the backend via fetch.
-Backend (Express & Database):
-An Express API endpoint (e.g., /api/payments/stripe-deposit) receives the payment token/ID and amount from the frontend.
-The backend uses the Stripe Node.js library to create a "charge" or "payment intent" using Stripe's test API keys and the token.
-If Stripe confirms the test payment is successful:
-The backend updates the user's simulated fiat balance in the Database.
-A record of the transaction is stored.
-A success message is sent back to the frontend.
-A WebSocket message might be sent to the user to update their balance display in real-time.
-If the Stripe payment fails, an error message is returned.
-Stripe Dashboard: You'll use the Stripe developer dashboard to get test API keys, view test transactions, and configure webhooks (if needed, for more robust confirmation, though for a simulation, direct confirmation might suffice).
+  What it does:
+  Allows users to simulate "depositing" fiat currency (e.g., USD-Simulated)
+  into their exchange account using Stripe's test environment.
+  This doesn't involve real money but uses Stripe's testing cards and
+  infrastructure to mimic a real payment flow.
+  Why it's important:
+  Enhances the realism of the simulation by providing a familiar mechanism for
+  funding an account.
+  Demonstrates the ability to integrate with a third-party payment provider,
+  which is a valuable skill.
+  Can make the demo more engaging during your exam presentation.
+  How it works at a high level:
+  Frontend (Svelte):
+  A "Deposit Fiat" section in the user's account area.
+  User enters an amount they wish to "deposit."
+  Integration with Stripe Elements (or a similar Stripe frontend library) to
+  securely collect test card details.
+  On submission, the frontend communicates with Stripe to tokenize the card
+  details and then sends this token (or payment method ID) and the deposit
+  amount to the backend via fetch.
+  Backend (Express & Database):
+  An Express API endpoint (e.g., /api/payments/stripe-deposit) receives the
+  payment token/ID and amount from the frontend.
+  The backend uses the Stripe Node.js library to create a "charge" or "payment
+  intent" using Stripe's test API keys and the token.
+  If Stripe confirms the test payment is successful:
+  The backend updates the user's simulated fiat balance in the Database.
+  A record of the transaction is stored.
+  A success message is sent back to the frontend.
+  A WebSocket message might be sent to the user to update their balance
+  display in real-time.
+  If the Stripe payment fails, an error message is returned.
+  Stripe Dashboard: You'll use the Stripe developer dashboard to get test API
+  keys, view test transactions, and configure webhooks (if needed, for more
+  robust confirmation, though for a simulation, direct confirmation might
+  suffice).
 
 - Crypto Wallet Integration (Phantom/MetaMask for simulated transfers):
-What it does:
-Allows users to simulate "depositing" cryptocurrencies from their external testnet wallets (e.g., Phantom for Solana testnet, MetaMask for Ethereum testnets like Sepolia) into their exchange account.
-Allows users to simulate "withdrawing" cryptocurrencies from their exchange account to their external testnet wallets.
-This involves interacting with browser extension wallets to approve transactions on a public test blockchain.
-Why it's important:
-Greatly enhances the simulation's authenticity by mimicking how users would move crypto to/from a real exchange.
-Showcases ability to interact with blockchain technologies and wallet providers.
-Provides a more comprehensive "full-stack" experience for the user and for your demonstration.
-How it works at a high level:
-Simulated "Deposits" (User sending testnet crypto to the exchange):
-Frontend (Svelte):
-In the user's account section, for a selected cryptocurrency (e.g., "Simulated SOL" or "Simulated ETH"), display a unique deposit address. This address would be a testnet address controlled by your application/backend.
-The user would then use their Phantom/MetaMask wallet to manually send testnet funds from their own wallet to this application-controlled deposit address.
-Backend (Express & Database):
-The backend needs a mechanism to monitor its own testnet wallet(s) for incoming transactions. This could be done by:
-Periodically querying a blockchain explorer API for the testnet (e.g., Solscan for Solana testnet, Etherscan for Ethereum testnet).
-Or, for a more advanced setup, running a light client or using a service that provides transaction notifications/webhooks for specific addresses.
-When an incoming transaction to one of the application's deposit addresses is detected and confirmed on the testnet:
-The backend identifies which user the deposit was intended for (this often requires users to initiate a "deposit notification" on the exchange first, or by using unique deposit addresses per user, though the latter is more complex to manage). For simplicity in a simulation, you might have one central deposit address and require users to confirm after they've sent funds.
-The backend updates the user's simulated crypto balance for that specific cryptocurrency in the Database.
-A record of the deposit is stored.
-A WebSocket message can be sent to the user to update their balance in real-time.
-Simulated "Withdrawals" (User sending simulated crypto from the exchange to their wallet):
-Frontend (Svelte):
-User goes to a "Withdraw Crypto" section, selects the cryptocurrency, enters the amount, and provides their external testnet wallet address.
-The frontend sends this withdrawal request to the backend via fetch.
-Backend (Express & Database):
-An Express API endpoint (e.g., /api/wallet/initiate-withdrawal) receives the request.
-Validation & Balance Check: Verifies the user has sufficient simulated balance of that crypto in the Database.
-If valid, the backend would then need to construct and sign a transaction using its own private key for the wallet holding the exchange's simulated crypto. This transaction would send the requested amount of testnet crypto to the user's provided external address.
-The backend submits this transaction to the relevant testnet.
-Upon confirmation from the testnet that the transaction was successful:
-The user's simulated crypto balance is debited in the Database.
-A record of the withdrawal is stored.
-The frontend is notified of success (e.g., via the fetch response and/or a WebSocket message).
-If the transaction fails or balances are insufficient, an error is returned.
-Wallet Interaction (Frontend):
-For a smoother UX for withdrawals (and potentially for connecting a wallet initially), the frontend could use libraries like ethers.js (for Ethereum/MetaMask) or Solana's @solana/web3.js along with wallet adapter libraries to:
-Prompt the user to connect their Phantom/MetaMask wallet.
-Fetch the user's connected wallet address to pre-fill withdrawal forms.
-For deposits, while the user initiates the transfer from their wallet, the frontend connection helps identify the user.
+  What it does:
+  Allows users to simulate "depositing" cryptocurrencies from their external
+  testnet wallets (e.g., Phantom for Solana testnet, MetaMask for Ethereum
+  testnets like Sepolia) into their exchange account.
+  Allows users to simulate "withdrawing" cryptocurrencies from their exchange
+  account to their external testnet wallets.
+  This involves interacting with browser extension wallets to approve
+  transactions on a public test blockchain.
+  Why it's important:
+  Greatly enhances the simulation's authenticity by mimicking how users would
+  move crypto to/from a real exchange.
+  Showcases ability to interact with blockchain technologies and wallet
+  providers.
+  Provides a more comprehensive "full-stack" experience for the user and for
+  your demonstration.
+  How it works at a high level:
+  Simulated "Deposits" (User sending testnet crypto to the exchange):
+  Frontend (Svelte):
+  In the user's account section, for a selected cryptocurrency (e.g.,
+  "Simulated SOL" or "Simulated ETH"), display a unique deposit address. This
+  address would be a testnet address controlled by your application/backend.
+  The user would then use their Phantom/MetaMask wallet to manually send
+  testnet funds from their own wallet to this application-controlled deposit
+  address.
+  Backend (Express & Database):
+  The backend needs a mechanism to monitor its own testnet wallet(s) for
+  incoming transactions. This could be done by:
+  Periodically querying a blockchain explorer API for the testnet (e.g.,
+  Solscan for Solana testnet, Etherscan for Ethereum testnet).
+  Or, for a more advanced setup, running a light client or using a service
+  that provides transaction notifications/webhooks for specific addresses.
+  When an incoming transaction to one of the application's deposit addresses is
+  detected and confirmed on the testnet:
+  The backend identifies which user the deposit was intended for (this often
+  requires users to initiate a "deposit notification" on the exchange first,
+  or by using unique deposit addresses per user, though the latter is more
+  complex to manage). For simplicity in a simulation, you might have one
+  central deposit address and require users to confirm after they've sent
+  funds.
+  The backend updates the user's simulated crypto balance for that specific
+  cryptocurrency in the Database.
+  A record of the deposit is stored.
+  A WebSocket message can be sent to the user to update their balance in
+  real-time.
+  Simulated "Withdrawals" (User sending simulated crypto from the exchange to
+  their wallet):
+  Frontend (Svelte):
+  User goes to a "Withdraw Crypto" section, selects the cryptocurrency, enters
+  the amount, and provides their external testnet wallet address.
+  The frontend sends this withdrawal request to the backend via fetch.
+  Backend (Express & Database):
+  An Express API endpoint (e.g., /api/wallet/initiate-withdrawal) receives the
+  request.
+  Validation & Balance Check: Verifies the user has sufficient simulated
+  balance of that crypto in the Database.
+  If valid, the backend would then need to construct and sign a transaction
+  using its own private key for the wallet holding the exchange's simulated
+  crypto. This transaction would send the requested amount of testnet crypto to
+  the user's provided external address.
+  The backend submits this transaction to the relevant testnet.
+  Upon confirmation from the testnet that the transaction was successful:
+  The user's simulated crypto balance is debited in the Database.
+  A record of the withdrawal is stored.
+  The frontend is notified of success (e.g., via the fetch response and/or a
+  WebSocket message).
+  If the transaction fails or balances are insufficient, an error is returned.
+  Wallet Interaction (Frontend):
+  For a smoother UX for withdrawals (and potentially for connecting a wallet
+  initially), the frontend could use libraries like ethers.js (for
+  Ethereum/MetaMask) or Solana's @solana/web3.js along with wallet adapter
+  libraries to:
+  Prompt the user to connect their Phantom/MetaMask wallet.
+  Fetch the user's connected wallet address to pre-fill withdrawal forms.
+  For deposits, while the user initiates the transfer from their wallet, the
+  frontend connection helps identify the user.
 
 - Backend API (Express.js):
-What it does:
-Provides the server-side logic and HTTP endpoints for all client-server communication.
-Handles requests from the Svelte frontend for actions like user authentication, fetching data (cryptocurrencies, account balances, order history), placing orders, and initiating payment/wallet operations.
-Manages WebSocket connections for real-time data streaming (order books, notifications).
-Why it's important:
-It's the backbone of the application, connecting the frontend, database, and all backend services.
-Using Express.js is a hard requirement for the backend.
-How it works at a high level:
-Built using Node.js and the Express.js framework.
-Organized into routes that correspond to different functionalities (e.g., /auth/..., /users/..., /cryptocurrencies/..., /orders/..., /payments/...).
-Uses middleware for handling authentication, authorization, request parsing, error handling, etc.
-Interacts with the database for data persistence and retrieval.
-Manages WebSocket server instances (e.g., using a library like ws or socket.io) to handle real-time communication with clients.
-Implements the core logic for features like the Order Matching Engine.
+  What it does:
+  Provides the server-side logic and HTTP endpoints for all client-server
+  communication.
+  Handles requests from the Svelte frontend for actions like user
+  authentication, fetching data (cryptocurrencies, account balances, order
+  history), placing orders, and initiating payment/wallet operations.
+  Manages WebSocket connections for real-time data streaming (order books,
+  notifications).
+  Why it's important:
+  It's the backbone of the application, connecting the frontend, database, and
+  all backend services.
+  Using Express.js is a hard requirement for the backend.
+  How it works at a high level:
+  Built using Node.js and the Express.js framework.
+  Organized into routes that correspond to different functionalities (e.g.,
+  /auth/..., /users/..., /cryptocurrencies/..., /orders/..., /payments/...).
+  Uses middleware for handling authentication, authorization, request parsing,
+  error handling, etc.
+  Interacts with the database for data persistence and retrieval.
+  Manages WebSocket server instances (e.g., using a library like ws or
+  socket.io) to handle real-time communication with clients.
+  Implements the core logic for features like the Order Matching Engine.
 
 -Frontend Interface (Svelte):
-What it does:
-Provides the user interface (UI) and user experience (UX) for the trading platform.
-Allows users to interact with all the features: registration/login, viewing market data, placing trades, managing their account, etc.
-Communicates with the Backend API (fetch for request-response, WebSockets for real-time updates).
-Why it's important:
-It's how users interact with the application. A good UI/UX is crucial for usability and engagement.
-Using Svelte (or plain HTML/template engines) is the chosen technology as per exam guidelines (and your choice).
-Using Fetch for HTTP requests and Sockets for real-time data are hard requirements for the frontend.
-How it works at a high level:
-A single-page application (SPA) built using the Svelte framework (or SvelteKit if you choose to use its meta-framework capabilities).
-Composed of reusable Svelte components for different parts of the UI (e.g., navigation, login form, order book display, trading form, account dashboard).
-Uses Svelte's reactivity system to efficiently update the DOM when data changes.
-Manages application state (e.g., currently selected cryptocurrency, user authentication status).
-Uses the browser's fetch API to make HTTP requests to the Backend API.
-Establishes and manages WebSocket connections to receive and display real-time updates from the server.
-Will require styling (CSS, potentially a framework) to meet the "attempt at styling" soft requirement.
+  What it does:
+  Provides the user interface (UI) and user experience (UX) for the trading
+  platform.
+  Allows users to interact with all the features: registration/login, viewing
+  market data, placing trades, managing their account, etc.
+  Communicates with the Backend API (fetch for request-response, WebSockets for
+  real-time updates).
+  Why it's important:
+  It's how users interact with the application. A good UI/UX is crucial for
+  usability and engagement.
+  Using Svelte (or plain HTML/template engines) is the chosen technology as
+  per exam guidelines (and your choice).
+  Using Fetch for HTTP requests and Sockets for real-time data are hard
+  requirements for the frontend.
+  How it works at a high level:
+  A single-page application (SPA) built using the Svelte framework (or
+  SvelteKit if you choose to use its meta-framework capabilities).
+  Composed of reusable Svelte components for different parts of the UI (e.g.,
+  navigation, login form, order book display, trading form, account
+  dashboard).
+  Uses Svelte's reactivity system to efficiently update the DOM when data
+  changes.
+  Manages application state (e.g., currently selected cryptocurrency, user
+  authentication status).
+  Uses the browser's fetch API to make HTTP requests to the Backend API.
+  Establishes and manages WebSocket connections to receive and display
+  real-time updates from the server.
+  Will require styling (CSS, potentially a framework) to meet the "attempt at
+  styling" soft requirement.
 
 # User Experience
 
 ## User Personas
 
 1.  **Persona 1: The Curious Learner (Primary)**
-    *   **Background:** Students, hobbyists, or individuals new to cryptocurrency trading. May have heard about crypto but have little to no practical trading experience.
-    *   **Goals:** To understand the basic mechanics of how a cryptocurrency exchange works (order books, placing buy/sell orders, market fluctuations) in a safe, risk-free environment. Wants to learn without the fear of losing real money.
-    *   **Needs:** A simple, intuitive interface. Clear explanations of trading concepts (perhaps tooltips or a help section). Easy way to get started with simulated funds. Visual feedback on trades and portfolio changes.
-    *   **Frustrations (with real exchanges):** Overwhelming interfaces, complex jargon, risk of financial loss, lengthy KYC processes for just trying things out.
+    *   **Background:** Students, hobbyists, or individuals new to
+        cryptocurrency trading. May have heard about crypto but have little to
+        no practical trading experience.
+    *   **Goals:** To understand the basic mechanics of how a cryptocurrency
+        exchange works (order books, placing buy/sell orders, market
+        fluctuations) in a safe, risk-free environment. Wants to learn without
+        the fear of losing real money.
+    *   **Needs:** A simple, intuitive interface. Clear explanations of trading
+        concepts (perhaps tooltips or a help section). Easy way to get started
+        with simulated funds. Visual feedback on trades and portfolio changes.
+    *   **Frustrations (with real exchanges):** Overwhelming interfaces,
+        complex jargon, risk of financial loss, lengthy KYC processes for just
+        trying things out.
 
 2.  **Persona 2: The Aspiring Developer/Student (Secondary)**
-    *   **Background:** Computer science students, aspiring blockchain developers, or backend/frontend developers interested in financial tech. For this project, this is *you* demonstrating the features for your exam.
-    *   **Goals:** To see a functional example of a full-stack application involving real-time data, database interaction, and potentially third-party integrations. For your exam, the goal is to showcase the technical implementation and features clearly.
-    *   **Needs:** Clear demonstration of all core functionalities. Ability to inspect data flow (e.g., how orders update the book). Understanding the interaction between frontend and backend components.
-    *   **Frustrations:** Lack of practical, end-to-end examples of such systems. Difficulty in setting up complex trading environments for learning.
+    *   **Background:** Computer science students, aspiring blockchain
+        developers, or backend/frontend developers interested in financial
+        tech. For this project, this is *you* demonstrating the features for
+        your exam.
+    *   **Goals:** To see a functional example of a full-stack application
+        involving real-time data, database interaction, and potentially
+        third-party integrations. For your exam, the goal is to showcase the
+        technical implementation and features clearly.
+    *   **Needs:** Clear demonstration of all core functionalities. Ability to
+        inspect data flow (e.g., how orders update the book). Understanding
+        the interaction between frontend and backend components.
+    *   **Frustrations:** Lack of practical, end-to-end examples of such
+        systems. Difficulty in setting up complex trading environments for
+        learning.
 
 ## Key User Flows
 
@@ -275,8 +494,11 @@ Here we'll outline step-by-step how users achieve common goals.
     *   Fills out registration form (e.g., email, password).
     *   Submits form -> Account created.
     *   Redirected to login or automatically logged in.
-    *   (Optional first step) User is prompted/guided to "deposit" initial simulated fiat currency via the Stripe test integration to fund their account.
-    *   (Optional) User is guided to "deposit" simulated crypto via wallet integration.
+    *   (Optional first step) User is prompted/guided to "deposit" initial
+        simulated fiat currency via the Stripe test integration to fund their
+        account.
+    *   (Optional) User is guided to "deposit" simulated crypto via wallet
+        integration.
 
 2.  **Making a Trade:**
     *   User logs in.
@@ -286,9 +508,12 @@ Here we'll outline step-by-step how users achieve common goals.
     *   Decides to place a buy or sell order.
     *   Fills in the trade form (buy/sell, quantity, price for limit order).
     *   Submits the order.
-    *   Receives immediate feedback (order placed, order filled/partially filled, or error like insufficient funds).
-    *   Sees their order appear in the "My Open Orders" list (if not fully filled instantly).
-    *   Sees the order book update if their order was placed on it or if it consumed existing orders.
+    *   Receives immediate feedback (order placed, order filled/partially
+        filled, or error like insufficient funds).
+    *   Sees their order appear in the "My Open Orders" list (if not fully
+        filled instantly).
+    *   Sees the order book update if their order was placed on it or if it
+        consumed existing orders.
     *   Sees their account balances update.
     *   Sees the trade appear in their trade history.
 
@@ -299,18 +524,35 @@ Here we'll outline step-by-step how users achieve common goals.
     *   Views their open orders.
     *   Views their trade history.
     *   (If implemented) Initiates a simulated fiat deposit via Stripe.
-    *   (If implemented) Initiates a simulated crypto deposit/withdrawal via Phantom/MetaMask.
+    *   (If implemented) Initiates a simulated crypto deposit/withdrawal via
+        Phantom/MetaMask.
 
 ## UI/UX Considerations
 
-*   **Clarity and Simplicity:** Especially for "The Curious Learner," the interface should be uncluttered and easy to understand. Avoid jargon where possible, or provide explanations.
-*   **Responsiveness:** The application should work well on typical desktop screen sizes. (Full mobile responsiveness might be out of scope for an MVP but consider basic usability).
-*   **Real-time Feedback:** Use WebSockets effectively to provide immediate updates for order book changes, trade executions, and balance updates. Visual cues (e.g., color changes, subtle animations) can enhance this.
-*   **Consistency:** Maintain a consistent design language (colors, typography, layout) across all parts of the application. (Soft requirement: "code style should be consistent," which implies visual consistency too).
-*   **Error Handling:** Provide clear, user-friendly error messages if something goes wrong (e.g., insufficient funds, invalid order parameters).
-*   **Performance:** Ensure the Svelte frontend is snappy and the order book updates smoothly. Backend should also process orders efficiently.
-*   **Accessibility (Basic):** Consider basic accessibility principles like sufficient color contrast and keyboard navigability for key elements.
-*   **Styling:** Make a genuine attempt at styling; it doesn't need to be a design masterpiece, but it should look presentable and thoughtfully put together. Consider using a lightweight CSS framework if it helps (e.g., Tailwind CSS, Bootstrap, or even simpler ones) or custom CSS. (Soft requirement: "attempt at styling").
+*   **Clarity and Simplicity:** Especially for "The Curious Learner," the
+    interface should be uncluttered and easy to understand. Avoid jargon where
+    possible, or provide explanations.
+*   **Responsiveness:** The application should work well on typical desktop
+    screen sizes. (Full mobile responsiveness might be out of scope for an MVP
+    but consider basic usability).
+*   **Real-time Feedback:** Use WebSockets effectively to provide immediate
+    updates for order book changes, trade executions, and balance updates.
+    Visual cues (e.g., color changes, subtle animations) can enhance this.
+*   **Consistency:** Maintain a consistent design language (colors, typography,
+    layout) across all parts of the application. (Soft requirement: "code
+    style should be consistent," which implies visual consistency too).
+*   **Error Handling:** Provide clear, user-friendly error messages if
+    something goes wrong (e.g., insufficient funds, invalid order
+    parameters).
+*   **Performance:** Ensure the Svelte frontend is snappy and the order book
+    updates smoothly. Backend should also process orders efficiently.
+*   **Accessibility (Basic):** Consider basic accessibility principles like
+    sufficient color contrast and keyboard navigability for key elements.
+*   **Styling:** Make a genuine attempt at styling; it doesn't need to be a
+    design masterpiece, but it should look presentable and thoughtfully put
+    together. Consider using a lightweight CSS framework if it helps (e.g.,
+    Tailwind CSS, Bootstrap, or even simpler ones) or custom CSS. (Soft
+    requirement: "attempt at styling").
 </context>
 <PRD>
 # Technical Architecture
@@ -321,30 +563,44 @@ Here we'll outline step-by-step how users achieve common goals.
     *   **Technology:** Svelte (or SvelteKit)
     *   **Responsibilities:**
         *   Rendering the user interface.
-        *   Managing client-side state (e.g., current user, selected trading pair).
+        *   Managing client-side state (e.g., current user, selected trading
+            pair).
         *   Handling user input and interactions.
-        *   Communicating with the Backend API via HTTP (`fetch`) for data and actions.
-        *   Establishing and managing WebSocket connections for real-time data (order books, notifications).
-        *   Interacting with browser wallet extensions (Phantom/MetaMask) for simulated crypto deposits/withdrawals.
+        *   Communicating with the Backend API via HTTP (`fetch`) for data and
+            actions.
+        *   Establishing and managing WebSocket connections for real-time data
+            (order books, notifications).
+        *   Interacting with browser wallet extensions (Phantom/MetaMask) for
+            simulated crypto deposits/withdrawals.
         *   Integrating with Stripe.js (Elements) for simulated fiat deposits.
 
 2.  **Backend Application (Server-Side):**
     *   **Technology:** Node.js with Express.js framework.
     *   **Responsibilities:**
         *   Providing a RESTful API for the frontend.
-        *   User authentication and authorization (e.g., using JWT or session-based auth).
+        *   User authentication and authorization (e.g., using JWT or
+            session-based auth).
         *   Business logic for all features (trading, account management).
-        *   **Order Matching Engine:** Core custom logic for matching buy/sell orders.
+        *   **Order Matching Engine:** Core custom logic for matching buy/sell
+            orders.
         *   Managing WebSocket server and broadcasting real-time updates.
         *   Interacting with the Database for data persistence.
         *   Communicating with third-party services:
             *   Stripe API (for simulated fiat deposits).
-            *   Blockchain explorers or nodes (for monitoring simulated crypto deposits and initiating withdrawals on testnets).
-            *   Potentially `binance-ws.js` or similar for external market data feeds to add realism to price displays or initial book seeding.
+            *   Blockchain explorers or nodes (for monitoring simulated crypto
+                deposits and initiating withdrawals on testnets).
+            *   Potentially `binance-ws.js` or similar for external market data
+                feeds to add realism to price displays or initial book seeding.
 
 3.  **Database:**
-    *   **Technology:** To be chosen (e.g., PostgreSQL, MySQL, MongoDB). This is a research point for you, as per exam requirements ("Choose the appropriate database... research and make an informed choice"). We'll need to consider the data types, relationships, and transaction needs.
-        *   *Initial thought: A relational database like PostgreSQL might be suitable due to the structured nature of users, accounts, orders, and trades, and the need for transactional integrity for balance updates.*
+    *   **Technology:** To be chosen (e.g., PostgreSQL, MySQL, MongoDB). This
+        is a research point for you, as per exam requirements ("Choose the
+        appropriate database... research and make an informed choice"). We'll
+        need to consider the data types, relationships, and transaction needs.
+        *   *Initial thought: A relational database like PostgreSQL might be
+            suitable due to the structured nature of users, accounts, orders,
+            and trades, and the need for transactional integrity for balance
+            updates.*
     *   **Responsibilities:**
         *   Storing user account information (credentials, profiles).
         *   Storing user balances (simulated fiat and cryptocurrencies).
@@ -353,10 +609,12 @@ Here we'll outline step-by-step how users achieve common goals.
         *   Storing information about available cryptocurrencies.
 
 4.  **Real-time Communication Layer:**
-    *   **Technology:** WebSockets (e.g., using the `ws` library or `socket.io` with Node.js/Express).
+    *   **Technology:** WebSockets (e.g., using the `ws` library or
+        `socket.io` with Node.js/Express).
     *   **Responsibilities:**
         *   Streaming live order book updates from backend to frontend.
-        *   Sending real-time notifications (trade confirmations, balance changes, etc.) to specific users.
+        *   Sending real-time notifications (trade confirmations, balance
+            changes, etc.) to specific users.
 
 ## Data Models (High-Level - to be refined based on DB choice)
 
@@ -392,7 +650,8 @@ Here we'll outline step-by-step how users achieve common goals.
 5.  **Order:**
     *   `order_id` (Primary Key)
     *   `user_id` (Foreign Key to User)
-    *   `cryptocurrency_id` (Foreign Key to Cryptocurrency trading against a base fiat like SIM_USD)
+    *   `cryptocurrency_id` (Foreign Key to Cryptocurrency trading against a
+        base fiat like SIM_USD)
     *   `type` ('buy' or 'sell')
     *   `order_type` ('limit' or 'market' - initially focus on 'limit')
     *   `quantity_total` (Decimal)
@@ -415,11 +674,13 @@ Here we'll outline step-by-step how users achieve common goals.
 7.  **Transaction (for deposits/withdrawals):**
     *   `transaction_id` (Primary Key)
     *   `user_id` (Foreign Key)
-    *   `type` ('deposit_fiat', 'withdrawal_fiat', 'deposit_crypto', 'withdrawal_crypto')
+    *   `type` ('deposit_fiat', 'withdrawal_fiat', 'deposit_crypto',
+        'withdrawal_crypto')
     *   `currency_code_or_crypto_id`
     *   `amount` (Decimal)
     *   `status` ('pending', 'completed', 'failed')
-    *   `external_transaction_id` (e.g., Stripe charge ID, blockchain transaction hash)
+    *   `external_transaction_id` (e.g., Stripe charge ID, blockchain
+        transaction hash)
     *   `timestamp`
 
 ## APIs and Integrations
@@ -429,8 +690,14 @@ Here we'll outline step-by-step how users achieve common goals.
     *   WebSocket API for real-time data.
 *   **External APIs/Services:**
     *   **Stripe API:** For processing simulated fiat deposits.
-    *   **Blockchain Testnet APIs/Explorers:** (e.g., Etherscan for Sepolia, Solscan for Solana Testnet) for monitoring deposit addresses and confirming withdrawal transactions. (Or direct node interaction if more advanced).
-    *   **(Optional) Binance WebSocket API (`binance-ws.js`):** Could be used to feed external market prices for display or to provide some initial liquidity/realism to the simulated order books, but *not* for directly executing trades against.
+    *   **Blockchain Testnet APIs/Explorers:** (e.g., Etherscan for Sepolia,
+        Solscan for Solana Testnet) for monitoring deposit addresses and
+        confirming withdrawal transactions. (Or direct node interaction if more
+        advanced).
+    *   **(Optional) Binance WebSocket API (`binance-ws.js`):** Could be used
+        to feed external market prices for display or to provide some initial
+        liquidity/realism to the simulated order books, but *not* for directly
+        executing trades against.
 
 ## Infrastructure Requirements (for local development & potential hosting)
 
@@ -440,8 +707,11 @@ Here we'll outline step-by-step how users achieve common goals.
     *   NPM or Yarn for package management.
     *   Git for version control.
 *   **Hosting (Optional, but good for "production ready" feel):**
-    *   Cloud platform (e.g., Vercel/Netlify for Svelte frontend, Heroku/Fly.io/Render for Node.js backend, managed database service like Neon/Supabase/ElephantSQL/AWS RDS).
-    *   Alternatively, a VPS configured with Node.js, a process manager (like PM2), and the database.
+    *   Cloud platform (e.g., Vercel/Netlify for Svelte frontend,
+        Heroku/Fly.io/Render for Node.js backend, managed database service like
+        Neon/Supabase/ElephantSQL/AWS RDS).
+    *   Alternatively, a VPS configured with Node.js, a process manager (like
+        PM2), and the database.
     *   Domain name (optional).
     *   SSL certificate (usually handled by hosting platforms).
 
@@ -449,30 +719,45 @@ Here we'll outline step-by-step how users achieve common goals.
 
 ## Phase 1: Core Backend & Foundational Features (MVP Candidate)
 
-**Goal:** Establish the backend server, database, user authentication/authorization, and the basic structures for trading.
+**Goal:** Establish the backend server, database, user
+authentication/authorization, and the basic structures for trading.
 
 1.  **Project Setup & Basic Server (BE):**
-    *   Initialize Node.js project, install Express.js and other core dependencies.
+    *   Initialize Node.js project, install Express.js and other core
+        dependencies.
     *   Set up basic Express server (`app.js`).
     *   Configure linting, formatting, and basic project structure.
     *   Database selection research and decision.
-    *   Set up chosen database, design initial schema (Users, Accounts, CryptoHoldings, Cryptocurrencies, Orders, Trades). Implement migrations/scripts to create tables.
+    *   Set up chosen database, design initial schema (Users, Accounts,
+        CryptoHoldings, Cryptocurrencies, Orders, Trades). Implement
+        migrations/scripts to create tables.
 
 2.  **User Authentication & Authorization (BE & FE):**
-    *   **BE:** Implement User model and database interaction. Implement Express routes for user registration (password hashing) and login (session/JWT generation). Implement middleware for protecting routes and basic role checking (if admin role is pursued).
-    *   **FE:** Create Svelte components for Registration and Login forms. Implement `fetch` calls to backend auth endpoints. Basic state management for user session.
+    *   **BE:** Implement User model and database interaction. Implement Express
+        routes for user registration (password hashing) and login (session/JWT
+        generation). Implement middleware for protecting routes and basic role
+        checking (if admin role is pursued).
+    *   **FE:** Create Svelte components for Registration and Login forms.
+        Implement `fetch` calls to backend auth endpoints. Basic state
+        management for user session.
 
 3.  **Cryptocurrency Management (BE & FE):**
-    *   **BE:** API endpoint to list available (simulated) cryptocurrencies (initially hardcoded or from a simple DB table).
-    *   **FE:** Display list of cryptocurrencies. Allow selection to (eventually) view details.
+    *   **BE:** API endpoint to list available (simulated) cryptocurrencies
+        (initially hardcoded or from a simple DB table).
+    *   **FE:** Display list of cryptocurrencies. Allow selection to
+        (eventually) view details.
 
 4.  **Account Balance Management - Core (BE & FE):**
-    *   **BE:** API endpoint to fetch user's fiat and crypto balances. Logic to initialize balances (e.g., new users get some starting SIM_USD).
+    *   **BE:** API endpoint to fetch user's fiat and crypto balances. Logic to
+        initialize balances (e.g., new users get some starting SIM_USD).
     *   **FE:** Display user balances in an account section.
 
 5.  **Basic Order Placement - No Matching Yet (BE & FE):**
-    *   **BE:** API endpoint to accept a new order (buy/sell, currency, quantity, price). Validate against user balance. Store the order in the `Orders` table with 'open' status.
-    *   **FE:** Basic trading form. `fetch` to submit order. Display user's open orders.
+    *   **BE:** API endpoint to accept a new order (buy/sell, currency,
+        quantity, price). Validate against user balance. Store the order in the
+        `Orders` table with 'open' status.
+    *   **FE:** Basic trading form. `fetch` to submit order. Display user's
+        open orders.
 
 6.  **WebSocket Setup - Basic (BE & FE):**
     *   **BE:** Integrate WebSocket server (e.g., `ws` library).
@@ -480,10 +765,12 @@ Here we'll outline step-by-step how users achieve common goals.
 
 ## Phase 2: Order Book & Matching Engine (MVP Candidate Core)
 
-**Goal:** Implement the heart of the exchange: the order book and matching logic.
+**Goal:** Implement the heart of the exchange: the order book and matching
+logic.
 
 1.  **In-Memory Order Book (BE):**
-    *   Design and implement data structures for the in-memory order book (per currency pair).
+    *   Design and implement data structures for the in-memory order book (per
+        currency pair).
     *   Logic to add new orders (from Phase 1.5) to this book.
 
 2.  **Order Matching Engine - V1 (BE):**
@@ -491,164 +778,274 @@ Here we'll outline step-by-step how users achieve common goals.
     *   When a match occurs:
         *   Update user balances in the database (atomically).
         *   Record the trade in the `Trades` table.
-        *   Update/remove orders from the in-memory book and the `Orders` database table.
+        *   Update/remove orders from the in-memory book and the `Orders`
+            database table.
 
 3.  **Real-time Order Book Visualization (BE & FE):**
-    *   **BE:** When the order book changes (order added, trade occurs), broadcast updates via WebSockets.
-    *   **FE:** Subscribe to order book updates for the selected currency. Display the live order book (bids and asks).
+    *   **BE:** When the order book changes (order added, trade occurs),
+        broadcast updates via WebSockets.
+    *   **FE:** Subscribe to order book updates for the selected currency.
+        Display the live order book (bids and asks).
 
 4.  **Real-time Notifications (BE & FE):**
-    *   **BE:** Send WebSocket messages to users on order fills, partial fills, errors.
-    *   **FE:** Display these notifications. Update balances dynamically from socket messages.
+    *   **BE:** Send WebSocket messages to users on order fills, partial fills,
+        errors.
+    *   **FE:** Display these notifications. Update balances dynamically from
+        socket messages.
 
 ## Phase 3: Enhancing User Experience & Integrations (MVP Polish / V1.1)
 
 **Goal:** Add key integrations and refine the user experience.
 
 1.  **Stripe Integration for Simulated Fiat Deposits (BE & FE):**
-    *   Implement frontend (Stripe Elements) and backend logic as described in Core Features.
+    *   Implement frontend (Stripe Elements) and backend logic as described in
+        Core Features.
 
 2.  **Basic Frontend Styling & Layout:**
-    *   Apply consistent styling to all views. Ensure a clean, usable interface. (Address soft requirement).
+    *   Apply consistent styling to all views. Ensure a clean, usable
+        interface. (Address soft requirement).
 
 3.  **Trade History Display (FE):**
     *   Fetch and display user's trade history.
 
 4.  **(Optional based on time) Crypto Wallet Integration - Basic (BE & FE):**
-    *   Focus on one direction first, e.g., simulated deposits by monitoring a single exchange-owned testnet address.
-    *   Display deposit address; backend script/logic to monitor and credit accounts.
+    *   Focus on one direction first, e.g., simulated deposits by monitoring a
+        single exchange-owned testnet address.
+    *   Display deposit address; backend script/logic to monitor and credit
+        accounts.
 
 ## Future Enhancements (Post-MVP / Beyond Exam Scope if needed)
 
-*   Full Crypto Wallet Integration (Deposits & Withdrawals for multiple cryptos, user-specific deposit addresses if feasible).
+*   Full Crypto Wallet Integration (Deposits & Withdrawals for multiple
+    cryptos, user-specific deposit addresses if feasible).
 *   Advanced Order Types (e.g., market orders, stop-loss).
-*   Price Charts (e.g., using a library like Chart.js or a trading-specific charting library with historical trade data).
+*   Price Charts (e.g., using a library like Chart.js or a trading-specific
+    charting library with historical trade data).
 *   Admin Panel (for managing users, currencies, viewing system stats).
 *   More detailed user profiles and settings.
 *   Enhanced UI/UX, themes.
 *   Mobile responsiveness.
-*   Using `binance-ws.js` for more realistic price feeds or to seed order book liquidity.
-*   GDPR compliance features (data export, account deletion requests) - note this *is* a "production ready" hard requirement, so should be considered even for MVP. *Self-correction: GDPR aspects like data minimization in logging, clear privacy statement, and ability to handle data requests should be part of MVP thinking, not just future.*
+*   Using `binance-ws.js` for more realistic price feeds or to seed order book
+    liquidity.
+*   GDPR compliance features (data export, account deletion requests) - note
+    this *is* a "production ready" hard requirement, so should be considered
+    even for MVP. *Self-correction: GDPR aspects like data minimization in
+    logging, clear privacy statement, and ability to handle data requests
+    should be part of MVP thinking, not just future.*
 *   Comprehensive test suite (unit, integration, e2e tests).
 *   Deployment to a hosting platform.
 
-This roadmap tries to build things in a logical order, getting the core backend and database structure first, then the critical trading logic, and finally the "nice-to-have" but high-impact integrations.
+This roadmap tries to build things in a logical order, getting the core backend
+and database structure first, then the critical trading logic, and finally the
+"nice-to-have" but high-impact integrations.
 
-What do you think of this phasing? Does it align with how you might approach the development? We can adjust the contents of each phase. I've added this to the PRD.
+What do you think of this phasing? Does it align with how you might approach
+the development? We can adjust the contents of each phase. I've added this to
+the PRD.
 
-Next, we'll define the "Logical Dependency Chain," which is closely related to this roadmap but focuses more on the *why* behind the ordering.
+Next, we'll define the "Logical Dependency Chain," which is closely related to
+this roadmap but focuses more on the *why* behind the ordering.
 
 # Logical Dependency Chain
 
-The development process is structured to build foundational elements first, enabling a progression towards a feature-rich, demonstrable application. The key is to get to a state where core trading mechanics are visible and testable as early as possible.
+The development process is structured to build foundational elements first,
+enabling a progression towards a feature-rich, demonstrable application. The
+key is to get to a state where core trading mechanics are visible and testable
+as early as possible.
 
 1.  **Foundation - Server & Database Setup:**
-    *   **Why first:** Without a running backend server (Express.js) and a structured database, no other functionality can be implemented. This includes basic project structure, configurations, and the crucial decision and setup of the database technology.
+    *   **Why first:** Without a running backend server (Express.js) and a
+        structured database, no other functionality can be implemented. This
+        includes basic project structure, configurations, and the crucial
+        decision and setup of the database technology.
     *   **Enables:** All subsequent backend development.
 
 2.  **Core Identity - User Authentication & Authorization:**
-    *   **Why next:** Most application features are user-specific (balances, orders). Securely identifying and authorizing users is paramount before any personalized data or actions can be handled. This is also a hard exam requirement.
-    *   **Enables:** Secure access to user-specific data, personalized experiences, and the ability to track actions back to a user. It's a prerequisite for managing account balances and placing orders.
+    *   **Why next:** Most application features are user-specific (balances,
+        orders). Securely identifying and authorizing users is paramount before
+        any personalized data or actions can be handled. This is also a hard
+        exam requirement.
+    *   **Enables:** Secure access to user-specific data, personalized
+        experiences, and the ability to track actions back to a user. It's a
+        prerequisite for managing account balances and placing orders.
 
 3.  **Market Basics - Cryptocurrency Listings & Account Balances (Initial):**
-    *   **Why next:** Users need to see what they *can* trade (cryptocurrency listings) and what "money" they have (account balances) before they can think about trading. Initializing balances gives users something to start with.
-    *   **Enables:** The context for trading. Users can see available markets and their simulated purchasing power.
+    *   **Why next:** Users need to see what they *can* trade (cryptocurrency
+        listings) and what "money" they have (account balances) before they
+        can think about trading. Initializing balances gives users something to
+        start with.
+    *   **Enables:** The context for trading. Users can see available markets
+        and their simulated purchasing power.
 
 4.  **Core Interaction - Basic Order Placement (Persistence, No Matching Yet):**
-    *   **Why next:** Allows the frontend to send, and the backend to receive and store, the primary user action (placing an order). At this stage, orders are just recorded.
-    *   **Enables:** Testing the frontend trading form, backend API for orders, and database interaction for orders. It provides the raw material (unmatched orders) for the matching engine.
+    *   **Why next:** Allows the frontend to send, and the backend to receive
+        and store, the primary user action (placing an order). At this stage,
+        orders are just recorded.
+    *   **Enables:** Testing the frontend trading form, backend API for orders,
+        and database interaction for orders. It provides the raw material
+        (unmatched orders) for the matching engine.
 
 5.  **Real-time Foundation - WebSocket Setup:**
-    *   **Why next (or parallel to order placement):** The order book and trade notifications are inherently real-time. Establishing the WebSocket infrastructure is necessary before streaming this data.
-    *   **Enables:** All subsequent real-time features like live order books and notifications.
+    *   **Why next (or parallel to order placement):** The order book and
+        trade notifications are inherently real-time. Establishing the
+        WebSocket infrastructure is necessary before streaming this data.
+    *   **Enables:** All subsequent real-time features like live order books and
+        notifications.
 
 6.  **The Engine - Order Book & Matching Logic:**
-    *   **Why next:** This is the heart of the exchange. It takes the persisted orders and implements the actual trading logic. This component makes the simulation "work."
-    *   **Enables:** Actual execution of trades, dynamic updates to user balances based on market activity, and generation of data for the live order book.
+    *   **Why next:** This is the heart of the exchange. It takes the persisted
+        orders and implements the actual trading logic. This component makes
+        the simulation "work."
+    *   **Enables:** Actual execution of trades, dynamic updates to user
+        balances based on market activity, and generation of data for the live
+        order book.
 
 7.  **Visibility - Real-time Order Book Visualization & Notifications:**
-    *   **Why next:** Once the matching engine is processing orders and updating the internal order book state, this information needs to be streamed to the frontend so users can see the market activity and their trade outcomes in real-time.
-    *   **Enables:** Users to see market depth, understand price movements, and get immediate feedback on their trading actions. This is a critical part of the user experience and fulfills hard exam requirements (Sockets on FE/BE).
+    *   **Why next:** Once the matching engine is processing orders and
+        updating the internal order book state, this information needs to be
+        streamed to the frontend so users can see the market activity and their
+        trade outcomes in real-time.
+    *   **Enables:** Users to see market depth, understand price movements, and
+        get immediate feedback on their trading actions. This is a critical part
+        of the user experience and fulfills hard exam requirements (Sockets on
+        FE/BE).
 
 8.  **Usability & Realism - UI/UX Refinements & Integrations:**
-    *   **Why next:** With the core trading loop functional, focus shifts to making the application more usable, robust, and feature-complete for demonstration. This includes:
-        *   **Stripe Integration:** Provides a more realistic way to manage simulated fiat.
-        *   **Wallet Integration (Basic):** Adds another layer of crypto interaction.
-        *   **Styling & Trade History:** Improve the look and feel, and provide necessary historical data.
-    *   **Enables:** A more polished and comprehensive demonstration, showcasing a wider range of full-stack capabilities.
+    *   **Why next:** With the core trading loop functional, focus shifts to
+        making the application more usable, robust, and feature-complete for
+        demonstration. This includes:
+        *   **Stripe Integration:** Provides a more realistic way to manage
+            simulated fiat.
+        *   **Wallet Integration (Basic):** Adds another layer of crypto
+            interaction.
+        *   **Styling & Trade History:** Improve the look and feel, and provide
+            necessary historical data.
+    *   **Enables:** A more polished and comprehensive demonstration, showcasing
+        a wider range of full-stack capabilities.
 
 9.  **Production Readiness - GDPR, Cleanup, Testing:**
     *   **Why throughout, but specifically focused on before "completion":**
-        *   **GDPR:** Needs to be considered from the start (data minimization) but specific features like data export/deletion might be implemented towards the end of the MVP. It's a hard requirement for "production ready."
-        *   **Code Cleanup:** Removing console logs, unused code, etc., is essential for a clean submission (hard requirement).
-        *   **Testing:** While ideally done throughout, a concerted effort to ensure all parts work together smoothly is important before considering the project "done" for the exam.
+        *   **GDPR:** Needs to be considered from the start (data
+            minimization) but specific features like data export/deletion might
+            be implemented towards the end of the MVP. It's a hard requirement
+            for "production ready."
+        *   **Code Cleanup:** Removing console logs, unused code, etc., is
+            essential for a clean submission (hard requirement).
+        *   **Testing:** While ideally done throughout, a concerted effort to
+            ensure all parts work together smoothly is important before
+            considering the project "done" for the exam.
     *   **Enables:** A compliant, clean, and robust project submission.
 
-This chain prioritizes building a functional skeleton and then fleshing it out, ensuring that each step logically enables the next and contributes towards fulfilling the exam requirements and core product vision.
+This chain prioritizes building a functional skeleton and then fleshing it out,
+ensuring that each step logically enables the next and contributes towards
+fulfilling the exam requirements and core product vision.
 
 # Risks and Mitigations
 
 1.  **Risk: Complexity of Order Matching Engine.**
-    *   **Description:** The logic for matching orders correctly (price-time priority, partial fills, atomic balance updates) can be complex and prone to bugs.
+    *   **Description:** The logic for matching orders correctly (price-time
+        priority, partial fills, atomic balance updates) can be complex and
+        prone to bugs.
     *   **Mitigation:**
-        *   Start with a simplified version (e.g., only limit orders, basic matching).
+        *   Start with a simplified version (e.g., only limit orders, basic
+            matching).
         *   Write thorough unit tests for the matching logic.
         *   Break down the implementation into smaller, manageable functions.
-        *   Refer to existing examples or documentation on order book mechanics (like your `depthcache-documentation.md` or other resources).
+        *   Refer to existing examples or documentation on order book mechanics
+            (like your `depthcache-documentation.md` or other resources).
         *   Log extensively during development to trace order flow.
 
 2.  **Risk: Real-time Communication Issues (WebSockets).**
-    *   **Description:** Ensuring reliable and performant real-time updates for the order book and notifications can be challenging. Issues like missed messages, incorrect state synchronization, or performance bottlenecks with many updates.
+    *   **Description:** Ensuring reliable and performant real-time updates for
+        the order book and notifications can be challenging. Issues like missed
+        messages, incorrect state synchronization, or performance bottlenecks
+        with many updates.
     *   **Mitigation:**
-        *   Choose a robust WebSocket library (`ws` is good, `socket.io` offers more features like auto-reconnection if needed, though might be overkill).
+        *   Choose a robust WebSocket library (`ws` is good, `socket.io` offers
+            more features like auto-reconnection if needed, though might be
+            overkill).
         *   Design message formats carefully.
-        *   Implement efficient data structures on the frontend to handle updates.
-        *   Throttle updates if necessary, or send deltas instead of the full order book on every change for performance (though for a simulation, sending the full book might be simpler to implement initially).
+        *   Implement efficient data structures on the frontend to handle
+            updates.
+        *   Throttle updates if necessary, or send deltas instead of the full
+            order book on every change for performance (though for a
+            simulation, sending the full book might be simpler to implement
+            initially).
         *   Test with multiple concurrent client connections.
 
 3.  **Risk: Scope Creep / Time Constraints for Exam.**
-    *   **Description:** Adding too many "nice-to-have" features might jeopardize the completion of core MVP requirements for the exam deadline.
+    *   **Description:** Adding too many "nice-to-have" features might
+        jeopardize the completion of core MVP requirements for the exam
+        deadline.
     *   **Mitigation:**
-        *   Strictly follow the phased Development Roadmap, prioritizing MVP features that meet all hard exam requirements.
+        *   Strictly follow the phased Development Roadmap, prioritizing MVP
+            features that meet all hard exam requirements.
         *   Clearly define what constitutes "done" for each feature in the MVP.
         *   Regularly review progress against the roadmap.
-        *   Defer non-essential enhancements (clearly marked as "Future Enhancements") if time becomes a constraint. Focus on what you need to "talk incessantly for 5-6 minutes while showcasing."
+        *   Defer non-essential enhancements (clearly marked as "Future
+            Enhancements") if time becomes a constraint. Focus on what you need
+            to "talk incessantly for 5-6 minutes while showcasing."
 
 4.  **Risk: Database Design and Interaction Complexity.**
-    *   **Description:** Choosing the right database and designing an efficient, normalized schema that supports transactional integrity for financial operations (even simulated) can be challenging. Ensuring atomic updates for balances during trades is critical.
+    *   **Description:** Choosing the right database and designing an
+        efficient, normalized schema that supports transactional integrity for
+        financial operations (even simulated) can be challenging. Ensuring
+        atomic updates for balances during trades is critical.
     *   **Mitigation:**
-        *   Carefully research database options (SQL vs. NoSQL) based on project needs (relational data, transactions). PostgreSQL is a strong contender.
-        *   Plan the schema thoroughly before implementation (as we've started in Technical Architecture).
-        *   Use database transactions where appropriate (e.g., when debiting one account and crediting another during a trade).
+        *   Carefully research database options (SQL vs. NoSQL) based on
+            project needs (relational data, transactions). PostgreSQL is a
+            strong contender.
+        *   Plan the schema thoroughly before implementation (as we've started
+            in Technical Architecture).
+        *   Use database transactions where appropriate (e.g., when debiting
+            one account and crediting another during a trade).
         *   Test database interactions rigorously.
 
 5.  **Risk: Third-Party Integration Challenges (Stripe, Wallets).**
-    *   **Description:** Integrating with external services (even test environments) can involve unexpected issues with APIs, SDKs, authentication, or callback handling.
+    *   **Description:** Integrating with external services (even test
+        environments) can involve unexpected issues with APIs, SDKs,
+        authentication, or callback handling.
     *   **Mitigation:**
-        *   Start with the simplest possible integration (e.g., one-way deposit for wallets).
-        *   Thoroughly read the documentation for Stripe.js, Phantom/MetaMask adapters, and relevant blockchain libraries.
+        *   Start with the simplest possible integration (e.g., one-way deposit
+            for wallets).
+        *   Thoroughly read the documentation for Stripe.js, Phantom/MetaMask
+            adapters, and relevant blockchain libraries.
         *   Use official SDKs where available.
         *   Allocate specific time for testing these integrations.
-        *   Have fallback plans if a complex integration proves too time-consuming for the MVP (e.g., simplify the wallet interaction to just displaying an address).
+        *   Have fallback plans if a complex integration proves too
+            time-consuming for the MVP (e.g., simplify the wallet interaction
+            to just displaying an address).
 
 6.  **Risk: Ensuring "Production Ready" Quality for Exam.**
-    *   **Description:** Meeting the "production ready" hard requirements (no console logs, unused code, GDPR conformity, clean codebase) requires consistent effort and a final review pass.
+    *   **Description:** Meeting the "production ready" hard requirements (no
+        console logs, unused code, GDPR conformity, clean codebase) requires
+        consistent effort and a final review pass.
     *   **Mitigation:**
-        *   Adopt clean code practices from the start (consistent styling, meaningful variable names, modular functions).
-        *   Regularly remove debug `console.log` statements after they are no longer needed.
-        *   Periodically review code for unused snippets or commented-out blocks.
-        *   Integrate GDPR considerations (data minimization, user data handling anouncements) into the design and development process, not as an afterthought. Have a plan for how you'd handle data requests.
-        *   Allocate time before submission specifically for cleanup and a final quality check.
+        *   Adopt clean code practices from the start (consistent styling,
+            meaningful variable names, modular functions).
+        *   Regularly remove debug `console.log` statements after they are no
+            longer needed.
+        *   Periodically review code for unused snippets or commented-out
+            blocks.
+        *   Integrate GDPR considerations (data minimization, user data
+            handling anouncements) into the design and development process, not
+            as an afterthought. Have a plan for how you'd handle data requests.
+        *   Allocate time before submission specifically for cleanup and a
+            final quality check.
 
 7.  **Risk: Frontend Complexity and State Management in Svelte.**
-    *   **Description:** As the Svelte application grows, managing state (especially shared state between components) and ensuring efficient updates can become complex.
+    *   **Description:** As the Svelte application grows, managing state
+        (especially shared state between components) and ensuring efficient
+        updates can become complex.
     *   **Mitigation:**
         *   Leverage Svelte's built-in stores for managing shared state.
         *   Break down the UI into small, reusable components.
         *   Understand Svelte's reactivity model to avoid performance pitfalls.
-        *   Consider SvelteKit if its routing and state management features simplify development (though plain Svelte is also fine).
+        *   Consider SvelteKit if its routing and state management features
+            simplify development (though plain Svelte is also fine).
 
-By identifying these risks upfront, we can be more prepared to address them. What do you think of this list? Are there other specific concerns you have?
+By identifying these risks upfront, we can be more prepared to address them.
+What do you think of this list? Are there other specific concerns you have?
 
 I've added this section to the PRD. The final section is the "Appendix."
 
@@ -657,40 +1054,71 @@ I've added this section to the PRD. The final section is the "Appendix."
 ## Key Decisions & Research Points
 
 *   **Database Choice:**
-    *   **Requirement:** Must choose an appropriate database and be able to justify the choice, access it via terminal, and write queries during the exam.
-    *   **Current Leaning:** PostgreSQL (Relational DB) due to structured data (users, orders, trades) and need for transactional integrity.
-    *   **Action:** Conduct focused research comparing PostgreSQL with other candidates (e.g., MySQL, or a NoSQL option like MongoDB if a strong case can be made, though less likely for this type of application) specifically for this project's needs before finalizing. Document the decision-making process.
+    *   **Requirement:** Must choose an appropriate database and be able to
+        justify the choice, access it via terminal, and write queries during
+        the exam.
+    *   **Current Leaning:** PostgreSQL (Relational DB) due to structured data
+        (users, orders, trades) and need for transactional integrity.
+    *   **Action:** Conduct focused research comparing PostgreSQL with other
+        candidates (e.g., MySQL, or a NoSQL option like MongoDB if a strong
+        case can be made, though less likely for this type of application)
+        specifically for this project's needs before finalizing. Document the
+        decision-making process.
 
 *   **Session Management for Authentication:**
-    *   **Options:** JWT (JSON Web Tokens) stored in localStorage/sessionStorage or traditional cookie-based sessions.
-    *   **Considerations:** JWTs are common for SPAs and can be easier to manage across different services if the backend were to expand, but require careful handling of security (e.g., XSS for tokens in localStorage). Cookie-based sessions are well-understood and can be more secure against XSS if HttpOnly cookies are used.
-    *   **Action:** Research best practices for Express.js and Svelte and decide on the most appropriate and secure method that can be implemented well within the project scope.
+    *   **Options:** JWT (JSON Web Tokens) stored in localStorage/sessionStorage
+        or traditional cookie-based sessions.
+    *   **Considerations:** JWTs are common for SPAs and can be easier to
+        manage across different services if the backend were to expand, but
+        require careful handling of security (e.g., XSS for tokens in
+        localStorage). Cookie-based sessions are well-understood and can be
+        more secure against XSS if HttpOnly cookies are used.
+    *   **Action:** Research best practices for Express.js and Svelte and
+        decide on the most appropriate and secure method that can be
+        implemented well within the project scope.
 
 *   **Real-time Order Book Data Strategy:**
-    *   **Options for updates:** Send full order book snapshot on every change, or send deltas/diffs.
-    *   **Initial Plan:** For simplicity in an MVP for a simulation, sending the full (or a significant part of the visible) order book snapshot on change might be easier to implement correctly on both backend and frontend.
-    *   **Consideration:** For very high-frequency updates (not expected in this simulation's scope), deltas would be more performant. This can be a future optimization if needed.
+    *   **Options for updates:** Send full order book snapshot on every change,
+        or send deltas/diffs.
+    *   **Initial Plan:** For simplicity in an MVP for a simulation, sending
+        the full (or a significant part of the visible) order book snapshot on
+        change might be easier to implement correctly on both backend and
+        frontend.
+    *   **Consideration:** For very high-frequency updates (not expected in
+        this simulation's scope), deltas would be more performant. This can be
+        a future optimization if needed.
 
 *   **External Price Feed (`binance-ws.js`):**
-    *   **Purpose:** The existing `binance-ws.js` suggests an intent to use external price data.
+    *   **Purpose:** The existing `binance-ws.js` suggests an intent to use
+        external price data.
     *   **Role in Simulation:**
-        *   Option 1: Display a "real-world reference price" alongside the simulated market.
-        *   Option 2: Use it to *seed* the initial order book with some plausible liquidity or to gently guide the simulated market price.
-        *   **Important:** It should *not* be used to directly execute simulated trades against, as that would make our internal order book and matching engine redundant or overly complex to synchronize. The simulation's trades should occur between users on *this* platform.
-    *   **Action:** Decide on the exact role of this feed. For MVP, displaying it as a reference price is simplest.
+        *   Option 1: Display a "real-world reference price" alongside the
+            simulated market.
+        *   Option 2: Use it to *seed* the initial order book with some
+            plausible liquidity or to gently guide the simulated market price.
+        *   **Important:** It should *not* be used to directly execute
+            simulated trades against, as that would make our internal order
+            book and matching engine redundant or overly complex to
+            synchronize. The simulation's trades should occur between users on
+            *this* platform.
+    *   **Action:** Decide on the exact role of this feed. For MVP, displaying
+        it as a reference price is simplest.
 
 ## Notes on Exam Requirements
 
 *   **Hard Requirements Checklist:**
     *   [ ] Backend: Express.js used.
-    *   [ ] Backend: Database used (choice justified, terminal access, can write queries).
+    *   [ ] Backend: Database used (choice justified, terminal access, can
+        write queries).
     *   [ ] Backend: Sockets used.
     *   [ ] Backend: Authentication and Authorization implemented.
-    *   [ ] Frontend: Plain HTML, template engine, or Svelte/SvelteKit used (Svelte chosen).
+    *   [ ] Frontend: Plain HTML, template engine, or Svelte/SvelteKit used
+        (Svelte chosen).
     *   [ ] Frontend: Fetch used.
     *   [ ] Frontend: Sockets used.
     *   [ ] Frontend: Authentication and Authorization implemented.
-    *   [ ] Production Ready: No console logs, unused code, unfinished snippets.
+    *   [ ] Production Ready: No console logs, unused code, unfinished
+        snippets.
     *   [ ] Production Ready: Conforms to GDPR (legal website).
 *   **Soft Requirements Checklist:**
     *   [ ] Clean code base.
@@ -708,10 +1136,14 @@ I've added this section to the PRD. The final section is the "Appendix."
     *   `bcryptjs` or `argon2`: For password hashing.
     *   `jsonwebtoken` (if JWT auth is chosen).
     *   `ws` or `socket.io`: For WebSockets.
-    *   Database driver (e.g., `pg` for PostgreSQL, `mysql2` for MySQL, `mongodb` for MongoDB).
-    *   ORM/Query Builder (Optional, e.g., Sequelize, Knex.js for SQL; Mongoose for MongoDB) - consider if it speeds up development vs. writing raw queries (exam requires ability to write raw queries).
+    *   Database driver (e.g., `pg` for PostgreSQL, `mysql2` for MySQL,
+        `mongodb` for MongoDB).
+    *   ORM/Query Builder (Optional, e.g., Sequelize, Knex.js for SQL;
+        Mongoose for MongoDB) - consider if it speeds up development vs.
+        writing raw queries (exam requires ability to write raw queries).
     *   Stripe Node.js library: `stripe`.
-    *   (For wallet interaction) `ethers.js` or `@solana/web3.js` for backend signing/monitoring if needed.
+    *   (For wallet interaction) `ethers.js` or `@solana/web3.js` for backend
+        signing/monitoring if needed.
 *   **Frontend:**
     *   Wallet Adapters: e.g., Solana Wallet Adapter, Ethers.js for MetaMask.
     *   Stripe.js / Stripe Elements.
@@ -720,8 +1152,10 @@ I've added this section to the PRD. The final section is the "Appendix."
     *   (Optional) Charting library if price charts are implemented later.
 
 ## Document References
-*   `depthcache-documentation.md`: Contains information potentially relevant to order book implementation.
-*   `binance-ws.js`: Existing script for Binance WebSocket connection, to be evaluated for its role.
+*   `depthcache-documentation.md`: Contains information potentially relevant to
+    order book implementation.
+*   `binance-ws.js`: Existing script for Binance WebSocket connection, to be
+    evaluated for its role.
 *   Exam Description PDF (from user).
 
 This PRD should provide a very solid foundation for your project.

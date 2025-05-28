@@ -25,7 +25,7 @@ Layer 3 Validations: Test rejections for insufficient SIM_USD (buy orders) or cr
 Layer 4 Validations: Ensure standardized JSON error responses with correct HTTP status codes (400, 422, 500) for all failure scenarios. Test successful order placement for both 'buy' and 'sell' types, and for 'limit' and 'market' order types.
 
 # Subtasks:
-## 1. Define POST /orders/ Endpoint and Basic Structure [pending]
+## 1. Define POST /orders/ Endpoint and Basic Structure [done]
 ### Dependencies: None
 ### Description: Create the Express route for `POST /orders/`. Integrate existing authentication middleware to protect the endpoint. Set up the basic request handler structure within the appropriate Express router.
 ### Details:
@@ -34,7 +34,7 @@ This involves: 1. Locating or creating the relevant Express router file (e.g., `
 Using RESTful POST /orders/ endpoint instead of /orders/place as this follows proper REST conventions. The basic structure is already in place in orderRouter.js with authentication middleware applied.
 </info added on 2025-05-25T15:00:29.180Z>
 
-## 2. Implement Layer 1 & 2 Validation (Input & Business Rules) [pending]
+## 2. Implement Layer 1 & 2 Validation (Input & Business Rules) [in-progress]
 ### Dependencies: 12.1
 ### Description: Develop and integrate server-side validation for the order placement request body, covering Layer 1 (Input Validation - no DB calls) and Layer 2 (Business Rules Validation - lightweight DB calls). This includes `cryptocurrency_id`, `type`, `order_type`, `quantity`, and `price`.
 ### Details:

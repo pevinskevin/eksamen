@@ -5,26 +5,19 @@ export default class OrderService {
     constructor(orderRepository) {
         this.orderRepository = orderRepository;
     }
-
     async validateOrder(orderObject) {
         try {
             return await parseAsync(orderSchema, orderObject);
         } catch (error) {
-            const validationError = new Error(`Order validation failed: ${error.message}`);
-            validationError.code = 'VALIDATION_ERROR';
-            validationError.originalError = error;
-            validationError.context = {
-                operation: 'OrderService.validateOrder',
-                input: orderObject,
-                issues: error.issues || [],
-            };
-            throw validationError;
+            console.error('❌ ERROR IN OrderService.validateOrder:', error.message);
+            console.error('📍 Input:', orderObject);
+            throw new Error(`OrderService.validateOrder failed: ${error.message}`);
         }
     }
 
     async save(cryptocurrencyid, orderType, orderVariant, quantity, price, userid) {
         try {
-            const result = await this.orderRepository.save(
+            return await this.orderRepository.save(
                 cryptocurrencyid,
                 orderType,
                 orderVariant,
@@ -32,40 +25,17 @@ export default class OrderService {
                 price,
                 userid
             );
-
-            if (!result) {
-                const error = new Error('Order save operation returned null/undefined');
-                error.code = 'SERVICE_ERROR';
-                error.context = {
-                    operation: 'OrderService.save',
-                    parameters: {
-                        cryptocurrencyid,
-                        orderType,
-                        orderVariant,
-                        quantity,
-                        price,
-                        userid,
-                    },
-                };
-                throw error;
-            }
-
-            return result;
         } catch (error) {
-            // If it's already a structured error from repository, re-throw it
-            if (error.code && error.context) {
-                throw error;
-            }
-
-            // Wrap unexpected errors
-            const serviceError = new Error(`Service error in OrderService.save: ${error.message}`);
-            serviceError.code = 'SERVICE_ERROR';
-            serviceError.originalError = error;
-            serviceError.context = {
-                operation: 'OrderService.save',
-                parameters: { cryptocurrencyid, orderType, orderVariant, quantity, price, userid },
-            };
-            throw serviceError;
+            console.error('❌ ERROR IN OrderService.save:', error.message);
+            console.error('📍 Parameters:', {
+                cryptocurrencyid,
+                orderType,
+                orderVariant,
+                quantity,
+                price,
+                userid,
+            });
+            throw new Error(`OrderService.save failed: ${error.message}`);
         }
     }
 }

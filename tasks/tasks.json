@@ -337,7 +337,7 @@
           "description": "Create the Express route for `POST /orders/`. Integrate existing authentication middleware to protect the endpoint. Set up the basic request handler structure within the appropriate Express router.",
           "dependencies": [],
           "details": "This involves: 1. Locating or creating the relevant Express router file (e.g., `orderRoutes.js`). 2. Defining the `POST /orders/` route, adhering to RESTful conventions. 3. Applying the project's standard authentication middleware to this route. 4. Creating an initial placeholder controller/handler function for this route.\n<info added on 2025-05-25T15:00:29.180Z>\nUsing RESTful POST /orders/ endpoint instead of /orders/place as this follows proper REST conventions. The basic structure is already in place in orderRouter.js with authentication middleware applied.\n</info added on 2025-05-25T15:00:29.180Z>",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -347,7 +347,7 @@
             1
           ],
           "details": "This involves:\n**Layer 1: Input Validation (No Database Calls)**\n1.  Validate data types for all fields: `cryptocurrency_id` (integer), `type` (string), `order_type` (string), `quantity` (number), `price` (number, if present).\n2.  Validate required fields: `cryptocurrency_id`, `type`, `order_type`, `quantity` are always required.\n3.  Conditional `price` validation: `price` is required if `order_type` is 'limit'; optional if `order_type` is 'market'. If provided for market, it might be ignored or used as a ceiling, per system design.\n4.  Validate enum values: `type` must be 'buy' or 'sell'. `order_type` must be 'limit' or 'market'.\n5.  Validate numeric formats: `quantity` must be a positive number. `price` (if provided) must be a positive number. Adhere to any precision/min/max rules.\n\n**Layer 2: Business Rules Validation (Lightweight DB Calls)**\n1.  Validate `cryptocurrency_id`: Ensure it exists in the `cryptocurrencies` table.\n2.  Basic quantity/price validation (e.g., positive values) - primarily covered in Layer 1, re-verify if any DB-dependent rules apply here (e.g., lot sizes, tick sizes if defined).\n\nEnsure validation errors from both layers lead to appropriate early responses (e.g., HTTP 400 Bad Request or 422 Unprocessable Entity).",
-          "status": "pending"
+          "status": "in-progress"
         },
         {
           "id": 3,
