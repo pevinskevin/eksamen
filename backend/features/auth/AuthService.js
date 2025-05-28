@@ -1,30 +1,41 @@
 import { comparePassword, hashPassword } from '../../shared/utils/hashing.js';
 import { welcomeNewUser } from '../../shared/email/nodemailer.js';
+import { userDataAndPasswordMatchValidation, loginBusinessRules } from './authValidation.js';
+import { parse } from 'valibot';
 
 export default class AuthService {
     constructor(authRepository) {
         this.authRepository = authRepository;
     }
 
-    async register(firstName, lastName, email, password, repeatPassword) {
-        // Validate password match
-        if (password !== repeatPassword) {
-            throw new Error('Passwords do not match');
+    async register(userData) {
+        // First validate the input data
+        const validatedData = parse(userDataAndPasswordMatchValidation, userData);
+
+        // Check if user already exists
+        const existingUser = await this.authRepository.findByEmail(validatedData.email);
+        if (existingUser) {
+            throw new Error('Email already registered');
         }
 
-        const hashedPassword = await hashPassword(password);
+        // Hash the password
+        const hashedPassword = await hashPassword(validatedData.password);
+
+        // Create the user
         const newUser = await this.authRepository.create(
-            firstName,
-            lastName,
-            email,
+            validatedData.firstName,
+            validatedData.lastName,
+            validatedData.email,
             hashedPassword
         );
-        await this.authRepository.seedUserFiatAccount(email);
+
+        // Seed initial fiat account
+        await this.authRepository.seedUserFiatAccount(validatedData.email);
 
         // Send welcome email
-        await welcomeNewUser(email, firstName);
+        await welcomeNewUser(validatedData.email);
 
-        // Return user in camelCase format matching OpenAPI
+        // Return user data in camelCase format (matching OpenAPI User schema)
         return {
             id: newUser.user_id,
             email: newUser.email,
@@ -37,18 +48,22 @@ export default class AuthService {
     }
 
     async login(email, password) {
-        const user = await this.authRepository.findByEmail(email);
+        // Validate input
+        const validatedData = parse(loginBusinessRules, { email, password });
 
+        // Find user by email
+        const user = await this.authRepository.findByEmail(validatedData.email);
         if (!user) {
-            throw new Error('User not found.');
+            throw new Error('Invalid credentials');
         }
 
-        const matchingPasswords = await comparePassword(password, user.password_hash);
-        if (!matchingPasswords) {
-            throw new Error('Provided password is incorrect.');
+        // Check password
+        const isPasswordValid = await comparePassword(validatedData.password, user.password_hash);
+        if (!isPasswordValid) {
+            throw new Error('Invalid credentials');
         }
 
-        // Return user in camelCase format matching OpenAPI LoginResponse
+        // Return user data in camelCase format (matching OpenAPI LoginResponse schema)
         return {
             id: user.user_id,
             email: user.email,
@@ -56,5 +71,9 @@ export default class AuthService {
             lastName: user.last_name,
             role: user.role,
         };
+    }
+
+    validateRegisterData(userData) {
+        return parse(userDataAndPasswordMatchValidation, userData);
     }
 }

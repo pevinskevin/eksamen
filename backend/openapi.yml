@@ -72,8 +72,6 @@ paths:
       summary: User logout
       tags:
         - Authentication
-      security:
-        - cookieAuth: []
       responses:
         "200":
           description: Logout successful
@@ -262,7 +260,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /order/:
+  /order:
     get:
       summary: Get all user orders
       tags:
@@ -487,7 +485,7 @@ components:
               type: string
               example: SIM_USD
             balance:
-              type: number
+              type: string
               format: decimal
             createdAt:
               type: string
@@ -519,7 +517,7 @@ components:
         iconUrl:
           type: string
         balance:
-          type: number
+          type: string
           format: decimal
         createdAt:
           type: string
@@ -592,15 +590,15 @@ components:
           type: string
           enum: [buy, sell]
         quantityTotal:
-          type: number
+          type: string
           format: decimal
           description: Total quantity of the order
         quantityRemaining:
-          type: number
+          type: string
           format: decimal
           description: Remaining unfilled quantity
         price:
-          type: number
+          type: string
           format: decimal
           description: Price per unit (null for market orders)
         status:
@@ -630,26 +628,22 @@ components:
           type: string
           enum: [buy, sell]
         quantityTotal:
-          type: number
+          type: string
           format: decimal
-          minimum: 0
         price:
-          type: number
+          type: string
           format: decimal
-          minimum: 0
           description: Required for limit orders, ignored for market orders
 
     UpdateOrder:
       type: object
       properties:
         quantityTotal:
-          type: number
+          type: string
           format: decimal
-          minimum: 0
         price:
-          type: number
+          type: string
           format: decimal
-          minimum: 0
         status:
           type: string
           enum: [open, partially_filled, fully_filled, cancelled]
@@ -667,10 +661,10 @@ components:
         cryptocurrencyId:
           type: integer
         quantity:
-          type: number
+          type: string
           format: decimal
         price:
-          type: number
+          type: string
           format: decimal
         buyerUserId:
           type: integer
@@ -696,7 +690,7 @@ components:
           type: string
           description: Currency code for fiat or crypto symbol
         amount:
-          type: number
+          type: string
           format: decimal
         status:
           type: string
@@ -710,13 +704,16 @@ components:
 
     Error:
       type: object
+      required:
+        - error
+        - message
       properties:
         error:
           type: string
+          example: "ValidationError"
         message:
           type: string
-        details:
-          type: object
+          example: "Invalid email format"
 
 tags:
   - name: Authentication

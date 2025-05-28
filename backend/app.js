@@ -14,26 +14,6 @@ import YAML from 'yamljs';
 const apiSpec = YAML.load('./openapi.yml');
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(apiSpec));
 
-// -- OpenAPI Middlewares Setup --
-app.use(
-    OpenApiValidator.middleware({
-        apiSpec: apiSpec,
-        validateRequests: true,
-        validateResponses: false,
-        ajvFormats: addFormats, // email, date etc.
-        formats: {
-            decimal: {
-                type: 'string',
-                validate: (value) => {
-                    // Validate decimal format for financial precision
-                    // Matches: "123.45", "0.001", "1000.00", etc.
-                    return /^\d+(\.\d+)?$/.test(value) && !isNaN(parseFloat(value));
-                },
-            },
-        },
-    })
-);
-
 // -- HTTP Server Setup --
 import http from 'http';
 const server = http.createServer(app);
@@ -76,6 +56,26 @@ import helmet from 'helmet';
 app.use(helmet());
 
 app.use(express.json());
+
+// -- OpenAPI Middlewares Setup (AFTER express.json()) --
+app.use(
+    OpenApiValidator.middleware({
+        apiSpec: apiSpec,
+        validateRequests: true,
+        validateResponses: false,
+        ajvFormats: addFormats, // email, date etc.
+        formats: {
+            decimal: {
+                type: 'string',
+                validate: (value) => {
+                    // Validate decimal format for financial precision
+                    // Matches: "123.45", "0.001", "1000.00", etc.
+                    return /^\d+(\.\d+)?$/.test(value) && !isNaN(parseFloat(value));
+                },
+            },
+        },
+    })
+);
 
 // -- Router Setup --
 

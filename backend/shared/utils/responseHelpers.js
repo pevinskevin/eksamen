@@ -7,13 +7,12 @@ export const sendSuccess = (res, data, message = 'Success', statusCode = 200) =>
 };
 
 export const sendError = (res, error, statusCode = 500) => {
-    const errorResponse = {
-        error: typeof error === 'string' ? error : error.message || 'An error occurred',
-    };
+    const errorMessage = typeof error === 'string' ? error : error.message || 'An error occurred';
 
-    if (error.details) {
-        errorResponse.details = error.details;
-    }
+    const errorResponse = {
+        error: typeof error === 'object' && error.name ? error.name : 'ServerError',
+        message: errorMessage,
+    };
 
     return res.status(statusCode).json(errorResponse);
 };
@@ -23,17 +22,17 @@ export const sendCreated = (res, data, message = 'Created successfully') => {
 };
 
 export const sendNotFound = (res, resource = 'Resource') => {
-    return sendError(res, `${resource} not found`, 404);
+    return sendError(res, { name: 'NotFoundError', message: `${resource} not found` }, 404);
 };
 
 export const sendBadRequest = (res, message = 'Bad request') => {
-    return sendError(res, message, 400);
+    return sendError(res, { name: 'ValidationError', message }, 400);
 };
 
 export const sendUnauthorized = (res, message = 'Unauthorized') => {
-    return sendError(res, message, 401);
+    return sendError(res, { name: 'AuthenticationError', message }, 401);
 };
 
 export const sendForbidden = (res, message = 'Forbidden') => {
-    return sendError(res, message, 403);
+    return sendError(res, { name: 'AuthorizationError', message }, 403);
 };
