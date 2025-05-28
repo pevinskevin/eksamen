@@ -15,7 +15,7 @@ router.get('/', isAuthenticated, async (req, res) => {
 
 router.get('/:id', isAuthenticated, async (req, res) => {
     try {
-        const order = await orderService.getByOrderId(req.user.id, req.body.data.order_id);
+        const order = await orderService.getByOrderId(req.user.id, req.params.id);
         res.send({ message: 'Hiii!! ٩(＾◡＾)۶', data: order });
     } catch (error) {
         return res.status(500).send({ error: error.message });
@@ -77,7 +77,7 @@ router.put('/:id', isAuthenticated, async (req, res) => {
         } = await orderService.validate(req.body.data);
         const updatedOrder = await orderService.updateByOrderId(
             req.user.id,
-            req.body.data.order_id
+            req.params.id
         );
         res.send({ message: 'Hiii!! ٩(＾◡＾)۶', data: updatedOrder });
     } catch (error) {}
@@ -87,7 +87,7 @@ router.delete('/:id', isAuthenticated, async (req, res) => {
     try {
         const deletedOrder = await orderService.deleteByOrderId(
             req.user.id,
-            req.body.data.order_id
+            req.params.id
         );
         res.send({ message: 'Hiii!! ٩(＾◡＾)۶' });
     } catch (error) {}

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 const router = Router();
 
-import { authService } from '../../shared/factory/factory';
+import { authService } from '../../shared/factory/factory.js';
 
 router.post('/login', async (req, res) => {
     try {
@@ -19,8 +19,8 @@ router.post('/login', async (req, res) => {
             error.message === 'User not found.' ||
             error.message === 'Provided password is incorrect.'
         )
-            res.status(404).send({
-                error: error.message,
+            res.status(401).send({
+                error: 'Invalid credentials.',
             });
         else res.status(500).send({ message: 'Server error.' });
     }

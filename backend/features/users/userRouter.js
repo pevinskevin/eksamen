@@ -6,7 +6,7 @@ import { userService } from '../../shared/factory/factory.js';
 router.post('/register', async (req, res) => {
     try {
         if (req.body.email === '' || req.body.password === '')
-            return res.status(404).send({ error: 'Error: Username or password is missing.' });
+            return res.status(400).send({ error: 'Error: Username or password is missing.' });
 
         const user = await userService.register(req.body.email, req.body.password);
 

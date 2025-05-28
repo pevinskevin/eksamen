@@ -1,7 +1,7 @@
 import { Router } from 'express';
 const router = Router();
 
-import { accountService } from '../../shared/factory/factory';
+import { accountService } from '../../shared/factory/factory.js';
 import isAuthenticated from '../../shared/middleware/authorisation.js';
 
 router.get('/balances', isAuthenticated, async (req, res) => {

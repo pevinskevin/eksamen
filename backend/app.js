@@ -6,6 +6,14 @@ import express from 'express';
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+// -- OpenAPI Setup
+import swaggerUi from 'swagger-ui-express';
+import pkg from 'express-openapi-validator';
+const { OpenApiValidator } = pkg;
+import YAML from 'yamljs';
+const apiSpec = YAML.load('./openapi.yml');
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(apiSpec));
+
 // -- HTTP Server Setup --
 import http from 'http';
 const server = http.createServer(app);
@@ -55,7 +63,7 @@ import accountRouter from './features/accounts/accountRouter.js';
 app.use('/api/account', accountRouter);
 
 import authRouter from './features/auth/authRouter.js';
-app.use('/api', authRouter)
+app.use('/api', authRouter);
 
 import cryptoRouter from './features/cryptocurrencies/cryptoRouter.js';
 app.use('/api', cryptoRouter);

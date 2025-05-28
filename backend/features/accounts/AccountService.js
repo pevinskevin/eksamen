@@ -1,5 +1,3 @@
-import { cryptoService } from "../../shared/factory/factory";
-
 export default class AccountService {
     constructor(accountRepository) {
         this.accountRepository = accountRepository;

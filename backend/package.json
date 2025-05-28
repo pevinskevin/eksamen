@@ -3,9 +3,6 @@
   "version": "0.0.0",
   "main": "app.js",
   "scripts": {
-    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
-    "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
-    "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
     "dev": "node database/createDb.js --reset && nodemon app.js"
   },
   "keywords": [],
@@ -16,11 +13,15 @@
   "dependencies": {
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "express-openapi-validator": "^5.5.3",
     "node-binance-api": "^1.0.9",
     "pg": "^8.16.0",
     "socket.io": "^4.8.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "task-master-ai": "^0.14.0",
-    "valibot": "^1.1.0"
+    "valibot": "^1.1.0",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
