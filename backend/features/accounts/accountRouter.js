@@ -3,34 +3,29 @@ const router = Router();
 
 import { accountService } from '../../shared/factory/factory.js';
 import isAuthenticated from '../../shared/middleware/authorisation.js';
+import {
+    sendSuccess,
+    sendError,
+    sendCreated,
+    sendNotFound,
+    sendBadRequest,
+    sendUnauthorized,
+    sendForbidden,
+} from '../../shared/utils/responseHelpers.js';
 
 router.get('/balances', isAuthenticated, async (req, res) => {
     let fiatBalance;
     let cryptoBalances;
+    let accountObj = { fiatBalance, cryptoBalances };
     try {
         fiatBalance = await accountService.getFiatBalanceByUserID(req.user.id);
-        if (!fiatBalance)
-            return res.status(404).send({
-                error: '404 something',
-                erorrMessage: 'Account not found. Invalid ID: ' + req.user.id,
-            });
-    } catch (error) {
-        res.status(500).send({ errorMessage: error.message });
-    }
-    try {
+        if (!fiatBalance) return sendError(res, fiatBalance);
         cryptoBalances = await accountService.getCryptoBalancesByUserId(req.user.id);
-        if (!cryptoBalances)
-            return res.status(404).send({
-                error: '404 something',
-                erorrMessage: 'Account not found. Invalid ID: ' + req.user.id,
-            });
+        if (!cryptoBalances) return sendError(cryptoBalances);
+        else return sendSuccess(res, accountObj);
     } catch (error) {
-        res.status(500).send({ errorMessage: error.message });
+        return sendError(res, error, 500);
     }
-    res.status(200).send({
-        account: fiatBalance,
-        holdings: cryptoBalances,
-    });
 });
 
 router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {

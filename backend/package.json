@@ -4,7 +4,8 @@
   "main": "app.js",
   "scripts": {
     "test-auth": "node features/auth/tests/test-auth-endpoints.js",
-    "dev": "node database/createDb.js --reset && nodemon app.js"
+    "dev": "node database/createDb.js --reset && nodemon app.js",
+    "cookie": "node scripts/get-session-cookie.js"
   },
   "keywords": [],
   "author": "",

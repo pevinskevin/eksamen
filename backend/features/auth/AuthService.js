@@ -72,8 +72,4 @@ export default class AuthService {
             role: user.role,
         };
     }
-
-    validateRegisterData(userData) {
-        return parse(userDataAndPasswordMatchValidation, userData);
-    }
 }

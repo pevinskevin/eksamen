@@ -62,7 +62,7 @@ app.use(
     OpenApiValidator.middleware({
         apiSpec: apiSpec,
         validateRequests: true,
-        validateResponses: false,
+        validateResponses: true,
         ajvFormats: addFormats, // email, date etc.
         formats: {
             decimal: {

@@ -176,7 +176,7 @@ async function createTables() {
     `);
         console.log('✓ Added sample cryptocurrencies');
 
-        const testPasswordHash = '$2b$13$imXZtYBBHrGYLJqhOpM5/eFi2VK1fAjZ1.PJ3F/1Bp7xd7koE8wDe'; // In real app: await bcrypt.hash('admin', 10)
+        const testPasswordHash = '$2b$12$dfLA6yiDAoKXRE46e0SRsucUvOG/uH6/heHRtDWrNDyHNy/rkgAUS'; // In real app: await bcrypt.hash('admin', 10)
 
         await client.query(
             `

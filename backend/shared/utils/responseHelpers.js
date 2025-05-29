@@ -1,5 +1,5 @@
 /**
- * Standardized response helpers for OpenAPI compliance
+ * Standardized response helpers for OpenAPI compliance -- Claude Code Generated
  */
 
 export const sendSuccess = (res, data, message = 'Success', statusCode = 200) => {
