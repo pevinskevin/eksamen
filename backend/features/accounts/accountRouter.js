@@ -11,6 +11,7 @@ import {
     sendBadRequest,
     sendUnauthorized,
     sendForbidden,
+    sendUnprocessableEntity,
 } from '../../shared/utils/responseHelpers.js';
 
 router.get('/balances', isAuthenticated, async (req, res) => {
@@ -30,8 +31,14 @@ router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {
     const symbol = req.params.symbol.toUpperCase();
     try {
         const holding = await accountService.getCryptoHoldingBySymbolAndUserID(1, symbol);
+        if (holding.balance == 0) return sendNotFound(res, 'Cryptocurrency holding ');
         return sendSuccess(res, holding);
     } catch (error) {
+        if (error.name === 'ValiError') {
+            // Valibot validation error
+            const validationMessage = error.issues.map((issue) => issue.message).join(', ');
+            return sendUnprocessableEntity(res, validationMessage);
+        }
         if (error.message.includes('Invalid symbol: ')) return sendNotFound(res, error.message);
         sendError(res, error, 500);
     }

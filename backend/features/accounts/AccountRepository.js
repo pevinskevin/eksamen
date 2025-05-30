@@ -14,7 +14,7 @@ export default class AccountRepository {
         const cryptoHoldingsQuery = {
             text: 'SELECT * FROM crypto_holdings where crypto_holdings.user_id = $1',
             values: [userId],
-        };
+        };        
         return (await this.db.query(cryptoHoldingsQuery)).rows;
     }
 

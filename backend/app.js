@@ -92,6 +92,17 @@ app.use(
     })
 );
 
+app.use((err, req, res, next) => {
+    // Convert OpenAPI validator errors to JSON
+    if (err.status) {
+        return res.status(err.status).json({
+            error: err.name || 'ValidationError',
+            message: err.message,
+        });
+    }
+    next(err);
+});
+
 // -- Router Setup --
 
 import accountRouter from './features/accounts/accountRouter.js';

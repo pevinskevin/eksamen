@@ -44,10 +44,10 @@ GET {{baseUrl}}/account/crypto/ETH
 @symbol = ltc
 GET {{baseUrl}}/account/crypto/{{symbol}}
 
-### 9. Get crypto holding with invalid symbol format (should return 400)
+### 9. Get crypto holding with invalid symbol format (should return 422)
 GET {{baseUrl}}/account/crypto/123INVALID
 
-### 10. Get crypto holding with special characters (should return 400)
+### 10. Get crypto holding with special characters (should return 422)
 GET {{baseUrl}}/account/crypto/BTC@#$
 
 ### 11. Get crypto holding without authentication (should return 401)
@@ -59,10 +59,10 @@ GET {{baseUrl}}/account/crypto/BTC
 Cookie: connect.sid=invalid-session-id
 
 ### 13. Get crypto holding with non-existent symbol (should return 404)
-GET {{baseUrl}}/account/crypto/NONEXISTENT
+GET {{baseUrl}}/account/crypto/NONEX
 
 ### 14. Get crypto holding that user doesn't own (should return 404)
-GET {{baseUrl}}/account/crypto/SOMEOTHER
+GET {{baseUrl}}/account/crypto/LTC
 
 ### 15. Test with lowercase symbol (should be converted to uppercase and return 200)
 GET {{baseUrl}}/account/crypto/btc
@@ -73,7 +73,7 @@ GET {{baseUrl}}/account/crypto/BtC
 ### 17. Test with empty symbol (should return 400)
 GET {{baseUrl}}/account/crypto/
 
-### 18. Test with very long symbol (should return 400)
+### 18. Test with very long symbol (should return 422)
 GET {{baseUrl}}/account/crypto/VERYLONGSYMBOLNAMETHATSHOULDNOTBEVALID
 
 ### 19. Simulate internal server error for crypto holdings (should return 500)

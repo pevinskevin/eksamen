@@ -264,6 +264,15 @@ paths:
               example:
                 error: "NotFoundError"
                 message: "Cryptocurrency holding not found for this user"
+        "422":
+          description: Unprocessable Entity (invalid symbol validation)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "ValiError"
+                message: "Symbol must be 3-5 uppercase letters only (no numbers or special characters)"
         "500":
           description: Internal Server Error
           content:
@@ -345,14 +354,14 @@ paths:
                 error: "ConflictError"
                 message: "Cryptocurrency symbol already exists"
         "422":
-          description: Unprocessable Entity
+          description: Unprocessable Entity (validation errors)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                error: "ValidationError"
-                message: "Symbol must be uppercase and between 3-5 characters"
+                error: "ValiError"
+                message: "Symbol must be 3-5 uppercase letters only (no numbers or special characters)"
         "500":
           description: Internal Server Error
           content:
@@ -471,14 +480,14 @@ paths:
                 error: "ConflictError"
                 message: "Symbol already taken by another cryptocurrency"
         "422":
-          description: Unprocessable Entity
+          description: Unprocessable Entity (validation errors)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                error: "ValidationError"
-                message: "Symbol format is invalid"
+                error: "ValiError"
+                message: "Symbol must be 3-5 uppercase letters only (no numbers or special characters)"
         "500":
           description: Internal Server Error
           content:
@@ -1062,24 +1071,52 @@ components:
       properties:
         symbol:
           type: string
+          pattern: "^[A-Z]{3,5}$"
+          description: "Cryptocurrency symbol. Must be 3-5 uppercase letters only (no numbers or special characters)"
+          example: "BTC"
         name:
           type: string
+          minLength: 1
+          maxLength: 100
+          description: "Full name of the cryptocurrency"
+          example: "Bitcoin"
         description:
           type: string
+          maxLength: 500
+          description: "Optional description of the cryptocurrency"
+          example: "The first and most well-known cryptocurrency"
         iconUrl:
           type: string
+          format: uri
+          maxLength: 500
+          description: "Optional URL to the cryptocurrency icon"
+          example: "https://example.com/btc-icon.png"
 
     UpdateCryptocurrency:
       type: object
       properties:
         symbol:
           type: string
+          pattern: "^[A-Z]{3,5}$"
+          description: "Cryptocurrency symbol. Must be 3-5 uppercase letters only (no numbers or special characters)"
+          example: "BTC"
         name:
           type: string
+          minLength: 1
+          maxLength: 100
+          description: "Full name of the cryptocurrency"
+          example: "Bitcoin"
         description:
           type: string
+          maxLength: 500
+          description: "Optional description of the cryptocurrency"
+          example: "The first and most well-known cryptocurrency"
         iconUrl:
           type: string
+          format: uri
+          maxLength: 500
+          description: "Optional URL to the cryptocurrency icon"
+          example: "https://example.com/btc-icon.png"
 
     Order:
       type: object
