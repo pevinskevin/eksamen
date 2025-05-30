@@ -57,19 +57,11 @@ router.post('/login', async (req, res) => {
 
 router.post('/logout', async (req, res) => {
     try {
-        if (!req.session) return sendBadRequest(res, 'Error: User not logged in.');
-        // Destroy the session
-        req.session.destroy((err) => {
-            if (err) {
-                console.error('Session destruction error:', err);
-                return sendError(res, err, 500);
-            }
-
-            // Clear the session cookie
-            res.clearCookie('connect.sid');
-
-            return sendSuccess(res, { message: 'Successfully logged out' });
-        });
+        if (!req.session.userId) {
+            return sendUnauthorized(res, 'User not logged in');
+        }
+        req.session.destroy();
+        return sendSuccess(res, { message: 'Successfully logged out' });
     } catch (error) {
         console.error('Logout error:', error);
         return sendError(res, error, 500);

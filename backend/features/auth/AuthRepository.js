@@ -20,7 +20,7 @@ export default class AuthRepository {
 
     async seedUserFiatAccount(email) {
         const seedUserQuery = {
-            text: 'INSERT INTO accounts (user_id, currency_code, balance) SELECT user_id, $1, $2 FROM users WHERE email = $3',
+            text: 'INSERT INTO accounts (id, currency_code, balance) SELECT id, $1, $2 FROM users WHERE email = $3',
             values: ['SIM_USD', 10000.0, email],
         };
         await this.db.query(seedUserQuery);
