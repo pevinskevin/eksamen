@@ -127,3 +127,46 @@ marketDataEmitter.on('marketUpdate', (updatedDataObject) => {
 server.listen(PORT, () => {
     console.log('Server is running on', PORT);
 });
+
+// -- Graceful Shutdown --
+const gracefulShutdown = (signal) => {
+    console.log(`\n${signal} received. Starting graceful shutdown...`);
+
+    // Close HTTP server
+    server.close((err) => {
+        if (err) {
+            console.error('Error during server shutdown:', err);
+            process.exit(1);
+        }
+
+        console.log('HTTP server closed');
+
+        // Close Socket.IO server
+        io.close(() => {
+            console.log('Socket.IO server closed');
+            console.log('Graceful shutdown complete');
+            process.exit(0);
+        });
+    });
+
+    // Force shutdown after 10 seconds
+    setTimeout(() => {
+        console.error('Could not close connections in time, forcefully shutting down');
+        process.exit(1);
+    }, 10000);
+};
+
+// Handle different termination signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    gracefulShutdown('UNCAUGHT_EXCEPTION');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    gracefulShutdown('UNHANDLED_REJECTION');
+});
