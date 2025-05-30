@@ -1,7 +1,7 @@
 ### Variables
 @baseUrl = http://localhost:8080/api
 @contentType = application/json
-@symbol = BTC
+@symbol = ltc
 
 ### 1. Register a new user
 POST {{baseUrl}}/register
@@ -29,7 +29,7 @@ Content-Type: {{contentType}}
 GET {{baseUrl}}/account/balances
 
 ### 3.2 Get account crypto holding
-GET {{baseUrl}}/account/{{symbol}}
+GET {{baseUrl}}/account/crypto/{{symbol}}
 
 ### 4. Get all cryptocurrencies
 GET {{baseUrl}}/cryptocurrencies

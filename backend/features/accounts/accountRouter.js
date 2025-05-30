@@ -22,17 +22,18 @@ router.get('/balances', isAuthenticated, async (req, res) => {
             return sendUnauthorized(res, 'No account found. Invalid ID: ' + req.user.id);
         return sendSuccess(res, accountObj);
     } catch (error) {
-        return sendError(res, error, 500);
+        return sendError(res, error);
     }
 });
 
 router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {
     const symbol = req.params.symbol.toUpperCase();
     try {
-        const holding = await accountService.getCryptoHoldingBySymbolAndUserID(req.user.id, symbol);
+        const holding = await accountService.getCryptoHoldingBySymbolAndUserID(1, symbol);
         return sendSuccess(res, holding);
     } catch (error) {
-        sendError(res, error, 500)
+        if (error.message.includes('Invalid symbol: ')) return sendNotFound(res, error.message);
+        sendError(res, error, 500);
     }
 });
 

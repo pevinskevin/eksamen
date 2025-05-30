@@ -484,7 +484,7 @@ components:
           properties:
             id:
               type: integer
-              description: account_id from database
+              description: Account ID
             currencyCode:
               type: string
               example: SIM_USD
@@ -507,7 +507,7 @@ components:
       properties:
         id:
           type: integer
-          description: holding_id from database
+          description: Crypto holding ID
         userId:
           type: integer
         cryptocurrencyId:
@@ -582,7 +582,7 @@ components:
       properties:
         id:
           type: integer
-          description: order_id from database
+          description: Order ID
         userId:
           type: integer
         cryptocurrencyId:
@@ -657,7 +657,7 @@ components:
       properties:
         id:
           type: integer
-          description: trade_id from database
+          description: Trade ID
         buyOrderId:
           type: integer
         sellOrderId:
@@ -683,7 +683,7 @@ components:
       properties:
         id:
           type: integer
-          description: transaction_id from database
+          description: Transaction ID
         userId:
           type: integer
         type:

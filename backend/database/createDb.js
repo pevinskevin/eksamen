@@ -171,7 +171,8 @@ export async function createTables() {
       VALUES 
         ('BTC', 'Bitcoin', 'Simulated Bitcoin'),
         ('ETH', 'Ethereum', 'Simulated Ethereum'),
-        ('BNB', 'Binance Coin', 'Simulated BNB')
+        ('BNB', 'Binance Coin', 'Simulated BNB'),
+        ('LTC', 'Litecoin', 'Simulated Litecoin')
       ON CONFLICT (symbol) DO NOTHING
     `);
         console.log('✓ Added sample cryptocurrencies');
