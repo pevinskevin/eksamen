@@ -1,0 +1,120 @@
+### Variables
+@baseUrl = http://localhost:8080/api
+@contentType = application/json
+@cryptoId = 1
+
+### Login first to get session cookies for authenticated requests
+# @name login
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@test.com",
+  "password": "test1234"
+}
+
+### 1. Get all cryptocurrencies (public endpoint)
+GET {{baseUrl}}/cryptocurrencies
+
+### 2. Get cryptocurrency by ID
+GET {{baseUrl}}/cryptocurrencies/{{cryptoId}}
+
+### 3. Get cryptocurrency by invalid ID (should return 404)
+GET {{baseUrl}}/cryptocurrencies/999
+
+### 4. Get cryptocurrency by invalid ID format (should return 400)
+GET {{baseUrl}}/cryptocurrencies/invalid
+
+### 5. Create new cryptocurrency (authenticated)
+POST {{baseUrl}}/cryptocurrencies
+Content-Type: {{contentType}}
+
+{
+  "symbol": "TEST",
+  "name": "Test Coin",
+  "description": "A test cryptocurrency for development",
+  "iconUrl": "https://example.com/test-icon.png"
+}
+
+### 6. Create cryptocurrency with missing required fields (should return 400)
+POST {{baseUrl}}/cryptocurrencies
+Content-Type: {{contentType}}
+
+{
+  "description": "Missing symbol and name"
+}
+
+### 7. Create cryptocurrency with duplicate symbol (should return 409)
+POST {{baseUrl}}/cryptocurrencies
+Content-Type: {{contentType}}
+
+{
+  "symbol": "BTC",
+  "name": "Duplicate Bitcoin"
+}
+
+### 8. Create cryptocurrency with invalid symbol format (should return 422)
+POST {{baseUrl}}/cryptocurrencies
+Content-Type: {{contentType}}
+
+{
+  "symbol": "toolongsymbol",
+  "name": "Invalid Symbol Coin"
+}
+
+### 9. Update cryptocurrency by ID (authenticated)
+PUT {{baseUrl}}/cryptocurrencies/{{cryptoId}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Updated Bitcoin",
+  "description": "Updated description for Bitcoin"
+}
+
+### 10. Update cryptocurrency with invalid ID (should return 404)
+PUT {{baseUrl}}/cryptocurrencies/999
+Content-Type: {{contentType}}
+
+{
+  "name": "Updated Name"
+}
+
+### 11. Update cryptocurrency with conflicting symbol (should return 409)
+PUT {{baseUrl}}/cryptocurrencies/{{cryptoId}}
+Content-Type: {{contentType}}
+
+{
+  "symbol": "ETH"
+}
+
+### 12. Delete cryptocurrency by ID (authenticated)
+DELETE {{baseUrl}}/cryptocurrencies/{{cryptoId}}
+
+### 13. Delete cryptocurrency with invalid ID (should return 404)
+DELETE {{baseUrl}}/cryptocurrencies/999
+
+### 14. Try to delete cryptocurrency with dependent data (should return 403)
+DELETE {{baseUrl}}/cryptocurrencies/1
+
+### 15. Test unauthenticated create request (should return 401)
+POST {{baseUrl}}/cryptocurrencies
+Content-Type: {{contentType}}
+Cookie: 
+
+{
+  "symbol": "UNAUTH",
+  "name": "Unauthorized Coin"
+}
+
+### 16. Test unauthenticated update request (should return 401)
+PUT {{baseUrl}}/cryptocurrencies/1
+Content-Type: {{contentType}}
+Cookie: 
+
+{
+  "name": "Unauthorized Update"
+}
+
+### 17. Test unauthenticated delete request (should return 401)
+DELETE {{baseUrl}}/cryptocurrencies/1
+Cookie: 

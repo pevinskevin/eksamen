@@ -10,6 +10,8 @@ import {
     sendBadRequest,
     sendUnauthorized,
     sendForbidden,
+    sendConflict,
+    sendUnprocessableEntity,
 } from '../../shared/utils/responseHelpers.js';
 
 router.post('/register', async (req, res) => {
@@ -19,12 +21,12 @@ router.post('/register', async (req, res) => {
         return sendCreated(res, newUser);
     } catch (error) {
         if (error.message === 'Email already registered') {
-            return sendBadRequest(res, 'Email already registered');
+            return sendConflict(res, 'Email already registered');
         }
         if (error.name === 'ValiError') {
             // Valibot validation error
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');
-            return sendBadRequest(res, validationMessage);
+            return sendUnprocessableEntity(res, validationMessage);
         }
         console.error('Registration error:', error);
         return sendError(res, error, 500);
@@ -58,7 +60,7 @@ router.post('/login', async (req, res) => {
 router.post('/logout', async (req, res) => {
     try {
         if (!req.session.userId) {
-            return sendUnauthorized(res, 'User not logged in');
+            return sendBadRequest(res, 'User not logged in');
         }
         req.session.destroy();
         return sendSuccess(res, { message: 'Successfully logged out' });

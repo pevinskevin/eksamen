@@ -11,8 +11,8 @@ Content-Type: {{contentType}}
   "firstName": "John",
   "lastName": "Doe",
   "email": "john.doe@example.com",
-  "password": "TestPass123",
-  "repeatPassword": "TestPass123"
+  "password": "TestPass",
+  "repeatPassword": "TestPas"
 }
 
 ### 2. Login (saves cookies automatically)

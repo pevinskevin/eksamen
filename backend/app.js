@@ -67,7 +67,7 @@ app.use(
     OpenApiValidator.middleware({
         apiSpec: apiSpec,
         validateRequests: true,
-        validateResponses: false,
+        validateResponses: true,
         ajvFormats: addFormats, // email, date etc.
         formats: {
             decimal: {
@@ -105,6 +105,22 @@ app.use('/api', cryptoRouter);
 
 import orderRouter from './features/orders/orderRouter.js';
 app.use('/api/order', orderRouter);
+
+// Selective error handler - only for OpenAPI structural validation errors
+app.use((err, req, res, next) => {
+    // Only handle OpenAPI structural validation errors (missing fields, wrong types, etc.)
+    // Let business logic validation errors reach the controllers
+    if (err.status === 400 && err.errors && err.message.includes('must have required property')) {
+        const errorMessage = err.errors.map((error) => error.message).join(', ');
+        return res.status(400).json({
+            error: 'ValidationError',
+            message: errorMessage,
+        });
+    }
+
+    // Pass all other errors to the next handler (including your controller validation)
+    next(err);
+});
 
 // ------------------
 

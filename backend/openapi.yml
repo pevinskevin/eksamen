@@ -164,7 +164,6 @@ paths:
               example:
                 error: "BadRequestError"
                 message: "No active session to logout"
-
         "500":
           description: Internal server error during logout
           content:
@@ -928,10 +927,12 @@ components:
           format: email
         password:
           type: string
-          minLength: 8
+          description: "User password. Must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number."
+          example: "SecurePass123"
         repeatPassword:
           type: string
-          minLength: 8
+          description: "Password confirmation. Must match the password field exactly."
+          example: "SecurePass123"
 
     LoginCredentials:
       type: object
