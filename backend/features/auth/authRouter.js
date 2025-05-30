@@ -57,6 +57,7 @@ router.post('/login', async (req, res) => {
 
 router.post('/logout', async (req, res) => {
     try {
+        if (!req.session) return sendBadRequest(res, 'Error: User not logged in.');
         // Destroy the session
         req.session.destroy((err) => {
             if (err) {

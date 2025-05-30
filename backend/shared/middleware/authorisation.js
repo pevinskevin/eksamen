@@ -7,13 +7,12 @@ function isAuthenticated(req, res, next) {
     //     id: req.session.userId,
     //     role: req.session.role,
     // };
-    // return next();
     req.session.userId = 1;
-    req.session.role = 'admin';
+    req.session.role = 'admin'
     req.user = {
         id: req.session.userId,
-        role: req.session.role,
-    };
+        role: req.session.role
+    }
     return next();
 }
 export default isAuthenticated;

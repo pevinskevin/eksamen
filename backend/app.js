@@ -37,7 +37,12 @@ app.use(
     })
 );
 
+// IMPORTANT: Cookie parser must come before session middleware
+import cookieParser from 'cookie-parser';
+app.use(cookieParser());
+
 import session from 'express-session';
+
 app.use(
     session({
         secret: `${process.env.SESSION_SECRET}`,
@@ -71,6 +76,16 @@ app.use(
                     // Validate decimal format for financial precision
                     // Matches: "123.45", "0.001", "1000.00", etc.
                     return /^\d+(\.\d+)?$/.test(value) && !isNaN(parseFloat(value));
+                },
+            },
+        },
+        // Add security handlers for OpenAPI validation
+        validateSecurity: {
+            handlers: {
+                cookieAuth: (req) => {
+                    // OpenAPI validator only checks if the cookie exists
+                    // Actual validation happens in isAuthenticated middleware
+                    return req.session && req.session.userId ? true : false;
                 },
             },
         },

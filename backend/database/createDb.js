@@ -8,7 +8,7 @@ function createClient() {
     return new Client();
 }
 
-async function createTables() {
+export async function createTables() {
     const client = createClient();
 
     try {

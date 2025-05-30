@@ -1,0 +1,54 @@
+### Variables
+@baseUrl = http://localhost:8080/api
+@contentType = application/json
+
+### 1. Register a new user
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "password": "TestPass123",
+  "repeatPassword": "TestPass123"
+}
+
+### 2. Login (saves cookies automatically)
+# @name login
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@test.com",
+  "password": "test1234"
+}
+
+### 3. Get account balances (uses cookies from login)
+GET {{baseUrl}}/account/balances
+
+### 4. Get all cryptocurrencies
+GET {{baseUrl}}/cryptocurrencies
+
+### 5. Create a new order
+POST {{baseUrl}}/order
+Content-Type: {{contentType}}
+
+{
+  "data": {
+    "cryptocurrencyid": 1,
+    "orderType": "limit",
+    "orderVariant": "buy",
+    "quantity": 0.5,
+    "price": 50000
+  }
+}
+
+### 6. Get all orders
+GET {{baseUrl}}/order
+
+### 7. Get specific crypto holding
+GET {{baseUrl}}/account/crypto/BTC
+
+### 8. Logout
+POST {{baseUrl}}/logout

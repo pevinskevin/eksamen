@@ -1,6 +1,8 @@
 // Test script for auth endpoints using fetch
 // Run with: node features/auth/tests/test-auth-endpoints.js
 
+import { dropTables, createTables } from '../../../database/createDb.js';
+
 const BASE_URL = 'http://localhost:8080/api';
 
 // Test data
@@ -16,8 +18,8 @@ const testUser = {
     firstName: 'John',
     lastName: 'Doe',
     email: 'test@example.com',
-    password: 'testpassword123',
-    repeatPassword: 'testpassword123',
+    password: 'Testpassword1234',
+    repeatPassword: 'Testpassword1234',
 };
 
 // Helper function to make requests with session handling
@@ -182,4 +184,8 @@ async function testAuthEndpoints() {
 }
 
 // Run the tests
-testAuthEndpoints();
+await testAuthEndpoints();
+
+await dropTables();
+
+await createTables();
