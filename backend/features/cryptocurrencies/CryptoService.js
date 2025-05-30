@@ -9,13 +9,10 @@ export default class CryptoService {
 
     async getCryptocurrencyById(id) {
         const cryptocurrency = await this.cryptoRepository.findById(id);
-        if (!cryptocurrency || cryptocurrency.length === 0) {
-            // Consistent error handling: throw an error if not found
-            const error = new Error('Cryptocurrency not found');
-            error.statusCode = 404; // Custom property for HTTP status
-            throw error;
-        }
-        return cryptocurrency[0]; // findById in repo returns an array
+        if (!cryptocurrency) throw new Error('Cryptocurrency not found');
+        
+        
+        return cryptocurrency;
     }
 
     async getCryptocurrencyBySymbol(symbol) {

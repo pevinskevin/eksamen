@@ -3,7 +3,7 @@ const router = Router();
 
 import { cryptoService } from '../../shared/factory/factory.js';
 import isAuthenticated from '../../shared/middleware/authorisation.js';
-import { sendError, sendSuccess } from '../../shared/utils/responseHelpers.js';
+import { sendError, sendInternalServerError, sendSuccess } from '../../shared/utils/responseHelpers.js';
 
 // Get all cryptocurrencies
 router.get('/cryptocurrencies', async (req, res) => {
@@ -18,7 +18,11 @@ router.get('/cryptocurrencies', async (req, res) => {
 // Get cryptocurrency by ID
 router.get('/cryptocurrencies/:id', async (req, res) => {
     try {
-    } catch (error) {}
+        const cryptocurrency = cryptoService.getCryptocurrencyById(req.params.id)
+        return sendSuccess(res, cryptocurrency);
+    } catch (error) {
+        return sendInternalServerError(res, error.message)
+    }
 });
 
 // Create new cryptocurrency
