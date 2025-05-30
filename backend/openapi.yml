@@ -48,7 +48,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/LoginCredentials"
-            example: 
+            example:
               email: "admin@test.com"
               password: "test1234"
       responses:
@@ -92,8 +92,8 @@ paths:
       summary: Get user's fiat and crypto balances
       tags:
         - Account
-      security:
-        - cookieAuth: []
+      # security:
+      # - cookieAuth: []
       responses:
         "200":
           description: Balances retrieved successfully
@@ -113,8 +113,8 @@ paths:
       summary: Get specific crypto holding by symbol
       tags:
         - Account
-      security:
-        - cookieAuth: []
+      # security:
+      # - cookieAuth: []
       parameters:
         - name: symbol
           in: path
@@ -155,8 +155,8 @@ paths:
       summary: Create new cryptocurrency
       tags:
         - Cryptocurrencies
-      security:
-        - cookieAuth: []
+      # security:
+      # - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -206,8 +206,8 @@ paths:
       summary: Update cryptocurrency
       tags:
         - Cryptocurrencies
-      security:
-        - cookieAuth: []
+      # security:
+      # - cookieAuth: []
       parameters:
         - name: id
           in: path
@@ -238,8 +238,8 @@ paths:
       summary: Delete cryptocurrency
       tags:
         - Cryptocurrencies
-      security:
-        - cookieAuth: []
+      # security:
+      # - cookieAuth: []
       parameters:
         - name: id
           in: path
@@ -268,8 +268,8 @@ paths:
       summary: Get all user orders
       tags:
         - Orders
-      security:
-        - cookieAuth: []
+      # security:
+      # - cookieAuth: []
       responses:
         "200":
           description: List of orders
@@ -284,8 +284,8 @@ paths:
       summary: Create new order
       tags:
         - Orders
-      security:
-        - cookieAuth: []
+      # security:
+      # - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -311,8 +311,8 @@ paths:
       summary: Get specific order by ID
       tags:
         - Orders
-      security:
-        - cookieAuth: []
+      # security:
+      # - cookieAuth: []
       parameters:
         - name: id
           in: path
@@ -337,8 +337,8 @@ paths:
       summary: Update order
       tags:
         - Orders
-      security:
-        - cookieAuth: []
+      # security:
+      # - cookieAuth: []
       parameters:
         - name: id
           in: path
@@ -369,8 +369,8 @@ paths:
       summary: Delete order
       tags:
         - Orders
-      security:
-        - cookieAuth: []
+      # security:
+      # - cookieAuth: []
       parameters:
         - name: id
           in: path
@@ -396,10 +396,11 @@ paths:
 
 components:
   securitySchemes:
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: connect.sid
+    {}
+    # cookieAuth:
+    #   type: apiKey
+    #   in: cookie
+    #   name: connect.sid
 
   schemas:
     UserRegistration:

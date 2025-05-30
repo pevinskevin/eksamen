@@ -22,9 +22,9 @@ export default class OrderService {
         return await parseAsync(orderSchema, orderObject);
     }
 
-    async save(cryptocurrencyid, orderType, orderVariant, quantity, price, userId) {
+    async save(cryptocurrencyId, orderType, orderVariant, quantity, price, userId) {
         return await this.orderRepository.save(
-            cryptocurrencyid,
+            cryptocurrencyId,
             orderType,
             orderVariant,
             quantity,
@@ -34,7 +34,7 @@ export default class OrderService {
     }
 
     async updateByOrderId(
-        cryptocurrencyid,
+        cryptocurrencyId,
         orderType,
         orderVariant,
         quantity,
@@ -44,7 +44,7 @@ export default class OrderService {
         orderId
     ) {
         return await this.orderRepository.update(
-            cryptocurrencyid,
+            cryptocurrencyId,
             orderType,
             orderVariant,
             quantity,

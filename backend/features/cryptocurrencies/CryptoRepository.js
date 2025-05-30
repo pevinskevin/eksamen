@@ -11,10 +11,18 @@ export default class CryptoRepository {
 
     async findById(id) {
         const query = {
-            text: 'SELECT * FROM cryptocurrencies WHERE cryptocurrency_id = $1',
+            text: 'SELECT * FROM cryptocurrencies WHERE id = $1',
             values: [id],
         };
         return (await this.db.query(query)).rows;
+    }
+
+    async findBySymbol(symbol) {
+        const query = {
+            text: 'SELECT * FROM cryptocurrencies WHERE symbol = $1',
+            values: [symbol],
+        };
+        return (await this.db.query(query)).rows.at(0);
     }
 
     async create(cryptoData) {
@@ -31,7 +39,7 @@ export default class CryptoRepository {
         const { symbol, name, description, icon_url } = cryptoData;
         // First, check if the cryptocurrency exists
         const checkQuery = {
-            text: 'SELECT cryptocurrency_id FROM cryptocurrencies WHERE cryptocurrency_id = $1',
+            text: 'SELECT id FROM cryptocurrencies WHERE id = $1',
             values: [id],
         };
         const existingCrypto = (await this.db.query(checkQuery)).rows;
@@ -41,7 +49,7 @@ export default class CryptoRepository {
         }
 
         const query = {
-            text: 'UPDATE cryptocurrencies SET symbol = COALESCE($2, symbol), name = COALESCE($3, name), description = COALESCE($4, description), icon_url = COALESCE($5, icon_url) WHERE cryptocurrency_id = $1 RETURNING *',
+            text: 'UPDATE cryptocurrencies SET symbol = COALESCE($2, symbol), name = COALESCE($3, name), description = COALESCE($4, description), icon_url = COALESCE($5, icon_url) WHERE id = $1 RETURNING *',
             values: [id, symbol, name, description, icon_url],
         };
         const result = await this.db.query(query);
@@ -51,7 +59,7 @@ export default class CryptoRepository {
     async deleteById(id) {
         // First, check if the cryptocurrency exists
         const checkQuery = {
-            text: 'SELECT cryptocurrency_id FROM cryptocurrencies WHERE cryptocurrency_id = $1',
+            text: 'SELECT id FROM cryptocurrencies WHERE id = $1',
             values: [id],
         };
         const existingCrypto = (await this.db.query(checkQuery)).rows;
@@ -61,7 +69,7 @@ export default class CryptoRepository {
         }
 
         const query = {
-            text: 'DELETE FROM cryptocurrencies WHERE cryptocurrency_id = $1 RETURNING *',
+            text: 'DELETE FROM cryptocurrencies WHERE id = $1 RETURNING *',
             values: [id],
         };
         const result = await this.db.query(query);

@@ -1,0 +1,7 @@
+{
+    "ext": "js,mjs,cjs,json,html,css",
+    "delay": 2000,
+    "env": {
+        "NODE_ENV": "development"
+    }
+}

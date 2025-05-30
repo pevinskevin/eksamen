@@ -19,7 +19,7 @@ export default class CryptoService {
     }
 
     async getCryptocurrencyBySymbol(symbol) {
-        return await this.cryptoRepository.findById(symbol);
+        return await this.cryptoRepository.findBySymbol(symbol);
     }
 
     async createCryptocurrency(cryptoData) {

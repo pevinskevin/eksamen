@@ -37,7 +37,7 @@ export default class AuthService {
 
         // Return user data in camelCase format (matching OpenAPI User schema)
         return {
-            id: newUser.user_id,
+            id: newUser.id,
             email: newUser.email,
             firstName: newUser.first_name,
             lastName: newUser.last_name,
@@ -65,7 +65,7 @@ export default class AuthService {
 
         // Return user data in camelCase format (matching OpenAPI LoginResponse schema)
         return {
-            id: user.user_id,
+            id: user.id,
             email: user.email,
             firstName: user.first_name,
             lastName: user.last_name,

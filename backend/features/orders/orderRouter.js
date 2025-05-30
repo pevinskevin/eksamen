@@ -2,7 +2,7 @@ import { Router } from 'express';
 const router = Router();
 import isAuthenticated from '../../shared/middleware/authorisation.js';
 
-import {orderService, cryptoService } from '../../shared/factory/factory.js';
+import { orderService, cryptoService } from '../../shared/factory/factory.js';
 
 router.get('/', isAuthenticated, async (req, res) => {
     try {
@@ -31,11 +31,11 @@ router.post('/', isAuthenticated, async (req, res) => {
     }
 
     try {
-        const cryptocurrency = await cryptoService.getCryptocurrencyById(ordre.cryptocurrencyid);
+        const cryptocurrency = await cryptoService.getCryptocurrencyById(ordre.cryptocurrencyId);
         if (!cryptocurrency) {
             return res.status(404).send({
                 error: 'NotFoundError',
-                errorMessage: 'Cryptocurrency not found. Invalid ID: ' + ordre.cryptocurrencyid,
+                errorMessage: 'Cryptocurrency not found. Invalid ID: ' + ordre.cryptocurrencyId,
             });
         }
     } catch (error) {
@@ -49,7 +49,7 @@ router.post('/', isAuthenticated, async (req, res) => {
 
     try {
         const order = await orderService.save(
-            ordre.cryptocurrencyid,
+            ordre.cryptocurrencyId,
             ordre.orderType,
             ordre.orderVariant,
             ordre.quantity,
@@ -75,20 +75,14 @@ router.put('/:id', isAuthenticated, async (req, res) => {
             price,
             orderid,
         } = await orderService.validate(req.body.data);
-        const updatedOrder = await orderService.updateByOrderId(
-            req.user.id,
-            req.params.id
-        );
+        const updatedOrder = await orderService.updateByOrderId(req.user.id, req.params.id);
         res.send({ message: 'Hiii!! ٩(＾◡＾)۶', data: updatedOrder });
     } catch (error) {}
 });
 
 router.delete('/:id', isAuthenticated, async (req, res) => {
     try {
-        const deletedOrder = await orderService.deleteByOrderId(
-            req.user.id,
-            req.params.id
-        );
+        const deletedOrder = await orderService.deleteByOrderId(req.user.id, req.params.id);
         res.send({ message: 'Hiii!! ٩(＾◡＾)۶' });
     } catch (error) {}
 });

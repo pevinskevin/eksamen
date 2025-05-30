@@ -43,7 +43,7 @@ export async function createTables() {
         // User table
         await client.query(`
       CREATE TABLE IF NOT EXISTS users (
-        user_id SERIAL PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         first_name VARCHAR(100) NOT NULL,
@@ -58,7 +58,7 @@ export async function createTables() {
         // Cryptocurrency table
         await client.query(`
       CREATE TABLE IF NOT EXISTS cryptocurrencies (
-        cryptocurrency_id SERIAL PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
         symbol VARCHAR(20) UNIQUE NOT NULL,
         name VARCHAR(100) NOT NULL,
         description TEXT,
@@ -72,8 +72,8 @@ export async function createTables() {
         // Account table (for USD balance)
         await client.query(`
       CREATE TABLE IF NOT EXISTS accounts (
-        account_id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(user_id),
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
         currency_code VARCHAR(10) DEFAULT 'SIM_USD',
         balance DECIMAL(20, 8) DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -86,9 +86,9 @@ export async function createTables() {
         // CryptoHolding table (base table)
         await client.query(`
       CREATE TABLE IF NOT EXISTS crypto_holdings_base (
-        holding_id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(user_id),
-        cryptocurrency_id INTEGER REFERENCES cryptocurrencies(cryptocurrency_id),
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
+        cryptocurrency_id INTEGER REFERENCES cryptocurrencies(id),
         balance DECIMAL(20, 8) DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -101,7 +101,7 @@ export async function createTables() {
         await client.query(`
       CREATE OR REPLACE VIEW crypto_holdings AS
       SELECT 
-        chb.holding_id,
+        chb.id,
         chb.user_id,
         chb.cryptocurrency_id,
         chb.balance,
@@ -112,16 +112,16 @@ export async function createTables() {
         c.description,
         c.icon_url as iconUrl
       FROM crypto_holdings_base chb
-      JOIN cryptocurrencies c ON chb.cryptocurrency_id = c.cryptocurrency_id
+      JOIN cryptocurrencies c ON chb.cryptocurrency_id = c.id
     `);
         console.log('✓ Created crypto_holdings view');
 
         // Order table
         await client.query(`
       CREATE TABLE IF NOT EXISTS orders (
-        order_id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(user_id),
-        cryptocurrency_id INTEGER REFERENCES cryptocurrencies(cryptocurrency_id),
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
+        cryptocurrency_id INTEGER REFERENCES cryptocurrencies(id),
         order_type order_type NOT NULL,
         order_variant order_variant NOT NULL,
         quantity_total DECIMAL(20, 8) NOT NULL,
@@ -137,14 +137,14 @@ export async function createTables() {
         // Trade table
         await client.query(`
       CREATE TABLE IF NOT EXISTS trades (
-        trade_id SERIAL PRIMARY KEY,
-        buy_order_id INTEGER REFERENCES orders(order_id),
-        sell_order_id INTEGER REFERENCES orders(order_id),
-        cryptocurrency_id INTEGER REFERENCES cryptocurrencies(cryptocurrency_id),
+        id SERIAL PRIMARY KEY,
+        buy_order_id INTEGER REFERENCES orders(id),
+        sell_order_id INTEGER REFERENCES orders(id),
+        cryptocurrency_id INTEGER REFERENCES cryptocurrencies(id),
         quantity DECIMAL(20, 8) NOT NULL,
         price DECIMAL(20, 8) NOT NULL,
-        buyer_user_id INTEGER REFERENCES users(user_id),
-        seller_user_id INTEGER REFERENCES users(user_id),
+        buyer_user_id INTEGER REFERENCES users(id),
+        seller_user_id INTEGER REFERENCES users(id),
         trade_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -153,8 +153,8 @@ export async function createTables() {
         // Transaction table
         await client.query(`
       CREATE TABLE IF NOT EXISTS transactions (
-        transaction_id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(user_id),
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
         type transaction_type NOT NULL,
         currency_code_or_crypto_id VARCHAR(50) NOT NULL,
         amount DECIMAL(20, 8) NOT NULL,
@@ -191,7 +191,7 @@ export async function createTables() {
         // Create crypto holdings for admin user for BTC, ETH, and BNB
         await client.query(`
       INSERT INTO crypto_holdings_base (user_id, cryptocurrency_id, balance)
-      SELECT u.user_id, c.cryptocurrency_id, 
+      SELECT u.id, c.id, 
         CASE 
           WHEN c.symbol = 'BTC' THEN 1.5
           WHEN c.symbol = 'ETH' THEN 10.0
@@ -207,7 +207,7 @@ export async function createTables() {
         // Also create a fiat account for the admin user
         await client.query(`
       INSERT INTO accounts (user_id, currency_code, balance)
-      SELECT user_id, 'SIM_USD', 10000.00
+      SELECT id, 'SIM_USD', 10000.00
       FROM users 
       WHERE email = 'admin@test.com'
       ON CONFLICT (user_id, currency_code) DO NOTHING

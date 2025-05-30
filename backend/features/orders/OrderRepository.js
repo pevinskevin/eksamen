@@ -5,7 +5,7 @@ export default class OrderRepository {
 
     async delete(userId, orderId) {
         const query = {
-            text: 'DELETE FROM orders WHERE user_id = $1 AND order_id = $2 RETURNING *',
+            text: 'DELETE FROM orders WHERE user_id = $1 AND id = $2 RETURNING *',
             values: [userId, orderId],
         };
         const result = await this.db.query(query);
@@ -15,7 +15,7 @@ export default class OrderRepository {
 
     async find(userId, orderId) {
         const query = {
-            text: 'SELECT * FROM orders WHERE user_id = $1 AND order_id = $2',
+            text: 'SELECT * FROM orders WHERE user_id = $1 AND id = $2',
             values: [userId, orderId],
         };
         const result = await this.db.query(query);
@@ -34,12 +34,12 @@ export default class OrderRepository {
         else return resultData;
     }
 
-    async save(cryptocurrencyid, orderType, orderVariant, quantity, price, userId) {
+    async save(cryptocurrencyId, orderType, orderVariant, quantity, price, userId) {
         const quantityRemaining = quantity;
         const query = {
             text: 'INSERT INTO orders (cryptocurrency_id, order_type, order_variant, quantity_total, quantity_remaining, price, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
             values: [
-                cryptocurrencyid,
+                cryptocurrencyId,
                 orderType,
                 orderVariant,
                 quantity,
@@ -51,11 +51,11 @@ export default class OrderRepository {
         const result = await this.db.query(query);
         const resultData = result.rows[0];
 
-       return resultData;
+        return resultData;
     }
 
     async update(
-        cryptocurrencyid,
+        cryptocurrencyId,
         orderType,
         orderVariant,
         quantity,
@@ -65,9 +65,9 @@ export default class OrderRepository {
         orderid
     ) {
         const query = {
-            text: 'UPDATE orders SET cryptocurrency_id = $1, order_type = $2, order_variant = $3, quantity_total = $4, quantity_remaining = $5, price = $6 WHERE user_id = $7 AND order_id = $8 RETURNING *',
+            text: 'UPDATE orders SET cryptocurrency_id = $1, order_type = $2, order_variant = $3, quantity_total = $4, quantity_remaining = $5, price = $6 WHERE user_id = $7 AND id = $8 RETURNING *',
             values: [
-                cryptocurrencyid,
+                cryptocurrencyId,
                 orderType,
                 orderVariant,
                 quantity,
