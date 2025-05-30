@@ -36,24 +36,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Missing required fields"
         "409":
           description: Conflict (email already exists)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ConflictError"
+                message: "Email already exists"
         "422":
           description: Unprocessable Entity (validation errors)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Password must be at least 8 characters long"
         "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Database connection failed"
 
   /login:
     post:
@@ -87,30 +99,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "BadRequestError"
+                message: "Email and password are required"
         "401":
           description: Invalid credentials
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Invalid email or password"
         "422":
           description: Unprocessable Entity (validation errors)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Invalid email format"
         "429":
           description: Too Many Requests (rate limiting)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "RateLimitError"
+                message: "Too many login attempts. Please try again later"
         "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Authentication service unavailable"
 
   /logout:
     post:
@@ -134,6 +161,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "BadRequestError"
+                message: "No active session to logout"
 
         "500":
           description: Internal server error during logout
@@ -141,6 +171,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to destroy session"
 
   /account/balances:
     get:
@@ -162,18 +195,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
         "404":
           description: Not Found (user account not found)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "NotFoundError"
+                message: "User account not found"
         "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to retrieve account balances"
 
   /account/crypto/{symbol}:
     get:
@@ -202,24 +244,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Invalid cryptocurrency symbol format"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
         "404":
           description: Crypto holding not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "NotFoundError"
+                message: "Cryptocurrency holding not found for this user"
         "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to retrieve crypto holding"
 
   /cryptocurrencies:
     get:
@@ -241,6 +295,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to retrieve cryptocurrencies"
 
     post:
       summary: Create new cryptocurrency
@@ -267,30 +324,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Missing required fields: symbol and name"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Admin authentication required"
         "409":
           description: Conflict (symbol already exists)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ConflictError"
+                message: "Cryptocurrency symbol already exists"
         "422":
           description: Unprocessable Entity
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Symbol must be uppercase and between 3-5 characters"
         "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to create cryptocurrency"
 
   /cryptocurrencies/{id}:
     get:
@@ -316,18 +388,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Invalid cryptocurrency ID format"
         "404":
           description: Cryptocurrency not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "NotFoundError"
+                message: "Cryptocurrency not found"
         "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to retrieve cryptocurrency"
 
     put:
       summary: Update cryptocurrency
@@ -360,36 +441,54 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Invalid request data format"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
         "404":
           description: Cryptocurrency not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "NotFoundError"
+                message: "Cryptocurrency not found"
         "409":
           description: Conflict (symbol already taken)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ConflictError"
+                message: "Symbol already taken by another cryptocurrency"
         "422":
           description: Unprocessable Entity
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Symbol format is invalid"
         "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to update cryptocurrency"
 
     delete:
       summary: Delete cryptocurrency
@@ -419,30 +518,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Invalid cryptocurrency ID"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
         "403":
           description: Forbidden (cannot delete - has dependent data)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ForbiddenError"
+                message: "Cannot delete cryptocurrency with existing orders or holdings"
         "404":
           description: Cryptocurrency not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "NotFoundError"
+                message: "Cryptocurrency not found"
         "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to delete cryptocurrency"
 
   /order:
     get:
@@ -466,12 +580,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
         "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to retrieve orders"
 
     post:
       summary: Create new order
@@ -498,36 +618,54 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Missing required order fields"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
         "402":
           description: Payment Required (insufficient balance)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InsufficientFundsError"
+                message: "Insufficient balance to place order"
         "404":
           description: Not Found (cryptocurrency not found)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "NotFoundError"
+                message: "Cryptocurrency not found"
         "422":
           description: Unprocessable Entity
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Price must be positive for limit orders"
         "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to create order"
 
   /order/{id}:
     get:
@@ -555,30 +693,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Invalid order ID format"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
         "403":
           description: Forbidden (not user's order)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ForbiddenError"
+                message: "Access denied - not your order"
         "404":
           description: Order not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "NotFoundError"
+                message: "Order not found"
         "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to retrieve order"
 
     put:
       summary: Update order
@@ -611,42 +764,63 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Invalid update data format"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
         "403":
           description: Forbidden (not user's order)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ForbiddenError"
+                message: "Access denied - not your order"
         "404":
           description: Order not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "NotFoundError"
+                message: "Order not found"
         "409":
           description: Conflict (order already executed)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ConflictError"
+                message: "Cannot modify executed order"
         "422":
           description: Unprocessable Entity
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Invalid order status transition"
         "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to update order"
 
     delete:
       summary: Delete order
@@ -676,36 +850,54 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Invalid order ID"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
         "403":
           description: Forbidden (not user's order)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ForbiddenError"
+                message: "Access denied - not your order"
         "404":
           description: Order not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "NotFoundError"
+                message: "Order not found"
         "409":
           description: Conflict (order already executed/partially filled)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "ConflictError"
+                message: "Cannot delete partially filled or executed order"
         "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to delete order"
 
 components:
   securitySchemes:
