@@ -924,7 +924,6 @@ components:
           minLength: 1
         email:
           type: string
-          format: email
         password:
           type: string
           description: "User password. Must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number."
@@ -942,7 +941,6 @@ components:
       properties:
         email:
           type: string
-          format: email
         password:
           type: string
 

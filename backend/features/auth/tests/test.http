@@ -1,21 +1,92 @@
 ### Variables
 @baseUrl = http://localhost:8080/api
 @contentType = application/json
-@symbol = ltc
 
-### 1. Register a new user
+### REGISTRATION TESTS ###
+
+### 1. Register a new user successfully (should return 201)
 POST {{baseUrl}}/register
 Content-Type: {{contentType}}
 
 {
   "firstName": "John",
   "lastName": "Doe",
-  "email": "john.doe@example.com",
-  "password": "TestPass",
-  "repeatPassword": "TestPas"
+  "email": "john.doe.new@example.com",
+  "password": "TestPass123",
+  "repeatPassword": "TestPass123"
 }
 
-### 2. Login (saves cookies automatically)
+### 2. Register with missing required fields (should return 400)
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "firstName": "John"
+}
+
+### 3. Register with email already exists (should return 409)
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "email": "admin@test.com",
+  "password": "TestPass123",
+  "repeatPassword": "TestPass123"
+}
+
+### 4. Register with password validation errors (should return 422)
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "email": "jane.weak@example.com",
+  "password": "weak",
+  "repeatPassword": "weak"
+}
+
+### 5. Register with mismatched passwords (should return 422)
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "email": "jane.mismatch@example.com",
+  "password": "TestPass123",
+  "repeatPassword": "DifferentPass123"
+}
+
+### 6. Register with invalid email format (should return 422)
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "email": "invalid-email",
+  "password": "TestPass123",
+  "repeatPassword": "TestPass123"
+}
+
+### 7. Register with invalid characters in name (should return 422)
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "firstName": "John123",
+  "lastName": "Doe@#$",
+  "email": "john.invalid@example.com",
+  "password": "TestPass123",
+  "repeatPassword": "TestPass123"
+}
+
+### LOGIN TESTS ###
+
+### 8. Login successfully (should return 200)
 # @name login
 POST {{baseUrl}}/login
 Content-Type: {{contentType}}
@@ -25,34 +96,56 @@ Content-Type: {{contentType}}
   "password": "test1234"
 }
 
-### 3.1 Get account balances (uses cookies from login)
-GET {{baseUrl}}/account/balances
-
-### 3.2 Get account crypto holding
-GET {{baseUrl}}/account/crypto/{{symbol}}
-
-### 4. Get all cryptocurrencies
-GET {{baseUrl}}/cryptocurrencies
-
-### 5. Create a new order
-POST {{baseUrl}}/order
+### 9. Login with missing credentials (should return 400)
+POST {{baseUrl}}/login
 Content-Type: {{contentType}}
 
 {
-  "data": {
-    "cryptocurrencyId": 1,
-    "orderType": "limit",
-    "orderVariant": "buy",
-    "quantity": 0.5,
-    "price": 50000
-  }
+  "email": "admin@test.com"
 }
 
-### 6. Get all orders
-GET {{baseUrl}}/order
+### 10. Login with invalid credentials - wrong password (should return 401)
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
 
-### 7. Get specific crypto holding
-GET {{baseUrl}}/account/crypto/BTC
+{
+  "email": "admin@test.com",
+  "password": "wrongpassword"
+}
 
-### 8. Logout
+### 11. Login with invalid credentials - non-existent email (should return 401)
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "nonexistent@test.com",
+  "password": "test1234"
+}
+
+### 12. Login with invalid email format (should return 422)
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "invalid-email-format",
+  "password": "test1234"
+}
+
+### 13. Simulate rate limiting - too many login attempts (should return 429)
+# Note: This might require multiple rapid requests to trigger rate limiting
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@test.com",
+  "password": "wrongpassword"
+}
+
+### LOGOUT TESTS ###
+
+### 14. Logout successfully (should return 200)
 POST {{baseUrl}}/logout
+
+### 15. Logout when not logged in (should return 400)
+POST {{baseUrl}}/logout
+Cookie:

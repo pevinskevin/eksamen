@@ -13,19 +13,32 @@ Content-Type: {{contentType}}
   "password": "test1234"
 }
 
-### 1. Get all cryptocurrencies (public endpoint)
+### GET CRYPTOCURRENCIES TESTS ###
+
+### 1. Get all cryptocurrencies successfully (should return 200)
 GET {{baseUrl}}/cryptocurrencies
 
-### 2. Get cryptocurrency by ID
+### 2. Get cryptocurrency by valid ID successfully (should return 200)
 GET {{baseUrl}}/cryptocurrencies/{{cryptoId}}
 
-### 3. Get cryptocurrency by invalid ID (should return 404)
-GET {{baseUrl}}/cryptocurrencies/999
-
-### 4. Get cryptocurrency by invalid ID format (should return 400)
+### 3. Get cryptocurrency by invalid ID format (should return 400)
 GET {{baseUrl}}/cryptocurrencies/invalid
 
-### 5. Create new cryptocurrency (authenticated)
+### 4. Get cryptocurrency by non-numeric ID (should return 400)
+GET {{baseUrl}}/cryptocurrencies/abc
+
+### 5. Get cryptocurrency by negative ID (should return 400)
+GET {{baseUrl}}/cryptocurrencies/-1
+
+### 6. Get cryptocurrency by non-existent ID (should return 404)
+GET {{baseUrl}}/cryptocurrencies/99999
+
+### 7. Get cryptocurrency by zero ID (should return 404)
+GET {{baseUrl}}/cryptocurrencies/0
+
+### CREATE CRYPTOCURRENCY TESTS ###
+
+### 8. Create new cryptocurrency successfully (should return 201)
 POST {{baseUrl}}/cryptocurrencies
 Content-Type: {{contentType}}
 
@@ -36,7 +49,16 @@ Content-Type: {{contentType}}
   "iconUrl": "https://example.com/test-icon.png"
 }
 
-### 6. Create cryptocurrency with missing required fields (should return 400)
+### 9. Create cryptocurrency with minimal required fields (should return 201)
+POST {{baseUrl}}/cryptocurrencies
+Content-Type: {{contentType}}
+
+{
+  "symbol": "MIN",
+  "name": "Minimal Coin"
+}
+
+### 10. Create cryptocurrency with missing required fields (should return 400)
 POST {{baseUrl}}/cryptocurrencies
 Content-Type: {{contentType}}
 
@@ -44,59 +66,32 @@ Content-Type: {{contentType}}
   "description": "Missing symbol and name"
 }
 
-### 7. Create cryptocurrency with duplicate symbol (should return 409)
+### 11. Create cryptocurrency with missing symbol (should return 400)
 POST {{baseUrl}}/cryptocurrencies
 Content-Type: {{contentType}}
 
 {
-  "symbol": "BTC",
-  "name": "Duplicate Bitcoin"
+  "name": "Missing Symbol Coin"
 }
 
-### 8. Create cryptocurrency with invalid symbol format (should return 422)
+### 12. Create cryptocurrency with missing name (should return 400)
 POST {{baseUrl}}/cryptocurrencies
 Content-Type: {{contentType}}
 
 {
-  "symbol": "toolongsymbol",
-  "name": "Invalid Symbol Coin"
+  "symbol": "MSN"
 }
 
-### 9. Update cryptocurrency by ID (authenticated)
-PUT {{baseUrl}}/cryptocurrencies/{{cryptoId}}
+### 13. Create cryptocurrency with malformed JSON (should return 400)
+POST {{baseUrl}}/cryptocurrencies
 Content-Type: {{contentType}}
 
 {
-  "name": "Updated Bitcoin",
-  "description": "Updated description for Bitcoin"
+  "symbol": "BAD",
+  "name": "Bad JSON",
 }
 
-### 10. Update cryptocurrency with invalid ID (should return 404)
-PUT {{baseUrl}}/cryptocurrencies/999
-Content-Type: {{contentType}}
-
-{
-  "name": "Updated Name"
-}
-
-### 11. Update cryptocurrency with conflicting symbol (should return 409)
-PUT {{baseUrl}}/cryptocurrencies/{{cryptoId}}
-Content-Type: {{contentType}}
-
-{
-  "symbol": "ETH"
-}
-
-### 12. Delete cryptocurrency by ID (authenticated)
-DELETE {{baseUrl}}/cryptocurrencies/{{cryptoId}}
-
-### 13. Delete cryptocurrency with invalid ID (should return 404)
-DELETE {{baseUrl}}/cryptocurrencies/999
-
-### 14. Try to delete cryptocurrency with dependent data (should return 403)
-DELETE {{baseUrl}}/cryptocurrencies/1
-
-### 15. Test unauthenticated create request (should return 401)
+### 14. Create cryptocurrency without authentication (should return 401)
 POST {{baseUrl}}/cryptocurrencies
 Content-Type: {{contentType}}
 Cookie: 
@@ -106,8 +101,106 @@ Cookie:
   "name": "Unauthorized Coin"
 }
 
-### 16. Test unauthenticated update request (should return 401)
-PUT {{baseUrl}}/cryptocurrencies/1
+### 15. Create cryptocurrency with duplicate symbol (should return 409)
+POST {{baseUrl}}/cryptocurrencies
+Content-Type: {{contentType}}
+
+{
+  "symbol": "BTC",
+  "name": "Duplicate Bitcoin"
+}
+
+### 16. Create cryptocurrency with invalid symbol format - too long (should return 422)
+POST {{baseUrl}}/cryptocurrencies
+Content-Type: {{contentType}}
+
+{
+  "symbol": "TOOLONGSYMBOL",
+  "name": "Invalid Symbol Coin"
+}
+
+### 17. Create cryptocurrency with invalid symbol format - too short (should return 422)
+POST {{baseUrl}}/cryptocurrencies
+Content-Type: {{contentType}}
+
+{
+  "symbol": "AB",
+  "name": "Too Short Symbol"
+}
+
+### 18. Create cryptocurrency with invalid symbol format - lowercase (should return 422)
+POST {{baseUrl}}/cryptocurrencies
+Content-Type: {{contentType}}
+
+{
+  "symbol": "test",
+  "name": "Lowercase Symbol"
+}
+
+### 19. Create cryptocurrency with invalid symbol format - numbers (should return 422)
+POST {{baseUrl}}/cryptocurrencies
+Content-Type: {{contentType}}
+
+{
+  "symbol": "123",
+  "name": "Numeric Symbol"
+}
+
+### 20. Create cryptocurrency with invalid symbol format - special chars (should return 422)
+POST {{baseUrl}}/cryptocurrencies
+Content-Type: {{contentType}}
+
+{
+  "symbol": "BTC@",
+  "name": "Special Char Symbol"
+}
+
+### 21. Create cryptocurrency with empty name (should return 422)
+POST {{baseUrl}}/cryptocurrencies
+Content-Type: {{contentType}}
+
+{
+  "symbol": "EMPTY",
+  "name": ""
+}
+
+### UPDATE CRYPTOCURRENCY TESTS ###
+
+### 22. Update cryptocurrency successfully (should return 200)
+PUT {{baseUrl}}/cryptocurrencies/{{cryptoId}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Updated Bitcoin",
+  "description": "Updated description for Bitcoin"
+}
+
+### 23. Update cryptocurrency with partial data (should return 200)
+PUT {{baseUrl}}/cryptocurrencies/{{cryptoId}}
+Content-Type: {{contentType}}
+
+{
+  "description": "Only updating description"
+}
+
+### 24. Update cryptocurrency with invalid data format (should return 400)
+PUT {{baseUrl}}/cryptocurrencies/{{cryptoId}}
+Content-Type: {{contentType}}
+
+{
+  "invalidField": "value"
+}
+
+### 25. Update cryptocurrency with invalid ID format (should return 400)
+PUT {{baseUrl}}/cryptocurrencies/invalid
+Content-Type: {{contentType}}
+
+{
+  "name": "Updated Name"
+}
+
+### 26. Update cryptocurrency without authentication (should return 401)
+PUT {{baseUrl}}/cryptocurrencies/{{cryptoId}}
 Content-Type: {{contentType}}
 Cookie: 
 
@@ -115,6 +208,45 @@ Cookie:
   "name": "Unauthorized Update"
 }
 
-### 17. Test unauthenticated delete request (should return 401)
-DELETE {{baseUrl}}/cryptocurrencies/1
+### 27. Update cryptocurrency with non-existent ID (should return 404)
+PUT {{baseUrl}}/cryptocurrencies/99999
+Content-Type: {{contentType}}
+
+{
+  "name": "Updated Name"
+}
+
+### 28. Update cryptocurrency with conflicting symbol (should return 409)
+PUT {{baseUrl}}/cryptocurrencies/{{cryptoId}}
+Content-Type: {{contentType}}
+
+{
+  "symbol": "ETH"
+}
+
+### 29. Update cryptocurrency with invalid symbol format (should return 422)
+PUT {{baseUrl}}/cryptocurrencies/{{cryptoId}}
+Content-Type: {{contentType}}
+
+{
+  "symbol": "toolong"
+}
+
+### DELETE CRYPTOCURRENCY TESTS ###
+
+### 30. Delete cryptocurrency with invalid ID format (should return 400)
+DELETE {{baseUrl}}/cryptocurrencies/invalid
+
+### 31. Delete cryptocurrency without authentication (should return 401)
+DELETE {{baseUrl}}/cryptocurrencies/{{cryptoId}}
 Cookie: 
+
+### 32. Try to delete cryptocurrency with dependent data (should return 403)
+DELETE {{baseUrl}}/cryptocurrencies/1
+
+### 33. Delete cryptocurrency with non-existent ID (should return 404)
+DELETE {{baseUrl}}/cryptocurrencies/99999
+
+### 34. Delete cryptocurrency successfully (should return 200)
+# Note: Use this only with a test cryptocurrency that has no dependencies
+# DELETE {{baseUrl}}/cryptocurrencies/{{cryptoId}}

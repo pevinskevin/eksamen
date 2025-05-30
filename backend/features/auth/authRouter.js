@@ -6,10 +6,8 @@ import {
     sendSuccess,
     sendError,
     sendCreated,
-    sendNotFound,
     sendBadRequest,
     sendUnauthorized,
-    sendForbidden,
     sendConflict,
     sendUnprocessableEntity,
 } from '../../shared/utils/responseHelpers.js';
@@ -50,14 +48,14 @@ router.post('/login', async (req, res) => {
         if (error.name === 'ValiError') {
             // Valibot validation error
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');
-            return sendBadRequest(res, validationMessage);
+            return sendUnprocessableEntity(res, validationMessage);
         }
         console.error('Login error:', error);
         return sendError(res, error, 500);
     }
 });
 
-router.post('/logout', async (req, res) => {
+router.post('/logout',  async (req, res) => {
     try {
         if (!req.session.userId) {
             return sendBadRequest(res, 'User not logged in');

@@ -13,7 +13,12 @@ export const registerBusinessRules = v.object({
         v.regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'Last name contains invalid characters')
     ),
 
-    email: v.pipe(v.string(), v.trim(), v.toLowerCase()),
+    email: v.pipe(
+        v.string(),
+        v.trim(),
+        v.toLowerCase(),
+        v.email('Please enter a valid email address')
+    ),
 
     password: v.pipe(
         v.string(),
@@ -35,7 +40,12 @@ export const userDataAndPasswordMatchValidation = v.pipe(
 );
 
 export const loginBusinessRules = v.object({
-    email: v.pipe(v.string(), v.trim(), v.toLowerCase()),
+    email: v.pipe(
+        v.string(),
+        v.trim(),
+        v.toLowerCase(),
+        v.email('Please enter a valid email address')
+    ),
 
     password: v.string(),
 });
