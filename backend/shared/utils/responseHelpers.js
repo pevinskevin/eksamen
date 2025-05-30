@@ -36,3 +36,23 @@ export const sendUnauthorized = (res, message = 'Unauthorized') => {
 export const sendForbidden = (res, message = 'Forbidden') => {
     return sendError(res, { name: 'AuthorizationError', message }, 403);
 };
+
+export const sendConflict = (res, message = 'Resource already exists') => {
+    return sendError(res, { name: 'ConflictError', message }, 409);
+};
+
+export const sendUnprocessableEntity = (res, message = 'Validation failed') => {
+    return sendError(res, { name: 'ValidationError', message }, 422);
+};
+
+export const sendTooManyRequests = (res, message = 'Too many requests') => {
+    return sendError(res, { name: 'RateLimitError', message }, 429);
+};
+
+export const sendPaymentRequired = (res, message = 'Insufficient funds') => {
+    return sendError(res, { name: 'InsufficientFundsError', message }, 402);
+};
+
+export const sendInternalServerError = (res, message = 'Internal server error') => {
+    return sendError(res, { name: 'InternalServerError', message }, 500);
+};
