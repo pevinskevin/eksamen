@@ -1,0 +1,21 @@
+# Task ID: 35
+# Title: BE: Fix Authentication Middleware Security Bypass
+# Status: pending
+# Dependencies: 32, 33
+# Priority: high
+# Description: Remove hardcoded authentication bypass from backend/shared/middleware/authorisation.js. The middleware currently hardcodes userId=1 and role='admin' for all requests instead of validating sessions. This creates a critical security vulnerability.
+# Details:
+1. Remove the hardcoded authentication bypass (lines 9-14 in authorisation.js)
+2. Uncomment and restore the proper session validation logic (lines 2-8)
+3. Ensure proper 401 responses for unauthenticated requests
+4. Verify req.user is correctly populated from session data
+5. Test all protected endpoints to ensure authentication works correctly
+
+This is critical for application security before any production deployment.
+
+# Test Strategy:
+1. Test that protected routes return 401 when no session cookie is sent
+2. Test that protected routes return 401 when session exists but userId is missing
+3. Test that protected routes allow access when valid session exists
+4. Verify req.user is correctly populated with session data
+5. Test logout functionality properly destroys sessions

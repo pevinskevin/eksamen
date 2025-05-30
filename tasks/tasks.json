@@ -814,6 +814,61 @@
       ],
       "priority": "low",
       "subtasks": []
+    },
+    {
+      "id": 35,
+      "title": "BE: Fix Authentication Middleware Security Bypass",
+      "description": "Remove hardcoded authentication bypass from backend/shared/middleware/authorisation.js. The middleware currently hardcodes userId=1 and role='admin' for all requests instead of validating sessions. This creates a critical security vulnerability.",
+      "details": "1. Remove the hardcoded authentication bypass (lines 9-14 in authorisation.js)\n2. Uncomment and restore the proper session validation logic (lines 2-8)\n3. Ensure proper 401 responses for unauthenticated requests\n4. Verify req.user is correctly populated from session data\n5. Test all protected endpoints to ensure authentication works correctly\n\nThis is critical for application security before any production deployment.",
+      "testStrategy": "1. Test that protected routes return 401 when no session cookie is sent\n2. Test that protected routes return 401 when session exists but userId is missing\n3. Test that protected routes allow access when valid session exists\n4. Verify req.user is correctly populated with session data\n5. Test logout functionality properly destroys sessions",
+      "status": "pending",
+      "dependencies": [
+        32,
+        33
+      ],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 36,
+      "title": "BE: Restore OpenAPI Cookie Authentication Validation",
+      "description": "Ensure the OpenAPI specification properly validates cookie authentication and that the cookieAuth security scheme is correctly configured for all protected endpoints.",
+      "details": "1. Verify the cookieAuth security scheme is properly defined in openapi.yml components/securitySchemes\n2. Ensure all protected endpoints have the 'security: - cookieAuth: []' declaration\n3. Confirm the OpenAPI validation middleware correctly validates cookies before requests reach application middleware\n4. Test that OpenAPI validation rejects requests without proper cookies\n5. Ensure API documentation accurately reflects authentication requirements\n\nThis provides the first line of defense and ensures API documentation accuracy.",
+      "testStrategy": "1. Test that OpenAPI validation rejects requests without connect.sid cookie\n2. Test that OpenAPI validation rejects requests with invalid session IDs\n3. Verify protected endpoints in API docs show authentication requirement\n4. Test that valid authenticated requests pass OpenAPI validation\n5. Confirm error responses match OpenAPI specification",
+      "status": "pending",
+      "dependencies": [
+        31,
+        35
+      ],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 37,
+      "title": "Test AI Functionality with Google API Key",
+      "description": "Perform comprehensive testing to verify that the Task Master AI features, integrated with the newly added Google API key, are operating correctly and delivering accurate results.",
+      "details": "This task involves end-to-end testing of all AI-powered functionalities within the Task Master application.\nKey objectives include:\n1.  Confirmation that the Google API key is correctly configured and utilized by the AI modules.\n2.  Identification and systematic testing of each specific AI feature (e.g., AI-assisted task description generation, dependency suggestion, content summarization, etc.).\n3.  Validation of AI feature inputs, processing logic (at a high level), and output accuracy and relevance.\n4.  Ensuring backend services/APIs supporting these AI features are stable and responsive.\n5.  Verifying robust error handling for scenarios such as Google API errors (e.g., quota limits, invalid key, network connectivity issues) or invalid inputs to AI features.",
+      "testStrategy": "1. **Environment & Configuration Verification**:\n    *   Confirm the Google API key is securely configured and accessible in the testing environment.\n    *   Ensure all AI-related modules/services are deployed and running.\n2.  **AI Feature Inventory & Test Case Design**:\n    *   Compile an exhaustive list of all implemented Task Master AI features.\n    *   For each feature, design specific test cases covering:\n        *   **Positive Scenarios**: Valid inputs expected to yield successful AI processing and relevant outputs.\n        *   **Edge Cases**: Inputs that test the boundaries of expected behavior.\n        *   **Negative Scenarios (Input Validation)**: Invalid or malformed inputs to ensure graceful error handling by the system before AI invocation (if applicable).\n3.  **Functional Testing (Per AI Feature)**:\n    *   Execute positive test cases: Provide valid inputs and meticulously verify the AI-generated output for accuracy, relevance, and correct formatting.\n    *   Execute edge case test cases: Observe system behavior and AI output.\n    *   Execute negative input test cases: Confirm user-friendly error messages and system stability.\n4.  **Google API Interaction & Error Handling Tests**:\n    *   Simulate Google API unavailability or errors (if feasible in a controlled test environment, e.g., by temporarily revoking/misconfiguring the key or using mock services that simulate error responses).\n    *   Verify that the Task Master application handles these external errors gracefully (e.g., informative messages to the user, proper logging, no crashes).\n    *   Test with a valid key that might hit a (test) quota limit if possible, to see how that's handled.\n5.  **Output Validation**:\n    *   For features generating text or suggestions, assess the quality, coherence, and usefulness of the AI output against predefined criteria or expert judgment.\n    *   For features making predictions or classifications, compare results against known outcomes if possible.\n6.  **Logging & Monitoring Review**:\n    *   Inspect application logs during testing for any errors, warnings, or unexpected behavior related to AI feature execution or Google API calls.\n    *   Verify that successful operations and significant errors are logged appropriately for diagnostics.\n7.  **Basic Performance Check**:\n    *   For interactive AI features, assess if the response time is acceptable from a user experience perspective. This is an observational check, not a formal load test.",
+      "status": "pending",
+      "dependencies": [
+        35,
+        36
+      ],
+      "priority": "low",
+      "subtasks": []
+    },
+    {
+      "id": 38,
+      "title": "Simple MCP AI Functionality Verification",
+      "description": "Perform a targeted, simple test to confirm a core capability of the MCP AI (Task Master AI) is functioning as expected, post-integration with the Google API key and initial comprehensive testing.",
+      "details": "1. Prerequisite: MCP AI (Task Master AI) has been integrated with the Google API key and has undergone comprehensive testing (as per Task 37).\n2. Identify a single, straightforward AI function to test. Example: Given a short user story, the AI should generate 3 relevant tags.\n3. Input: A specific, concise user story (e.g., \"As a user, I want to reset my password so I can regain access to my account.\").\n4. Expected Output: A list of 3 relevant tags (e.g., [\"password reset\", \"account recovery\", \"security\"]). The expected tags should be predefined for the chosen test case.\n5. Execution:\n    a. Access the MCP AI interface or API endpoint.\n    b. Provide the defined input user story.\n    c. Capture the AI's generated tags.",
+      "testStrategy": "1. Verify the MCP AI endpoint is accessible and responsive.\n2. Submit the predefined user story to the AI.\n3. Collect the generated tags from the AI's response.\n4. Compare the generated tags against the predefined expected tags. The test passes if the generated output sufficiently matches the expected output (e.g., at least 2 out of 3 tags match or are clear semantic equivalents, or as defined by the specific test case criteria).\n5. Document the input, expected output, actual output, and pass/fail result. Note any discrepancies or unexpected behavior for further review.",
+      "status": "done",
+      "dependencies": [
+        37
+      ],
+      "priority": "low",
+      "subtasks": []
     }
   ]
 }

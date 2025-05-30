@@ -1,0 +1,22 @@
+# Task ID: 38
+# Title: Simple MCP AI Functionality Verification
+# Status: done
+# Dependencies: 37
+# Priority: low
+# Description: Perform a targeted, simple test to confirm a core capability of the MCP AI (Task Master AI) is functioning as expected, post-integration with the Google API key and initial comprehensive testing.
+# Details:
+1. Prerequisite: MCP AI (Task Master AI) has been integrated with the Google API key and has undergone comprehensive testing (as per Task 37).
+2. Identify a single, straightforward AI function to test. Example: Given a short user story, the AI should generate 3 relevant tags.
+3. Input: A specific, concise user story (e.g., "As a user, I want to reset my password so I can regain access to my account.").
+4. Expected Output: A list of 3 relevant tags (e.g., ["password reset", "account recovery", "security"]). The expected tags should be predefined for the chosen test case.
+5. Execution:
+    a. Access the MCP AI interface or API endpoint.
+    b. Provide the defined input user story.
+    c. Capture the AI's generated tags.
+
+# Test Strategy:
+1. Verify the MCP AI endpoint is accessible and responsive.
+2. Submit the predefined user story to the AI.
+3. Collect the generated tags from the AI's response.
+4. Compare the generated tags against the predefined expected tags. The test passes if the generated output sufficiently matches the expected output (e.g., at least 2 out of 3 tags match or are clear semantic equivalents, or as defined by the specific test case criteria).
+5. Document the input, expected output, actual output, and pass/fail result. Note any discrepancies or unexpected behavior for further review.

@@ -1,0 +1,21 @@
+# Task ID: 36
+# Title: BE: Restore OpenAPI Cookie Authentication Validation
+# Status: pending
+# Dependencies: 31, 35
+# Priority: high
+# Description: Ensure the OpenAPI specification properly validates cookie authentication and that the cookieAuth security scheme is correctly configured for all protected endpoints.
+# Details:
+1. Verify the cookieAuth security scheme is properly defined in openapi.yml components/securitySchemes
+2. Ensure all protected endpoints have the 'security: - cookieAuth: []' declaration
+3. Confirm the OpenAPI validation middleware correctly validates cookies before requests reach application middleware
+4. Test that OpenAPI validation rejects requests without proper cookies
+5. Ensure API documentation accurately reflects authentication requirements
+
+This provides the first line of defense and ensures API documentation accuracy.
+
+# Test Strategy:
+1. Test that OpenAPI validation rejects requests without connect.sid cookie
+2. Test that OpenAPI validation rejects requests with invalid session IDs
+3. Verify protected endpoints in API docs show authentication requirement
+4. Test that valid authenticated requests pass OpenAPI validation
+5. Confirm error responses match OpenAPI specification
