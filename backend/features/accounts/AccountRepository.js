@@ -7,7 +7,7 @@ export default class AccountRepository {
             text: 'SELECT * FROM accounts WHERE accounts.user_id = $1;',
             values: [userId],
         };
-        return (await this.db.query(accountQuery)).rows;
+        return (await this.db.query(accountQuery)).rows.at(0);
     }
 
     async findAllCryptoBalances(userId) {
@@ -15,7 +15,7 @@ export default class AccountRepository {
             text: 'SELECT * FROM crypto_holdings where crypto_holdings.user_id = $1',
             values: [userId],
         };
-        return (await this.db.query(cryptoHoldingsQuery)).rows;
+        return (await this.db.query(cryptoHoldingsQuery)).rows.at(0);
     }
 
     async findCryptoBalance(userId, symbol) {

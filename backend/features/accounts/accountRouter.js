@@ -16,13 +16,16 @@ import {
 router.get('/balances', isAuthenticated, async (req, res) => {
     let fiatBalance;
     let cryptoBalances;
-    let accountObj = { fiatBalance, cryptoBalances };
+    let accountObj = { fiatBalance: fiatBalance, cryptoBalances };
     try {
-        fiatBalance = await accountService.getFiatBalanceByUserID(req.user.id);
-        if (!fiatBalance) return sendError(res, fiatBalance);
-        cryptoBalances = await accountService.getCryptoBalancesByUserId(req.user.id);
-        if (!cryptoBalances) return sendError(cryptoBalances);
-        else return sendSuccess(res, accountObj);
+        console.log(await accountService.getFiatBalanceByUserID(req.user.id));
+        console.log(await accountService.getCryptoBalancesByUserId(req.user.id));
+
+        // fiatBalance = await accountService.getFiatBalanceByUserID(req.user.id);
+        // if (!fiatBalance) return sendError(res, fiatBalance);
+        // cryptoBalances = await accountService.getCryptoBalancesByUserId(req.user.id);
+        // if (!cryptoBalances) return sendError(cryptoBalances);
+        // else return sendSuccess(res, accountObj);
     } catch (error) {
         return sendError(res, error, 500);
     }

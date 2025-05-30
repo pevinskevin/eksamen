@@ -1,0 +1,43 @@
+# Task ID: 32
+# Title: BE: Error Handling Architecture Refactor
+# Status: in-progress
+# Dependencies: 1, 2, 3, 4
+# Priority: high
+# Description: Remove all error handling from services and repositories, centralizing it in routers
+# Details:
+Refactor the backend architecture to move all try-catch blocks and error handling logic from service and repository layers to their respective routers. Services and repositories should throw errors and let routers handle HTTP responses and status codes.
+
+# Test Strategy:
+
+
+# Subtasks:
+## 1. Audit Current Error Handling in Services and Repositories [done]
+### Dependencies: None
+### Description: Review all existing service and repository files to identify current error handling patterns and try-catch blocks that need to be moved to routers
+### Details:
+
+
+## 2. Refactor User Services to Remove Error Handling [done]
+### Dependencies: 32.1
+### Description: Remove try-catch blocks from user services and let them throw errors instead
+### Details:
+
+
+## 3. Refactor Other Services (Crypto, Account, Order) to Remove Error Handling [done]
+### Dependencies: 32.1
+### Description: Remove try-catch blocks from cryptocurrency, account, and order services
+### Details:
+
+
+## 4. Update All Routers with Centralized Error Handling [pending]
+### Dependencies: 32.2, 32.3
+### Description: Add proper try-catch blocks and error handling to all router files to handle errors thrown by services
+### Details:
+
+
+## 5. Test and Verify Error Handling Refactor [pending]
+### Dependencies: 32.4
+### Description: Test all endpoints to ensure error handling works correctly and consistently across all routers
+### Details:
+
+

@@ -1,7 +1,7 @@
 # Task ID: 13
 # Title: FE: Trading Form & My Open Orders Display
 # Status: pending
-# Dependencies: 6, 8, 10, 12
+# Dependencies: 6, 8, 10, 12, 31, 32, 33
 # Priority: high
 # Description: Develop Svelte components for a trading form (select crypto, buy/sell, quantity, price) and a display area for the user's currently open orders. Orders submitted via the form should be sent to the backend API.
 # Details:

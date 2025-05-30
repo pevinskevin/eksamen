@@ -320,17 +320,71 @@
     {
       "id": 12,
       "title": "BE: Order Placement API (Limit Orders)",
-      "description": "Implement a backend API endpoint for users to place new buy or sell (limit) orders. This endpoint must validate the order (e.g., sufficient funds in user's account) and store it in the `Orders` table with an 'open' status.",
-      "details": "Create `/orders/place` POST endpoint, protected by auth middleware. Request body: { cryptocurrency_id, type: 'buy'/'sell', quantity, price }. Backend logic: 1. Validate input. 2. Check user balance: if 'buy', check SIM_USD balance >= quantity * price. If 'sell', check relevant crypto balance >= quantity. 3. If valid, create a new record in `Orders` table with status 'open', quantity_remaining = quantity_total. Respond with success/failure.",
-      "testStrategy": "Authenticated users can submit valid orders. Orders are stored in DB. Insufficient balance attempts are rejected. Invalid order parameters are rejected.",
-      "priority": "high",
+      "description": "Implement a backend API endpoint for users to place new buy or sell orders, supporting both 'limit' and 'market' order types as per the updated request structure. This endpoint must validate the order through a 4-layer architecture (Input Validation, Business Rules Validation, Balance Validation, Error Handling) and, if valid, store it in the `Orders` table with an 'open' status. The request structure is { cryptocurrency_id, type, order_type, quantity, price (optional for market orders) }.",
+      "status": "deferred",
       "dependencies": [
         4,
         9,
-        11
+        11,
+        "31",
+        "32",
+        "33"
       ],
-      "status": "pending",
-      "subtasks": []
+      "priority": "high",
+      "details": "Create `POST /orders` endpoint (as per REST conventions, protected by auth middleware). \nRequest body: `{ cryptocurrency_id: int, type: 'buy'/'sell', order_type: 'limit'/'market', quantity: float, price: float (required for 'limit' orders, optional for 'market' orders) }`.\n\nBackend Logic (4-Layer Validation Architecture):\n1.  **Layer 1: Input Validation (No Database Calls)**: Validate data types, required fields (price is conditional on `order_type`), and formats (e.g., positive numbers for quantity/price, valid enum values for type/order_type).\n2.  **Layer 2: Business Rules Validation (Lightweight DB Calls)**: Check `cryptocurrency_id` existence in the `cryptocurrencies` table. Basic validation of quantity/price (e.g. positive values, though primarily handled in Layer 1).\n3.  **Layer 3: Balance Validation (Critical Financial Check)**:\n    *   If 'buy' order: Check user's SIM_USD balance in the `accounts` table. For limit orders, ensure `balance >= quantity * price`. (Market order cost estimation for balance check needs separate clarification if fully implemented under this task).\n    *   If 'sell' order: Check user's relevant cryptocurrency balance in the `crypto_holdings_base` table, ensuring `crypto_balance >= quantity`.\n4.  **Order Creation**: If all validations pass, create a new record in the `Orders` table with status 'open', `quantity_remaining = quantity_total`, and include `order_type`.\n5.  **Layer 4: Error Handling & Response**: Respond with success or a standardized JSON error (using HTTP status codes like 400, 422, 500) providing detailed messages.",
+      "testStrategy": "Authenticated users can submit valid limit and market orders. Orders are stored correctly in the DB, including `order_type` and appropriate `price` (null for market if not provided). \nLayer 1 Validations: Test rejections for invalid data types, missing required fields (e.g., price for limit order, or `order_type`), invalid enum values, non-positive quantity/price. \nLayer 2 Validations: Test rejections for non-existent `cryptocurrency_id`. \nLayer 3 Validations: Test rejections for insufficient SIM_USD (buy orders) or crypto (sell orders) balance. Verify correct tables (`accounts`, `crypto_holdings_base`) are checked. \nLayer 4 Validations: Ensure standardized JSON error responses with correct HTTP status codes (400, 422, 500) for all failure scenarios. Test successful order placement for both 'buy' and 'sell' types, and for 'limit' and 'market' order types.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Define POST /orders/ Endpoint and Basic Structure",
+          "description": "Create the Express route for `POST /orders/`. Integrate existing authentication middleware to protect the endpoint. Set up the basic request handler structure within the appropriate Express router.",
+          "dependencies": [],
+          "details": "This involves: 1. Locating or creating the relevant Express router file (e.g., `orderRoutes.js`). 2. Defining the `POST /orders/` route, adhering to RESTful conventions. 3. Applying the project's standard authentication middleware to this route. 4. Creating an initial placeholder controller/handler function for this route.\n<info added on 2025-05-25T15:00:29.180Z>\nUsing RESTful POST /orders/ endpoint instead of /orders/place as this follows proper REST conventions. The basic structure is already in place in orderRouter.js with authentication middleware applied.\n</info added on 2025-05-25T15:00:29.180Z>",
+          "status": "done"
+        },
+        {
+          "id": 2,
+          "title": "Implement Layer 1 & 2 Validation (Input & Business Rules)",
+          "description": "Develop and integrate server-side validation for the order placement request body, covering Layer 1 (Input Validation - no DB calls) and Layer 2 (Business Rules Validation - lightweight DB calls). This includes `cryptocurrency_id`, `type`, `order_type`, `quantity`, and `price`.",
+          "dependencies": [
+            1
+          ],
+          "details": "This involves:\n**Layer 1: Input Validation (No Database Calls)**\n1.  Validate data types for all fields: `cryptocurrency_id` (integer), `type` (string), `order_type` (string), `quantity` (number), `price` (number, if present).\n2.  Validate required fields: `cryptocurrency_id`, `type`, `order_type`, `quantity` are always required.\n3.  Conditional `price` validation: `price` is required if `order_type` is 'limit'; optional if `order_type` is 'market'. If provided for market, it might be ignored or used as a ceiling, per system design.\n4.  Validate enum values: `type` must be 'buy' or 'sell'. `order_type` must be 'limit' or 'market'.\n5.  Validate numeric formats: `quantity` must be a positive number. `price` (if provided) must be a positive number. Adhere to any precision/min/max rules.\n\n**Layer 2: Business Rules Validation (Lightweight DB Calls)**\n1.  Validate `cryptocurrency_id`: Ensure it exists in the `cryptocurrencies` table.\n2.  Basic quantity/price validation (e.g., positive values) - primarily covered in Layer 1, re-verify if any DB-dependent rules apply here (e.g., lot sizes, tick sizes if defined).\n\nEnsure validation errors from both layers lead to appropriate early responses (e.g., HTTP 400 Bad Request or 422 Unprocessable Entity).",
+          "status": "deferred"
+        },
+        {
+          "id": 3,
+          "title": "Implement Layer 3: Balance Validation",
+          "description": "Create logic for Layer 3 (Balance Validation) to check the authenticated user's available balance. For 'buy' orders, check SIM_USD balance in the `accounts` table. For 'sell' orders, check the relevant cryptocurrency balance in the `crypto_holdings_base` table.",
+          "dependencies": [
+            2
+          ],
+          "details": "This involves:\n1.  Retrieving the authenticated user's ID (from the auth middleware).\n2.  For 'buy' orders:\n    a.  Query the `accounts` table for the user's available SIM_USD balance.\n    b.  If `order_type` is 'limit', ensure `available_SIM_USD_balance >= quantity * price`.\n    c.  If `order_type` is 'market', the mechanism for determining the funds to hold (e.g., based on quantity and current market price or a buffer) needs to be defined. For this task, prioritize limit order logic.\n3.  For 'sell' orders:\n    a.  Query the `crypto_holdings_base` table for the user's available balance of the specified `cryptocurrency_id`.\n    b.  Ensure `available_crypto_balance >= quantity`.\n4.  Ensure the balance check considers only *available* funds (e.g., not funds locked in other open orders).\n5.  This logic is critical and should be callable from the order placement handler after Layer 1 and Layer 2 validations pass. If balance is insufficient, respond with an appropriate error (e.g., HTTP 400 or 422).",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Implement Order Creation in PostgreSQL Database",
+          "description": "If all validations (Layers 1-3) pass and the user has sufficient funds, implement the logic to create a new order record in the `Orders` table in the PostgreSQL database with an initial status of 'open'. Include `order_type` in the stored record.",
+          "dependencies": [
+            3
+          ],
+          "details": "This involves:\n1.  Constructing the data object for the new order, including `user_id`, `cryptocurrency_id`, `type` (buy/sell), `order_type` (limit/market), `quantity_total` (from request `quantity`), `price` (from request `price` for limit orders; can be null for market orders if not provided or not applicable at creation), `status` ('open'), and `quantity_remaining` (initially equal to `quantity_total`), `created_at` (timestamp).\n2.  Using the project's database access layer (e.g., ORM, query builder, or raw SQL client) to insert the new record into the `Orders` table.\n3.  Ensure the operation is robust. Consider if this operation should be part of a larger transaction if funds are to be locked/deducted simultaneously (though fund movement might be handled by a separate ledger service or subsequent step).",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Implement Layer 4: Error Handling and Response Formatting",
+          "description": "Ensure robust error handling throughout the order placement process as per Layer 4. Provide clear, standardized JSON error responses for various failure scenarios, using appropriate HTTP status codes (e.g., 400, 422, 500).",
+          "dependencies": [
+            2,
+            3,
+            4
+          ],
+          "details": "This involves:\n1.  Defining or adhering to a project-wide standardized JSON error response format (e.g., `{ \"error\": { \"message\": \"...\", \"code\": \"...\" } }`).\n2.  Handling errors from Layer 1 & 2 (Input and Business Rule Validation) with HTTP 400 (Bad Request) or HTTP 422 (Unprocessable Entity) for client-side errors. Include detailed messages indicating which field or rule failed.\n3.  Handling errors from Layer 3 (Balance Validation - e.g., insufficient funds) with an appropriate HTTP status (e.g., HTTP 400 or 422), with a clear message.\n4.  Handling potential errors during database interaction (Order Creation in Subtask 4) with HTTP 500 (Internal Server Error) for unexpected server-side issues.\n5.  Ensuring all success responses (e.g., HTTP 201 Created for new order) also follow a consistent format, returning relevant information about the created order.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 13,
@@ -343,7 +397,10 @@
         6,
         8,
         10,
-        12
+        12,
+        "31",
+        "32",
+        "33"
       ],
       "status": "pending",
       "subtasks": []
@@ -636,6 +693,71 @@
         29
       ],
       "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 31,
+      "title": "BE: OpenAPI Specification Compliance",
+      "description": "Refactor all API endpoints to comply with OpenAPI specifications",
+      "details": "Create OpenAPI specification document and ensure all endpoints follow standards for request/response formats, status codes, error responses, and data schemas. Add validation middleware and documentation generation.",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2,
+        3,
+        4,
+        "33"
+      ],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 32,
+      "title": "BE: Error Handling Architecture Refactor",
+      "description": "Remove all error handling from services and repositories, centralizing it in routers",
+      "details": "Refactor the backend architecture to move all try-catch blocks and error handling logic from service and repository layers to their respective routers. Services and repositories should throw errors and let routers handle HTTP responses and status codes.",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 33,
+      "title": "BE: Validation Schemas Implementation",
+      "description": "Create comprehensive validation schemas for all existing features using a validation library",
+      "details": "Implement validation schemas for all existing backend features including users, auth, cryptocurrencies, accounts, and orders. Choose and integrate a validation library (e.g., Joi, Yup, or Zod) and create reusable validation schemas for request bodies, query parameters, and response data. This includes validation for registration, login, cryptocurrency data, account balances, and order placement.",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 34,
+      "title": "BE: API Key Authentication System",
+      "description": "Implement API key generation and authentication system for API access",
+      "details": "Create a system for generating, managing, and authenticating API keys for external access to the trading platform APIs. This includes API key generation endpoints, storage in database, middleware for API key validation, and rate limiting per API key. This is a non-urgent enhancement for future API access management.",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        4,
+        31,
+        32,
+        33
+      ],
+      "priority": "low",
       "subtasks": []
     }
   ]

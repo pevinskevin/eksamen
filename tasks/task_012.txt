@@ -1,7 +1,7 @@
 # Task ID: 12
 # Title: BE: Order Placement API (Limit Orders)
-# Status: pending
-# Dependencies: 4, 9, 11
+# Status: deferred
+# Dependencies: 4, 9, 11, 31, 32, 33
 # Priority: high
 # Description: Implement a backend API endpoint for users to place new buy or sell orders, supporting both 'limit' and 'market' order types as per the updated request structure. This endpoint must validate the order through a 4-layer architecture (Input Validation, Business Rules Validation, Balance Validation, Error Handling) and, if valid, store it in the `Orders` table with an 'open' status. The request structure is { cryptocurrency_id, type, order_type, quantity, price (optional for market orders) }.
 # Details:
@@ -34,7 +34,7 @@ This involves: 1. Locating or creating the relevant Express router file (e.g., `
 Using RESTful POST /orders/ endpoint instead of /orders/place as this follows proper REST conventions. The basic structure is already in place in orderRouter.js with authentication middleware applied.
 </info added on 2025-05-25T15:00:29.180Z>
 
-## 2. Implement Layer 1 & 2 Validation (Input & Business Rules) [in-progress]
+## 2. Implement Layer 1 & 2 Validation (Input & Business Rules) [deferred]
 ### Dependencies: 12.1
 ### Description: Develop and integrate server-side validation for the order placement request body, covering Layer 1 (Input Validation - no DB calls) and Layer 2 (Business Rules Validation - lightweight DB calls). This includes `cryptocurrency_id`, `type`, `order_type`, `quantity`, and `price`.
 ### Details:

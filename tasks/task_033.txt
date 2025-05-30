@@ -1,0 +1,11 @@
+# Task ID: 33
+# Title: BE: Validation Schemas Implementation
+# Status: pending
+# Dependencies: 1, 2, 3, 4
+# Priority: high
+# Description: Create comprehensive validation schemas for all existing features using a validation library
+# Details:
+Implement validation schemas for all existing backend features including users, auth, cryptocurrencies, accounts, and orders. Choose and integrate a validation library (e.g., Joi, Yup, or Zod) and create reusable validation schemas for request bodies, query parameters, and response data. This includes validation for registration, login, cryptocurrency data, account balances, and order placement.
+
+# Test Strategy:
+

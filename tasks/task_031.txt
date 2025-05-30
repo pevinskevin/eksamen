@@ -1,0 +1,11 @@
+# Task ID: 31
+# Title: BE: OpenAPI Specification Compliance
+# Status: pending
+# Dependencies: 1, 2, 3, 4, 33
+# Priority: high
+# Description: Refactor all API endpoints to comply with OpenAPI specifications
+# Details:
+Create OpenAPI specification document and ensure all endpoints follow standards for request/response formats, status codes, error responses, and data schemas. Add validation middleware and documentation generation.
+
+# Test Strategy:
+
