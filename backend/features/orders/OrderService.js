@@ -1,5 +1,5 @@
-import { orderSchema, validateOrderId } from '../../shared/validators/orderValidators.js';
-
+import { validateCreateOrder, validateOrderId } from '../../shared/validators/orderValidators.js';
+import { toSnakeCase } from '../../shared/utils/caseConverter.js';
 export default class OrderService {
     constructor(orderRepository) {
         this.orderRepository = orderRepository;
@@ -18,11 +18,12 @@ export default class OrderService {
         return await this.orderRepository.find(userId, orderId);
     }
 
-    async validate(orderObject) {
-        return await parseAsync(orderSchema, orderObject);
-    }
-
-    async save(cryptocurrencyId, orderType, orderVariant, quantity, price, userId) {
+    async save(order, userId) {
+        validateCreateOrder(order);
+        const orderInSnakeCase = toSnakeCase(order);
+        console.log(orderInSnakeCase);
+        
+        const { cryptocurrencyId, orderType, orderVariant, quantity, price } = orderInSnakeCase;
         return await this.orderRepository.save(
             cryptocurrencyId,
             orderType,

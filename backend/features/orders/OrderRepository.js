@@ -43,10 +43,7 @@ export default class OrderRepository {
                 userId,
             ],
         };
-        const result = await this.db.query(query);
-        const resultData = result.rows[0];
-
-        return resultData;
+        return (await this.db.query(query)).rows.at(0);
     }
 
     async update(

@@ -48,13 +48,11 @@ POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
 {
-  "data": {
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantity": 0.5,
-    "price": 50000
-  }
+    "quantityTotal": "0.5",
+    "price": "50000"
 }
 
 ### 10. Create new market buy order successfully (should return 201)

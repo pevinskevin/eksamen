@@ -4,9 +4,11 @@ import isAuthenticated from '../../shared/middleware/authorisation.js';
 
 import { orderService, cryptoService } from '../../shared/factory/factory.js';
 import {
+    sendCreated,
     sendInternalServerError,
     sendNotFound,
     sendSuccess,
+    sendUnprocessableEntity, // ← Add this
 } from '../../shared/utils/responseHelpers.js';
 
 router.get('/', isAuthenticated, async (req, res) => {
@@ -21,18 +23,26 @@ router.get('/', isAuthenticated, async (req, res) => {
 router.get('/:id', isAuthenticated, async (req, res) => {
     try {
         const order = await orderService.getByOrderId(req.user.id, req.params.id);
-        if (!order) sendNotFound(res, `Order with ID ${req.params.id}`)
+        if (!order) sendNotFound(res, `Order with ID ${req.params.id}`);
         return sendSuccess(res, order);
     } catch (error) {
+        if (error.name === 'ValiError') {
+            const validationMessage = error.issues.map((issue) => issue.message).join(', ');
+            return sendUnprocessableEntity(res, validationMessage);
+        }
         return sendInternalServerError(res, error.message);
     }
 });
 
 router.post('/', isAuthenticated, async (req, res) => {
     try {
-        const orders = orderService.getAll(req.user.id);
-        return sendSuccess(res, orders);
+        const order = await orderService.save(req.body, req.user.id);
+        return sendCreated(res, order);
     } catch (error) {
+        if (error.name === 'ValiError') {
+            const validationMessage = error.issues.map((issue) => issue.message).join(', ');
+            return sendUnprocessableEntity(res, validationMessage);
+        }
         return sendInternalServerError(res, error.message);
     }
 });
