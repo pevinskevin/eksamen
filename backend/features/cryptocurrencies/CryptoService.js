@@ -49,12 +49,12 @@ export default class CryptoService {
 
         //validate id exists in db
         const exists = await this.cryptoRepository.findById(id);
-        if (!exists) throw new Error('Cryptocurrency ID ');
+        if (!exists) throw new Error('Cryptocurrency ID ' + id);
 
         // validate format
         parse(UpdateCryptocurrencySchema, cryptocurrency);
 
-        const { symbol, name, description, iconUrl } = cryptocurrency; 
+        const { symbol, name, description, iconUrl } = cryptocurrency;
         if (cryptocurrency.symbol) {
             cryptocurrency.symbol = cryptocurrency.symbol.toUpperCase();
         }
@@ -66,7 +66,7 @@ export default class CryptoService {
             iconUrl
         );
         return {
-            id: id,
+            id: updatedCryptocurrency.id, // note to self: req.params are always strings.
             symbol: updatedCryptocurrency.symbol,
             name: updatedCryptocurrency.name,
             description: updatedCryptocurrency.description || '', // optional field - returns empty string if null
