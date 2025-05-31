@@ -14,7 +14,7 @@ export default class CryptoService {
         validateCryptoId(id);
 
         const cryptocurrency = await this.cryptoRepository.findById(id);
-        if (!cryptocurrency) throw new Error('Cryptocurrency with id: ' + id);
+        if (!cryptocurrency) throw new Error('Cryptocurrency with id ' + id);
 
         return cryptocurrency;
     }
