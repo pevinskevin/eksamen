@@ -1,4 +1,8 @@
-import { validateCryptoId } from '../../shared/validators/cryptoValidators.js';
+import {
+    validateCryptoId,
+    CreateCryptocurrencySchema,
+} from '../../shared/validators/cryptoValidators.js';
+import { parse } from 'valibot';
 
 export default class CryptoService {
     constructor(cryptoRepository) {
@@ -10,7 +14,6 @@ export default class CryptoService {
     }
 
     async getCryptocurrencyById(id) {
-
         validateCryptoId(id);
 
         const cryptocurrency = await this.cryptoRepository.findById(id);
@@ -23,16 +26,20 @@ export default class CryptoService {
         return await this.cryptoRepository.findBySymbol(symbol);
     }
 
-    async createCryptocurrency(cryptoData) {
-        const { symbol, name } = cryptoData;
-        // Basic validation at the service layer
-        if (!symbol || !name) {
-            const error = new Error('Symbol and name are required fields');
-            error.statusCode = 400;
-            throw error;
-        }
-
-        return await this.cryptoRepository.create(cryptoData);
+    async createCryptocurrency(cryptocurrency) {
+        // validate data
+        parse(CreateCryptocurrencySchema, cryptocurrency);
+        cryptocurrency.symbol = cryptocurrency.symbol.toUpperCase(); // covnert to upper-case if not done before submission.
+        const createdCryptocurrency = await this.cryptoRepository.create(cryptocurrency);
+        return {
+            id: createdCryptocurrency.id,
+            symbol: createdCryptocurrency.symbol,
+            name: createdCryptocurrency.name,
+            description: createdCryptocurrency.description || '', // optional field - returns empty string if null
+            iconUrl: createdCryptocurrency.icon_url || '', // optional field - returns empty string if null
+            createdAt: createdCryptocurrency.created_at,
+            updatedAt: createdCryptocurrency.updated_at,
+        };
     }
 
     async updateCryptocurrency(id, cryptoData) {

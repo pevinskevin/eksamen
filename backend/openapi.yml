@@ -1107,7 +1107,6 @@ components:
       properties:
         symbol:
           type: string
-          pattern: "^[A-Z]{3,5}$"
           description: "Cryptocurrency symbol. Must be 3-5 uppercase letters only (no numbers or special characters)"
           example: "BTC"
         name:

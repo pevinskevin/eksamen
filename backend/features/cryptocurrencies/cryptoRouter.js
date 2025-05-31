@@ -4,6 +4,8 @@ const router = Router();
 import { cryptoService } from '../../shared/factory/factory.js';
 import isAuthenticated from '../../shared/middleware/authorisation.js';
 import {
+    sendConflict,
+    sendCreated,
     sendError,
     sendInternalServerError,
     sendNotFound,
@@ -27,21 +29,29 @@ router.get('/cryptocurrencies/:id', async (req, res) => {
         const cryptocurrency = await cryptoService.getCryptocurrencyById(req.params.id);
         return sendSuccess(res, cryptocurrency);
     } catch (error) {
-        if (error.message.includes('Cryptocurrency with id: '))
+        if (error.message.includes('Cryptocurrency with id')) {
             return sendNotFound(res, error.message);
+        }
         if (error.name === 'ValiError') {
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');
             return sendUnprocessableEntity(res, validationMessage);
-        }
-
-        return sendInternalServerError(res, error.message);
+        } else return sendInternalServerError(res, error.message);
     }
 });
 
 // Create new cryptocurrency
 router.post('/cryptocurrencies', isAuthenticated, async (req, res) => {
     try {
-    } catch (error) {}
+        const cryptocurrency = await cryptoService.createCryptocurrency(req.body);
+        return sendCreated(res, cryptocurrency);
+    } catch (error) {
+        if (error.name === 'ValiError') {
+            const validationMessage = error.issues.map((issue) => issue.message).join(', ');
+            return sendUnprocessableEntity(res, validationMessage);
+        }
+        if (error.message.includes('duplicate key')) sendConflict(res, error.message);
+        else sendInternalServerError(res, error.message);
+    }
 });
 
 // Update cryptocurrency by ID

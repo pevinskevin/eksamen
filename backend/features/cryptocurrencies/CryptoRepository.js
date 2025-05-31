@@ -32,6 +32,8 @@ export default class CryptoRepository {
             values: [symbol, name, description || null, icon_url || null],
         };
         const result = await this.db.query(query);
+        console.log(await result.rows[0]);
+
         return result.rows[0];
     }
 

@@ -27,7 +27,7 @@ GET {{baseUrl}}/cryptocurrencies/invalid
 ### 4. Get cryptocurrency by non-numeric ID (should return 400)
 GET {{baseUrl}}/cryptocurrencies/abc
 
-### 5. Get cryptocurrency by negative ID (should return 400)
+### 5. Get cryptocurrency by negative ID (should return 422)
 GET {{baseUrl}}/cryptocurrencies/-1
 
 ### 6. Get cryptocurrency by non-existent ID (should return 404)
@@ -128,15 +128,6 @@ Content-Type: {{contentType}}
   "name": "Too Short Symbol"
 }
 
-### 18. Create cryptocurrency with invalid symbol format - lowercase (should return 422)
-POST {{baseUrl}}/cryptocurrencies
-Content-Type: {{contentType}}
-
-{
-  "symbol": "test",
-  "name": "Lowercase Symbol"
-}
-
 ### 19. Create cryptocurrency with invalid symbol format - numbers (should return 422)
 POST {{baseUrl}}/cryptocurrencies
 Content-Type: {{contentType}}
@@ -155,7 +146,7 @@ Content-Type: {{contentType}}
   "name": "Special Char Symbol"
 }
 
-### 21. Create cryptocurrency with empty name (should return 422)
+### 21. Create cryptocurrency with empty name (should return 400)
 POST {{baseUrl}}/cryptocurrencies
 Content-Type: {{contentType}}
 
