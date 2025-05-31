@@ -1,3 +1,5 @@
+import { validateCryptoId } from '../../shared/validators/cryptoValidators.js';
+
 export default class CryptoService {
     constructor(cryptoRepository) {
         this.cryptoRepository = cryptoRepository;
@@ -8,10 +10,12 @@ export default class CryptoService {
     }
 
     async getCryptocurrencyById(id) {
+
+        validateCryptoId(id);
+
         const cryptocurrency = await this.cryptoRepository.findById(id);
-        if (!cryptocurrency) throw new Error('Cryptocurrency not found');
-        
-        
+        if (!cryptocurrency) throw new Error('Cryptocurrency with id: ' + id);
+
         return cryptocurrency;
     }
 

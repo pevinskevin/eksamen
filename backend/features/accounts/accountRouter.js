@@ -30,7 +30,7 @@ router.get('/balances', isAuthenticated, async (req, res) => {
 router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {
     const symbol = req.params.symbol.toUpperCase();
     try {
-        const holding = await accountService.getCryptoHoldingBySymbolAndUserID(1, symbol);
+        const holding = await accountService.getCryptoHoldingBySymbolAndUserID(req.user.id, symbol);
         if (holding.balance == 0) return sendNotFound(res, 'Cryptocurrency holding ');
         return sendSuccess(res, holding);
     } catch (error) {

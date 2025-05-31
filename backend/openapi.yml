@@ -408,6 +408,15 @@ paths:
               example:
                 error: "NotFoundError"
                 message: "Cryptocurrency not found"
+        "422":
+          description: Unprocessable Entity (ID validation errors)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "ValiError"
+                message: "ID must be a positive integer (greater than 0)"
         "500":
           description: Internal Server Error
           content:
@@ -556,6 +565,15 @@ paths:
               example:
                 error: "NotFoundError"
                 message: "Cryptocurrency not found"
+        "422":
+          description: Unprocessable Entity (ID validation errors)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "ValiError"
+                message: "ID must be a positive integer (greater than 0)"
         "500":
           description: Internal Server Error
           content:
@@ -731,6 +749,15 @@ paths:
               example:
                 error: "NotFoundError"
                 message: "Order not found"
+        "422":
+          description: Unprocessable Entity (ID validation errors)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "ValiError"
+                message: "ID must be a positive integer (greater than 0)"
         "500":
           description: Internal Server Error
           content:
@@ -897,6 +924,15 @@ paths:
               example:
                 error: "ConflictError"
                 message: "Cannot delete partially filled or executed order"
+        "422":
+          description: Unprocessable Entity (ID validation errors)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "ValiError"
+                message: "ID must be a positive integer (greater than 0)"
         "500":
           description: Internal Server Error
           content:
