@@ -606,6 +606,15 @@ paths:
               example:
                 error: "AuthenticationError"
                 message: "Authentication required"
+        "404":
+          description: Not Found (user account not found)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "NotFoundError"
+                message: "User account not found"
         "500":
           description: Internal Server Error
           content:

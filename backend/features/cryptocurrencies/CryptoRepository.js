@@ -31,10 +31,7 @@ export default class CryptoRepository {
             text: 'INSERT INTO cryptocurrencies (symbol, name, description, icon_url) VALUES ($1, $2, $3, $4) RETURNING *',
             values: [symbol, name, description || null, icon_url || null],
         };
-        const result = await this.db.query(query);
-        console.log(await result.rows[0]);
-
-        return result.rows[0];
+        return (await this.db.query(query)).rows.at(0);
     }
 
     async update(id, symbol, name, description, iconUrl) {
@@ -42,8 +39,7 @@ export default class CryptoRepository {
             text: 'UPDATE cryptocurrencies SET symbol = COALESCE($2, symbol), name = COALESCE($3, name), description = COALESCE($4, description), icon_url = COALESCE($5, icon_url) WHERE id = $1 RETURNING *',
             values: [id, symbol, name, description, iconUrl],
         };
-        const result = await this.db.query(query);
-        return result.rows[0];
+        return (await this.db.query(query)).rows.at(0);
     }
 
     async deleteById(id) {
@@ -51,7 +47,6 @@ export default class CryptoRepository {
             text: 'DELETE FROM cryptocurrencies WHERE id = $1 RETURNING *',
             values: [id],
         };
-        const result = await this.db.query(query);
-        return result.rows[0];
+        return (await this.db.query(query)).rows.at(0);
     }
 }

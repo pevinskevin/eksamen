@@ -13,7 +13,7 @@ Content-Type: {{contentType}}
   "password": "test1234"
 }
 
-### GET ORDERS TESTS ###
+### GET ORDERS TESTS ###image.png
 
 ### 1. Get all user orders successfully (should return 200)
 GET {{baseUrl}}/order

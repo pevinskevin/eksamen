@@ -18,20 +18,15 @@ export default class OrderRepository {
             text: 'SELECT * FROM orders WHERE user_id = $1 AND id = $2',
             values: [userId, orderId],
         };
-        const result = await this.db.query(query);
-        const resultData = result.rows[0];
-        return resultData;
+        return (await this.db.query(query)).rows.at(0);
     }
 
     async findAll(userId) {
         const query = {
-            text: 'SELECT * FROM orders WHERE user_id = $1',
+            text: 'SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC',
             values: [userId],
         };
-        const result = await this.db.query(query);
-        const resultData = result.rows;
-        if (!resultData) throw new Error('Failed to retrieve orders');
-        else return resultData;
+        return (await this.db.query(query)).rows;
     }
 
     async save(cryptocurrencyId, orderType, orderVariant, quantity, price, userId) {
@@ -79,8 +74,6 @@ export default class OrderRepository {
         };
         const result = await this.db.query(query);
         const resultData = result.rows[0];
-
-        if (!resultData) throw new Error('Failed to update order.');
-        else return resultData;
+        return resultData;
     }
 }

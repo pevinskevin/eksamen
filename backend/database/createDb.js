@@ -215,6 +215,16 @@ export async function createTables() {
     `);
         console.log('✓ Added $10,000 SIM_USD balance for admin');
 
+        // Create a sample order for the admin user
+        await client.query(`
+      INSERT INTO orders (user_id, cryptocurrency_id, order_type, order_variant, quantity_total, quantity_remaining, price)
+      SELECT u.id, c.id, 'limit', 'sell', 0.5, 0.5, 45000.00
+      FROM users u
+      CROSS JOIN cryptocurrencies c
+      WHERE u.email = 'admin@test.com' AND c.symbol = 'BTC'
+    `);
+        console.log('✓ Added sample BTC sell order for admin');
+
         console.log('\n✅ Database schema created successfully!');
     } catch (err) {
         // Check if error is because types already exist

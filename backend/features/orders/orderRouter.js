@@ -3,88 +3,56 @@ const router = Router();
 import isAuthenticated from '../../shared/middleware/authorisation.js';
 
 import { orderService, cryptoService } from '../../shared/factory/factory.js';
+import {
+    sendInternalServerError,
+    sendNotFound,
+    sendSuccess,
+} from '../../shared/utils/responseHelpers.js';
 
 router.get('/', isAuthenticated, async (req, res) => {
     try {
-        const orderArray = await orderService.getAll(req.user.id);
-        return res.send({ message: 'Hiii!! ٩(＾◡＾)۶', data: orderArray });
+        const orders = await orderService.getAll(req.user.id);
+        return sendSuccess(res, orders);
     } catch (error) {
-        return res.status(500).send({ error: error.message });
+        return sendInternalServerError(res, error.message);
     }
 });
 
 router.get('/:id', isAuthenticated, async (req, res) => {
     try {
         const order = await orderService.getByOrderId(req.user.id, req.params.id);
-        res.send({ message: 'Hiii!! ٩(＾◡＾)۶', data: order });
+        if (!order) sendNotFound(res, `Order with ID ${req.params.id}`)
+        return sendSuccess(res, order);
     } catch (error) {
-        return res.status(500).send({ error: error.message });
+        return sendInternalServerError(res, error.message);
     }
 });
 
 router.post('/', isAuthenticated, async (req, res) => {
-    let ordre;
     try {
-        ordre = await orderService.validate(req.body.data);
+        const orders = orderService.getAll(req.user.id);
+        return sendSuccess(res, orders);
     } catch (error) {
-        return res.status(422).send({ error: 'ValidationError', errorMessage: error.message });
-    }
-
-    try {
-        const cryptocurrency = await cryptoService.getCryptocurrencyById(ordre.cryptocurrencyId);
-        if (!cryptocurrency) {
-            return res.status(404).send({
-                error: 'NotFoundError',
-                errorMessage: 'Cryptocurrency not found. Invalid ID: ' + ordre.cryptocurrencyId,
-            });
-        }
-    } catch (error) {
-        if (error.statusCode) {
-            return res
-                .status(error.statusCode)
-                .send({ error: error.name || 'ServiceError', errorMessage: error.message });
-        }
-        return res.status(500).send({ error: 'ServiceError', errorMessage: error.message });
-    }
-
-    try {
-        const order = await orderService.save(
-            ordre.cryptocurrencyId,
-            ordre.orderType,
-            ordre.orderVariant,
-            ordre.quantity,
-            ordre.price,
-            req.user.id
-        );
-        return res.status(201).send(order);
-    } catch (error) {
-        return res
-            .status(500)
-            .send({ error: 'UnespectedServerError', errorMessage: error.message });
+        return sendInternalServerError(res, error.message);
     }
 });
 
 router.put('/:id', isAuthenticated, async (req, res) => {
     try {
-        const {
-            cryptocurrencyid,
-            orderType,
-            orderVariant,
-            quantity,
-            quantityRemaining,
-            price,
-            orderid,
-        } = await orderService.validate(req.body.data);
-        const updatedOrder = await orderService.updateByOrderId(req.user.id, req.params.id);
-        res.send({ message: 'Hiii!! ٩(＾◡＾)۶', data: updatedOrder });
-    } catch (error) {}
+        const orders = orderService.getAll(req.user.id);
+        return sendSuccess(res, orders);
+    } catch (error) {
+        return sendInternalServerError(res, error.message);
+    }
 });
 
 router.delete('/:id', isAuthenticated, async (req, res) => {
     try {
-        const deletedOrder = await orderService.deleteByOrderId(req.user.id, req.params.id);
-        res.send({ message: 'Hiii!! ٩(＾◡＾)۶' });
-    } catch (error) {}
+        const orders = orderService.getAll(req.user.id);
+        return sendSuccess(res, orders);
+    } catch (error) {
+        return sendInternalServerError(res, error.message);
+    }
 });
 
 export default router;

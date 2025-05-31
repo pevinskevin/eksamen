@@ -1,5 +1,4 @@
-import { parseAsync } from 'valibot';
-import { orderSchema } from './ordersValidation.js';
+import { orderSchema, validateOrderId } from '../../shared/validators/orderValidators.js';
 
 export default class OrderService {
     constructor(orderRepository) {
@@ -15,6 +14,7 @@ export default class OrderService {
     }
 
     async getByOrderId(userId, orderId) {
+        validateOrderId(orderId);
         return await this.orderRepository.find(userId, orderId);
     }
 
