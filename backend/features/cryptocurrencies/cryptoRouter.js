@@ -57,7 +57,17 @@ router.post('/cryptocurrencies', isAuthenticated, async (req, res) => {
 // Update cryptocurrency by ID
 router.put('/cryptocurrencies/:id', isAuthenticated, async (req, res) => {
     try {
-    } catch (error) {}
+        const cryptocurrency = await cryptoService.updateCryptocurrency(req.params.id, req.body);
+        return sendSuccess(res, cryptocurrency);
+    } catch (error) {
+        if (error.message.includes('Cryptocurrency ID')) sendNotFound(res, error.message);
+        if (error.name === 'ValiError') {
+            const validationMessage = error.issues.map((issue) => issue.message).join(', ');
+            return sendUnprocessableEntity(res, validationMessage);
+        }
+        if (error.message.includes('duplicate key')) sendConflict(res, error.message);
+        else sendInternalServerError(res, error.message);
+    }
 });
 
 // Delete cryptocurrency by ID

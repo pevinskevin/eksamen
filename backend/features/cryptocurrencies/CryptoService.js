@@ -1,6 +1,7 @@
 import {
     validateCryptoId,
     CreateCryptocurrencySchema,
+    UpdateCryptocurrencySchema,
 } from '../../shared/validators/cryptoValidators.js';
 import { parse } from 'valibot';
 
@@ -42,14 +43,37 @@ export default class CryptoService {
         };
     }
 
-    async updateCryptocurrency(id, cryptoData) {
-        const updatedCrypto = await this.cryptoRepository.update(id, cryptoData);
-        if (!updatedCrypto) {
-            const error = new Error('Cryptocurrency not found for update');
-            error.statusCode = 404;
-            throw error;
+    async updateCryptocurrency(id, cryptocurrency) {
+        // validate format
+        validateCryptoId(id); //
+
+        //validate id exists in db
+        const exists = await this.cryptoRepository.findById(id);
+        if (!exists) throw new Error('Cryptocurrency ID ');
+
+        // validate format
+        parse(UpdateCryptocurrencySchema, cryptocurrency);
+
+        const { symbol, name, description, iconUrl } = cryptocurrency; 
+        if (cryptocurrency.symbol) {
+            cryptocurrency.symbol = cryptocurrency.symbol.toUpperCase();
         }
-        return updatedCrypto;
+        const updatedCryptocurrency = await this.cryptoRepository.update(
+            id,
+            symbol,
+            name,
+            description,
+            iconUrl
+        );
+        return {
+            id: id,
+            symbol: updatedCryptocurrency.symbol,
+            name: updatedCryptocurrency.name,
+            description: updatedCryptocurrency.description || '', // optional field - returns empty string if null
+            iconUrl: updatedCryptocurrency.icon_url || '', // optional field - returns empty string if null
+            createdAt: updatedCryptocurrency.created_at,
+            updatedAt: updatedCryptocurrency.updated_at,
+        };
     }
 
     async deleteCryptocurrency(id) {
