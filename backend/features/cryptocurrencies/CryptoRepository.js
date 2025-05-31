@@ -38,7 +38,6 @@ export default class CryptoRepository {
     }
 
     async update(id, symbol, name, description, iconUrl) {
-
         const query = {
             text: 'UPDATE cryptocurrencies SET symbol = COALESCE($2, symbol), name = COALESCE($3, name), description = COALESCE($4, description), icon_url = COALESCE($5, icon_url) WHERE id = $1 RETURNING *',
             values: [id, symbol, name, description, iconUrl],
@@ -48,17 +47,6 @@ export default class CryptoRepository {
     }
 
     async deleteById(id) {
-        // First, check if the cryptocurrency exists
-        const checkQuery = {
-            text: 'SELECT id FROM cryptocurrencies WHERE id = $1',
-            values: [id],
-        };
-        const existingCrypto = (await this.db.query(checkQuery)).rows;
-
-        if (existingCrypto.length === 0) {
-            return null; // Or throw an error
-        }
-
         const query = {
             text: 'DELETE FROM cryptocurrencies WHERE id = $1 RETURNING *',
             values: [id],

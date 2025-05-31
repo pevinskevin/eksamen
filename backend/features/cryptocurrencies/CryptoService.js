@@ -77,12 +77,9 @@ export default class CryptoService {
     }
 
     async deleteCryptocurrency(id) {
-        const deletedCrypto = await this.cryptoRepository.deleteById(id);
-        if (!deletedCrypto) {
-            const error = new Error('Cryptocurrency not found for deletion');
-            error.statusCode = 404;
-            throw error;
-        }
-        return deletedCrypto;
+        validateCryptoId(id); // validate format
+        const exists = await this.cryptoRepository.findById(id);
+        if (!exists) throw new Error('Cryptocurrency ID ' + id);
+        return await this.cryptoRepository.deleteById(id);
     }
 }

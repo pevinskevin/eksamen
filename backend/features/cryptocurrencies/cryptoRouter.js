@@ -7,6 +7,7 @@ import {
     sendConflict,
     sendCreated,
     sendError,
+    sendForbidden,
     sendInternalServerError,
     sendNotFound,
     sendSuccess,
@@ -73,7 +74,20 @@ router.put('/cryptocurrencies/:id', isAuthenticated, async (req, res) => {
 // Delete cryptocurrency by ID
 router.delete('/cryptocurrencies/:id', isAuthenticated, async (req, res) => {
     try {
-    } catch (error) {}
+        const cryptocurrency = await cryptoService.deleteCryptocurrency(req.params.id);
+        return sendSuccess(res, cryptocurrency);
+    } catch (error) {
+        if (error.message.includes('update or delete on table')) {
+            return sendForbidden(res, error.message);
+        }
+        if (error.message.includes('Cryptocurrency ID')) {
+            return sendNotFound(res, error.message);
+        }
+        if (error.name === 'ValiError') {
+            const validationMessage = error.issues.map((issue) => issue.message).join(', ');
+            return sendUnprocessableEntity(res, validationMessage);
+        } else return sendInternalServerError(res, error.message);
+    }
 });
 
 export default router;

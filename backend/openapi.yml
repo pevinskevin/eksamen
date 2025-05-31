@@ -525,10 +525,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+                $ref: "#/components/schemas/Cryptocurrency"
         "400":
           description: Bad Request (invalid ID)
           content:
