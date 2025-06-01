@@ -6,7 +6,7 @@
     let email = 'admin@test.com';
     let emailError = '';
 
-    let password = 'test';
+    let password = 'test1234';
     let passwordError = '';
 
     function validateEmail() {
