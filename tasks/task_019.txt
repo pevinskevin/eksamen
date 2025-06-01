@@ -3,80 +3,84 @@
 # Status: pending
 # Dependencies: 14, 16, 18
 # Priority: high
-# Description: Implement a real-time broadcasting system for a hybrid order book. This hybrid order book combines user orders (local internal orders from platform users) and Binance order book data (external market liquidity). When changes occur (user order added/cancelled/filled, trade executed, or Binance data updates), the system must broadcast the complete hybrid order book state via WebSockets to all connected and subscribed frontend clients. This ensures transparency, allowing users to see both internal order activity and external market liquidity, potentially in a layered display.
+# Description: Implement a simplified real-time broadcasting system via WebSockets. This system will be developed in phases:
+Phase 1: Broadcast basic trade notifications and user balance updates.
+Phase 2: Broadcast live Binance order book data directly to clients.
+Phase 3: Enhance the system with visual consumption feedback, showing how user trades impact the displayed Binance order book.
+This approach focuses on clean WebSocket messaging, direct streaming of Binance data, and providing users with clear feedback on their trading activity, ensuring a simple and maintainable architecture.
 # Details:
-1. **Hybrid Order Book Construction:**
-    *   Develop logic within `OrderBookService.js` or a new dedicated module to construct and maintain the hybrid order book.
-    *   This involves integrating local user orders with real-time data fetched from the Binance order book (e.g., via Task 18: BE: Binance Order Book Integration).
-    *   The broadcast data should facilitate a layered display where user orders are visible alongside or integrated with Binance market depth.
+1.  **Phase 1: Trade Notifications & Balance Updates:**
+    *   Develop logic to capture trade execution events from `MatchingEngine.js`.
+    *   Broadcast trade details (pair, price, quantity, direction, timestamp) to involved users.
+    *   Broadcast user balance updates resulting from trades or other relevant actions (e.g., deposits, withdrawals, fee deductions if applicable).
+    *   Utilize WebSocket infrastructure (Task 14: BE: WebSocket Setup).
 
-2.  **Triggering Updates:**
-    *   The system must react to changes from multiple sources:
-        *   Local user order events: new order, cancellation, fill (partial or full) from `User Order Management` (Task 16).
-        *   Internal trade executions from the `MatchingEngine.js`.
-        *   Updates from the Binance order book data stream (Task 18).
+2.  **Phase 2: Binance Order Book Broadcasting:**
+    *   Integrate with the Binance order book data stream (Task 18: BE: Binance Order Book Integration).
+    *   Stream the live Binance order book (bids and asks) for subscribed trading pairs directly to clients. This involves broadcasting snapshots or deltas of the Binance order book.
 
-3.  **Broadcasting Mechanism:**
-    *   Utilize the WebSocket infrastructure (Task 14: BE: WebSocket Setup).
-    *   After any relevant change, serialize the *complete current state* of the hybrid order book for the specific trading pair.
-    *   Broadcast this data to clients subscribed to that pair.
+3.  **Phase 3: Visual Consumption Feedback:**
+    *   When a user's market order executes against the Binance order book, identify the consumed liquidity.
+    *   Broadcast information to the client to visually indicate this consumption on the displayed Binance order book (e.g., highlighting affected price levels or quantities).
 
-4.  **Data Format:**
-    *   Define a clear WebSocket message format. A suggested format that supports layered display:
-        `{ type: 'HYBRID_ORDER_BOOK_UPDATE', pair: 'SIM_BTC/SIM_USD', data: { bids: [{price, qty, source: 'user'|'binance'}, ...], asks: [{price, qty, source: 'user'|'binance'}, ...] } }`
-    *   The `source` attribute will help the frontend distinguish between user orders and Binance liquidity for the layered display.
+4.  **WebSocket Messaging:**
+    *   Define clear WebSocket message formats. Suggested formats:
+        *   Trade Notification: `{ type: 'TRADE_EXECUTED', pair: 'SIM_BTC/SIM_USD', data: { tradeId, orderId, price, quantity, side, timestamp, fee, feeCurrency } }`
+        *   Balance Update: `{ type: 'BALANCE_UPDATE', data: { asset: 'SIM_USD', total: '1000.00', available: '950.00' } }` (per asset)
+        *   Binance Order Book: `{ type: 'BINANCE_ORDER_BOOK_UPDATE', pair: 'SIM_BTC/SIM_USD', data: { bids: [[price, qty], ...], asks: [[price, qty], ...], lastUpdateId: 12345678 } }`
+        *   Visual Consumption Feedback: `{ type: 'TRADE_IMPACT_ON_BOOK', pair: 'SIM_BTC/SIM_USD', data: { tradeId, consumedBids: [[price, qtyConsumed], ...], consumedAsks: [[price, qtyConsumed], ...] } }`
 
 5.  **Integration Points:**
-    *   Ensure `MatchingEngine.js` and `OrderBookService.js` correctly trigger updates to the hybrid order book and its subsequent broadcast.
-    *   Leverage Task 18 for the source of Binance data.
-    *   Leverage Task 14 for the WebSocket broadcasting mechanism.
-    *   Leverage Task 16 for user order events.
+    *   `MatchingEngine.js`: Source for trade execution events.
+    *   `UserOrderService.js` / `AccountService.js`: For events leading to balance changes.
+    *   `BinanceStreamService.js` (from Task 18): Source for live Binance order book data.
+    *   WebSocket infrastructure (Task 14): For broadcasting messages to subscribed clients.
 
 # Test Strategy:
-1. Verify that frontend clients receive WebSocket messages when the hybrid order book changes for a subscribed pair.
-2. Confirm that updates are triggered by:
-    *   New user orders.
-    *   User order cancellations.
-    *   User order fills (trades).
-    *   Updates from the Binance order book data stream.
-3. The data received by the client must accurately reflect the complete current state of the hybrid order book on the server, clearly distinguishing between user orders and Binance liquidity (e.g., via a 'source' field).
-4. Test scenarios with varying levels of user orders and Binance market depth to ensure correct merging and broadcasting.
-5. Ensure the broadcast data structure supports the intended layered display on the frontend.
+1.  Verify that clients receive WebSocket messages for trade notifications when their orders are executed, containing accurate trade details.
+2.  Confirm that user balance updates are broadcast correctly and promptly after trades or other relevant account activities.
+3.  Ensure that live Binance order book data (snapshots or diffs) is streamed accurately and efficiently to subscribed clients for relevant pairs.
+4.  Test the visual consumption feedback mechanism:
+    *   Verify that messages indicating consumed liquidity from the Binance book are sent after user market orders execute.
+    *   Ensure the data provided is sufficient for the frontend to correctly visualize the impact on the displayed order book.
+5.  Validate the structure, content, and correctness of all defined WebSocket message types.
+6.  Test system performance and reliability with multiple connected clients, various trading pairs, and high-frequency updates.
+7.  Ensure proper subscription management for different message types and trading pairs.
 
 # Subtasks:
-## 19_1. Design hybrid order book data structure and WebSocket message format [pending]
+## 19_1. Design WebSocket message formats for simplified broadcasting [pending]
 ### Dependencies: None
-### Description: Define the in-memory structure for the hybrid order book (combining user and Binance orders) and the precise JSON format for WebSocket messages broadcasting these updates. Ensure the format supports distinguishing order sources for layered display.
+### Description: Define clear and efficient JSON formats for all WebSocket messages: trade notifications (e.g., `TRADE_EXECUTED`), user balance updates (e.g., `BALANCE_UPDATE`), live Binance order book data (e.g., `BINANCE_ORDER_BOOK_UPDATE` for snapshots/diffs), and visual consumption feedback (e.g., `TRADE_IMPACT_ON_BOOK`). Specify the exact payload for each message type.
 ### Details:
 
 
-## 19_2. Implement hybrid order book merging logic [pending]
+## 19_2. Implement broadcasting of trade notifications and balance updates (Phase 1) [pending]
 ### Dependencies: None
-### Description: Develop logic in `OrderBookService.js` or a new module to merge local user orders with incoming Binance order book data to form and maintain the consolidated hybrid order book.
+### Description: Develop server-side logic (e.g., in a `NotificationService.js`) to capture trade execution events and balance change events. Broadcast these events as formatted WebSocket messages to the relevant subscribed clients.
 ### Details:
 
 
-## 19_3. Integrate user order events for hybrid book updates [pending]
+## 19_3. Integrate user trade and account events for notifications [pending]
 ### Dependencies: None
-### Description: Modify event handling for user order changes (add, cancel, fill) in `MatchingEngine.js` or `OrderBookService.js` to trigger updates and re-broadcasting of the hybrid order book.
+### Description: Ensure that events from `MatchingEngine.js` (for trade executions) and services managing user accounts/orders (e.g., `UserOrderService.js`, `AccountService.js`) correctly trigger the broadcasting of trade notifications and balance updates through the notification system.
 ### Details:
 
 
-## 19_4. Integrate Binance data feed for hybrid book updates [pending]
+## 19_4. Implement broadcasting of live Binance order book data (Phase 2) [pending]
 ### Dependencies: None
-### Description: Connect the Binance data feed (from Task 18) to the hybrid order book module, ensuring that updates from the external market trigger recalculation and re-broadcasting of the hybrid order book.
+### Description: Integrate the Binance data feed from `BinanceStreamService.js` (Task 18) with the WebSocket broadcasting module. Implement logic to stream live Binance order book data (bids, asks, and potentially update identifiers) for subscribed trading pairs to clients, using the format defined in `19_1`.
 ### Details:
 
 
-## 19_5. Implement WebSocket broadcasting of hybrid order book [pending]
+## 19_5. Implement visual consumption feedback on displayed order book (Phase 3) [pending]
 ### Dependencies: None
-### Description: Implement the mechanism to serialize the complete hybrid order book state and broadcast it via WebSockets to subscribed clients upon any relevant change.
+### Description: Develop the server-side mechanism to identify liquidity consumed from the Binance order book by user market orders. Broadcast this information (e.g., via a `TRADE_IMPACT_ON_BOOK` message) to the client, enabling visual feedback on the displayed order book.
 ### Details:
 
 
-## 19_6. Develop tests for hybrid order book broadcasting [pending]
+## 19_6. Develop tests for simplified real-time broadcasting [pending]
 ### Dependencies: None
-### Description: Write unit and integration tests covering hybrid order book construction, update triggers from both user and Binance sources, and WebSocket broadcasting accuracy and data format.
+### Description: Write comprehensive unit and integration tests covering: broadcasting of trade notifications, balance updates, live Binance order book data, and visual consumption feedback. Verify WebSocket message formats, data integrity, subscription logic, and timely delivery of messages.
 ### Details:
 
 

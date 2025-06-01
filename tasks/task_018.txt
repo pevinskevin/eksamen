@@ -3,131 +3,95 @@
 # Status: pending
 # Dependencies: 9, 11, 17
 # Priority: high
-# Description: Implement the backend logic for trade execution when a match is found by the matching engine. This system must handle two distinct scenarios:
-1.  **User-to-User Trades:** Traditional exchange behavior where two user orders are matched. This involves atomically updating balances for both users (debit/credit fiat and crypto), creating a `Trade` record, and updating the status of both involved `Order` records in the database and in-memory order book.
-2.  **User-to-Binance Executions:** User orders are matched against Binance's external liquidity. This involves atomically updating only the participating user's balances, creating a `Trade` record that reflects Binance as the counterparty, and updating the user's `Order` record.
-
-Atomicity of database operations is critical for both scenarios.
+# Description: Implement the backend logic for simplified trade execution. When a match is provided by the matching engine (Task 17), this system will process the trade as a user execution against Binance, which acts as the price oracle and liquidity provider. There are no user-to-user settlements. The system must atomically update the user's balances (debiting the source currency, crediting the target currency), create a `Trade` record reflecting Binance as the counterparty, and update the status of the user's `Order` record in the database and in-memory order book. Atomicity of database operations is critical.
 # Details:
-The core responsibility is to process matched trades, whether they are internal User-to-User trades or external User-to-Binance executions. This involves atomic database updates for user balances, trade record creation, and order status management in both the database and the in-memory order book.
+The core responsibility is to process matched trades from the simplified matching engine. All trades are user executions against Binance liquidity. This involves atomic database updates for the user's balances, trade record creation, and order status management in both the database and the in-memory order book.
 
 **Key Requirements:**
-1.  **Differentiate Trade Types:** The system must distinguish between:
-    *   **User-to-User Trades:** Matches between two orders from users on our platform.
-    *   **User-to-Binance Executions:** Matches where a user's order is filled against Binance's liquidity.
+1.  **Single Trade Execution Path:** All trades are processed as user orders filled against Binance liquidity.
 2.  **Atomicity:** All database operations for a single trade (balance updates, trade creation, order updates) must be performed within a single transaction to ensure data consistency.
-3.  **Trade Record:** A comprehensive `Trade` record must be created for every execution, indicating the type of trade.
-4.  **Order Updates:** Involved `Order` records must be updated (status, quantity remaining) in the database and reflected in the in-memory order book.
+3.  **Trade Record:** A `Trade` record must be created for every execution, clearly identifying the user and Binance (as a designated system account) as counterparties. It should include a `trade_type` like 'EXTERNAL_LIQUIDITY_TRADE'.
+4.  **Order Updates:** The user's `Order` record must be updated (status, quantity remaining) in the database and reflected in the in-memory order book.
 
 **Detailed Process:**
 
 **I. Pre-Execution:**
-    1.  Upon receiving a match from the matching engine, determine if it's a User-to-User trade or a User-to-Binance execution.
+    1.  Upon receiving a match from the matching engine, identify the participating user and trade details.
     2.  Start a database transaction.
 
-**II. User-to-User Trade Execution:**
-    1.  **Identify Parties:** Buyer user and Seller user.
-    2.  **Fiat Balances:**
-        *   Debit buyer's fiat account.
-        *   Credit seller's fiat account.
-    3.  **Crypto Balances:**
-        *   Debit seller's crypto holdings (for the traded crypto).
-        *   Credit buyer's crypto holdings (for the traded crypto).
-    4.  **Database Updates:** Persist changes to `Accounts` and `CryptoHoldings` tables for both users.
-    5.  **Trade Record Creation:** Create a new record in the `Trades` table.
-        *   Fields: `buyer_id` (buyer user's ID), `seller_id` (seller user's ID), `crypto_id`, `quantity`, `price`, `timestamp`, `trade_type` (e.g., 'USER_TO_USER').
-    6.  **Order Updates (Database):** For both the buyer's and seller's orders:
-        *   Update status (e.g., 'PARTIALLY_FILLED', 'FILLED').
-        *   Decrease `quantity_remaining`.
-    7.  **Order Updates (In-Memory):** Update or remove the corresponding orders from the in-memory order book.
-
-**III. User-to-Binance Trade Execution:**
-    1.  **Identify Party:** The user whose order is matched against Binance.
+**II. Trade Execution Logic:**
+    1.  **Identify User:** The user whose order is matched.
     2.  **Balance Updates (User only):**
-        *   **If user is BUYING from Binance:**
-            *   Debit user's fiat account.
-            *   Credit user's crypto holdings.
-        *   **If user is SELLING to Binance:**
-            *   Credit user's fiat account.
-            *   Debit user's crypto holdings.
-    3.  **Database Updates:** Persist changes to the user's `Accounts` and `CryptoHoldings` tables.
+        *   **If user is BUYING the base asset:**
+            *   Debit user's quote currency account (e.g., USD).
+            *   Credit user's base currency holdings (e.g., BTC).
+        *   **If user is SELLING the base asset:**
+            *   Credit user's quote currency account (e.g., USD).
+            *   Debit user's base currency holdings (e.g., BTC).
+    3.  **Database Updates:** Persist changes to the user's `Accounts` (for fiat/quote currency) and `CryptoHoldings` (for crypto/base currency) tables.
     4.  **Trade Record Creation:** Create a new record in the `Trades` table.
         *   Fields:
-            *   If user buys: `buyer_id` (user's ID), `seller_id` (a designated system account ID for Binance).
-            *   If user sells: `seller_id` (user's ID), `buyer_id` (a designated system account ID for Binance).
-            *   Common fields: `crypto_id`, `quantity`, `price`, `timestamp`, `trade_type` (e.g., 'USER_TO_BINANCE').
+            *   If user buys base asset: `buyer_id` (user's ID), `seller_id` (a designated system account ID for Binance).
+            *   If user sells base asset: `seller_id` (user's ID), `buyer_id` (a designated system account ID for Binance).
+            *   Common fields: `crypto_id` (or `base_asset_id`), `quantity` (of base asset), `price` (in quote asset), `timestamp`, `trade_type` (e.g., 'EXTERNAL_LIQUIDITY_TRADE').
     5.  **Order Updates (Database):** For the user's order:
         *   Update status (e.g., 'PARTIALLY_FILLED', 'FILLED').
         *   Decrease `quantity_remaining`.
     6.  **Order Updates (In-Memory):** Update or remove the user's order from the in-memory order book.
 
-**IV. Post-Execution (Common for both types):**
+**III. Post-Execution:**
     1.  **Commit Transaction:** If all operations succeed, commit the database transaction.
     2.  **Rollback on Failure:** If any operation fails, roll back the entire transaction.
     3.  **Event Emission:** Emit events (e.g., `TradeExecuted`, `BalanceUpdated`) to notify other services or for auditing.
 
 # Test Strategy:
-The test strategy must cover both User-to-User and User-to-Binance trade scenarios.
+The test strategy must cover the simplified trade execution scenario against Binance liquidity.
 
-1.  **User-to-User Trade Verification:**
-    *   Verify that after a trade, the buyer's fiat is debited, and crypto is credited correctly in the database.
-    *   Verify that the seller's fiat is credited, and crypto is debited correctly in the database.
-    *   Verify a `Trade` record is created with correct `buyer_id`, `seller_id`, `trade_type`='USER_TO_USER', and other trade details.
-    *   Verify that both involved `Order` statuses and `quantity_remaining` are correctly updated in the database.
-    *   Verify that both orders are correctly updated/removed from the in-memory order book.
-2.  **User-to-Binance Trade Verification:**
-    *   **User Buys from Binance:**
-        *   Verify user's fiat is debited, and crypto is credited correctly.
-        *   Verify no other internal user's balance is affected.
-        *   Verify `Trade` record with user as `buyer_id`, Binance system account as `seller_id`, and `trade_type`='USER_TO_BINANCE'.
-    *   **User Sells to Binance:**
-        *   Verify user's fiat is credited, and crypto is debited correctly.
-        *   Verify no other internal user's balance is affected.
-        *   Verify `Trade` record with user as `seller_id`, Binance system account as `buyer_id`, and `trade_type`='USER_TO_BINANCE'.
-    *   For both buy/sell scenarios with Binance:
+1.  **Trade Execution Verification:**
+    *   **User Buys Base Asset:**
+        *   Verify user's quote currency is debited, and base currency is credited correctly in the database.
+        *   Verify `Trade` record is created with user as `buyer_id`, Binance system account as `seller_id`, `trade_type`='EXTERNAL_LIQUIDITY_TRADE', and other trade details.
+    *   **User Sells Base Asset:**
+        *   Verify user's quote currency is credited, and base currency is debited correctly in the database.
+        *   Verify `Trade` record is created with user as `seller_id`, Binance system account as `buyer_id`, `trade_type`='EXTERNAL_LIQUIDITY_TRADE', and other trade details.
+    *   For both scenarios:
         *   Verify the user's `Order` status and `quantity_remaining` are correctly updated in the database.
         *   Verify the user's order is correctly updated/removed from the in-memory order book.
-3.  **Atomicity Tests:**
-    *   Simulate failures at various points during the trade execution process (e.g., after debiting one user but before crediting another, or before creating the trade record).
-    *   Verify that the entire transaction is rolled back, and the system state remains consistent (no partial updates to balances or orders). This applies to both trade types.
-4.  **Concurrency Tests:**
+2.  **Atomicity Tests:**
+    *   Simulate failures at various points during the trade execution process (e.g., after debiting user but before crediting, or before creating the trade record).
+    *   Verify that the entire transaction is rolled back, and the system state remains consistent (no partial updates to balances or orders).
+3.  **Concurrency Tests:**
     *   Test concurrent trade executions to ensure data integrity and absence of race conditions.
-5.  **Edge Cases:**
-    *   Partial fills for both trade types.
+4.  **Edge Cases:**
+    *   Partial fills.
     *   Trades involving very small or very large quantities/prices.
 
 # Subtasks:
-## 18_S1. Define/Update `Trades` table schema to include `trade_type` (e.g., 'USER_TO_USER', 'USER_TO_BINANCE') and establish a method for representing Binance as a counterparty (e.g., using a designated system account ID in `buyer_id`/`seller_id` fields). [pending]
+## 18_S1. Define/Update `Trades` table schema to establish a method for representing Binance as the counterparty (e.g., using a designated system account ID in `buyer_id`/`seller_id` fields) and include a simplified `trade_type` (e.g., 'EXTERNAL_LIQUIDITY_TRADE'). [pending]
 ### Dependencies: None
 ### Description: 
 ### Details:
 
 
-## 18_S2. Implement trade execution service entry point that accurately determines if a match corresponds to a User-to-User trade or a User-to-Binance execution. [pending]
+## 18_S2. Implement the trade execution service entry point that receives matched orders from the simplified matching engine (Task 17). [pending]
 ### Dependencies: None
 ### Description: 
 ### Details:
 
 
-## 18_S3. Implement User-to-User trade execution logic, including: atomic balance updates for both users (fiat and crypto), creation of `Trade` record with `trade_type`='USER_TO_USER', update of both `Order` records (DB and in-memory). [pending]
+## 18_S3. Implement the core trade execution logic: atomically update user balances (debit source currency, credit target currency), create a `Trade` record with the user and Binance as counterparties, and update the user's `Order` record (status and quantity in DB and in-memory order book). [pending]
 ### Dependencies: None
 ### Description: 
 ### Details:
 
 
-## 18_S4. Implement User-to-Binance trade execution logic, including: atomic balance updates for the single user (fiat and crypto), creation of `Trade` record with `trade_type`='USER_TO_BINANCE' and Binance as counterparty, update of the user's `Order` record (DB and in-memory). [pending]
+## 18_S4. Implement robust database transaction management for all trade execution operations to ensure atomicity. [pending]
 ### Dependencies: None
 ### Description: 
 ### Details:
 
 
-## 18_S5. Implement robust database transaction management covering all trade execution paths (User-to-User and User-to-Binance) to ensure atomicity of operations. [pending]
-### Dependencies: None
-### Description: 
-### Details:
-
-
-## 18_S6. Implement event emission for successful trades (e.g., `TradeExecutedEvent`, `BalanceUpdatedEvent`) for both User-to-User and User-to-Binance trade types. [pending]
+## 18_S5. Implement event emission (e.g., `TradeExecuted`, `BalanceUpdated`) upon successful trade execution. [pending]
 ### Dependencies: None
 ### Description: 
 ### Details:

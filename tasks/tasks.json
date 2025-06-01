@@ -472,89 +472,106 @@
     {
       "id": 16,
       "title": "BE: In-Memory Order Book Implementation",
-      "description": "Integrate with the Binance WebSocket API to maintain a real-time local copy of the Binance order book for each cryptocurrency pair. Layer user-placed orders on top of this live Binance data. Implement logic to manage the lifecycle of these user orders (add, cancel, fill) and a matching engine that can match user orders against the live Binance price levels or against other user orders within our system. This creates a hybrid order book where Binance acts as the primary market maker and price discovery mechanism, while our platform manages its users' orders and internal matching opportunities. Refer to `binance-ws.js` as the module to extend for Binance integration and `depthcache-documentation.md` for general order book concepts if still relevant.",
-      "status": "pending",
+      "description": "Develop a trading simulation engine that uses Binance WebSocket data as a price oracle. The implementation will be phased: Phase 1 focuses on basic market order execution against Binance's best bid/ask, trade recording, and notifications. Phase 2 introduces handling of order book depth for market orders, implements limit order execution logic, and enhances data structures. Phase 3 will focus on visualizing the impact of user trades on a representation of the Binance order book. This system simulates trading against Binance prices, without implementing user-to-user matching or a complex hybrid order book. The `binance-ws.js` module will be the primary component for Binance integration.",
+      "status": "in-progress",
       "dependencies": [
         11,
         12
       ],
       "priority": "high",
-      "details": "1. Extend `binance-ws.js` to subscribe to Binance's depth WebSocket streams (e.g., `bnbbtc@depth`) and maintain an in-memory, synchronized copy of the Binance order book (bids and asks).\n2. Create an `OrderBookService.js` (or similar module) to manage this hybrid system. This service will:\n    a. Consume the live Binance order book data from `binance-ws.js`.\n    b. Manage user-placed orders (buy/sell orders from `/orders/place`), storing their price, quantity, timestamp, order_id, and status (pending, partially_filled, filled, cancelled). These user orders are *not* sent to Binance.\n    c. Present a 'hybrid' view of the order book, where user orders are layered on top of Binance's data. For example, if a user's bid is higher than Binance's best bid, it becomes the effective best bid for our system.\n3. Implement matching logic within a `MatchingEngine` module (or as part of the `OrderBookService`) that:\n    a. Attempts to match incoming user orders against other existing user orders if a favorable price (better than or equal to Binance's) is available (user-to-user match).\n    b. If no user-to-user match is possible or favorable, attempts to match user orders against the live Binance order book (user-to-Binance 'fill'). This means if a user places a market buy, it would fill against Binance's asks; if a limit buy is at or above Binance's best ask, it would fill.\n    c. Manages the lifecycle of user orders based on matching outcomes (e.g., updating quantity for partial fills, changing status for full fills).\n4. User orders should maintain price-time priority. The `depthcache-documentation.md` might offer general insights, but the primary source for Binance integration will be their API documentation.",
-      "testStrategy": "1. Verify `binance-ws.js` correctly subscribes to and synchronizes with Binance depth streams, accurately reflecting the Binance order book locally. Test handling of snapshots and differential updates.\n2. Test placement of user orders: ensure they are correctly stored and layered onto the local Binance book data, forming the hybrid order book. Verify price-time priority for user orders.\n3. Test user order lifecycle: cancellation, partial fills, and full fills, ensuring status and quantity are updated correctly.\n4. Test matching logic:\n    a. User-to-user matches: Verify that if two user orders can cross, they are matched internally.\n    b. User-to-Binance matches: Verify user orders are correctly matched against the Binance book (e.g., a user market buy order fills at Binance's ask prices; a user limit buy order above Binance's best ask fills).\n5. Verify the hybrid order book queries (best bid/ask, depth) accurately reflect the combination of Binance data and active user orders.",
+      "details": "The project is divided into three phases:\n\n**Phase 1: Basic Trading Engine (Target: 15-20 hours)**\n1.  **Binance Price Oracle Integration:**\n    *   Extend `binance-ws.js` to subscribe to Binance's ticker or best bid/ask streams (e.g., `symbol@bookTicker`).\n    *   Maintain a real-time local cache of the current best bid and ask prices from Binance for simulated trading pairs.\n2.  **Market Order Execution (Basic):**\n    *   Implement logic to accept user market orders (buy/sell).\n    *   Market orders execute *immediately* at the currently cached best bid (for sells) or best ask (for buys) from Binance.\n    *   Assume sufficient liquidity at the best bid/ask for simplicity in this phase.\n3.  **Trade Recording:**\n    *   Store executed trades in a database, including details like pair, side (buy/sell), quantity, execution price, timestamp, and user ID.\n4.  **Basic WebSocket Notifications:**\n    *   Implement basic WebSocket notifications to users upon trade execution (e.g., order filled).\n\n**Phase 2: Add Depth & Sophistication (Target: +10-15 hours)**\n1.  **Binance Order Book Depth Integration:**\n    *   Enhance `binance-ws.js` to subscribe to Binance's full or partial depth WebSocket streams (e.g., `symbol@depth5`, `symbol@depth@100ms`).\n    *   Maintain a local, synchronized copy of the relevant levels of the Binance order book (bids and asks).\n2.  **Market Order Execution (Depth-Aware):**\n    *   Modify market order execution logic to \"walk the book\". If an order's quantity exceeds liquidity at the best price, it consumes subsequent price levels from the local Binance order book copy until filled.\n    *   Calculate the volume-weighted average price (VWAP) for such executions.\n3.  **Limit Order Implementation:**\n    *   Implement logic to accept user limit orders (buy/sell) with a specified price and quantity.\n    *   Store pending limit orders.\n    *   Continuously monitor the live Binance price stream (best bid/ask or depth).\n    *   Execute limit orders when the market price reaches the order's limit price.\n4.  **Enhanced Order Management:**\n    *   Implement order status updates (pending, partially_filled, filled, cancelled).\n    *   Allow users to cancel pending limit orders.\n\n**Phase 3: Visual Order Book Magic (Target: +20-25 hours)**\n1.  **Simulated Order Book State:**\n    *   Develop data structures to represent a *simulated* view of the Binance order book that reflects the *impact* of user trades within the simulation.\n    *   When a user trade \"consumes\" liquidity from a Binance price level, this simulated view should show reduced quantity at that level for that user's perspective.\n2.  **Real-time Order Book Display Logic:**\n    *   Implement backend logic to provide data for a UI to display this simulated order book.\n    *   The display should update in real-time as Binance prices change and as user trades \"consume\" liquidity.\n3.  **Visual Feedback of Market Consumption:**\n    *   Ensure the simulated order book clearly visualizes how user market orders \"eat through\" Binance liquidity levels. This is a personalized visual representation of *their* impact and does not affect other users' execution prices.",
+      "testStrategy": "**Phase 1 Tests:**\n1.  Verify `binance-ws.js` correctly subscribes to and caches Binance best bid/ask prices.\n2.  Test market order placement: ensure they execute immediately at the correct current Binance best bid/ask.\n3.  Verify trade details (price, quantity, side, timestamp) are correctly recorded in the database.\n4.  Test WebSocket notifications for trade executions.\n\n**Phase 2 Tests:**\n1.  Verify `binance-ws.js` correctly synchronizes with Binance depth streams, maintaining an accurate local copy of order book levels.\n2.  Test depth-aware market order execution:\n    a. Orders smaller than best level liquidity fill at best price.\n    b. Orders larger than best level liquidity walk the book and fill at multiple levels, with correct VWAP.\n    c. Handle partial fills if order quantity exceeds available simulated depth.\n3.  Test limit order placement: ensure they are stored as pending.\n4.  Test limit order execution:\n    a. Buy limit orders trigger when Binance ask price reaches or drops below the limit.\n    b. Sell limit orders trigger when Binance bid price reaches or rises above the limit.\n    c. Verify execution against appropriate book depth if needed.\n5.  Test cancellation of pending limit orders.\n6.  Verify order status updates (pending, filled, partially_filled, cancelled) are accurate.\n\n**Phase 3 Tests:**\n1.  Verify the simulated order book data structure correctly initializes with live Binance data.\n2.  Test that after a user's simulated market order executes, the corresponding quantities in the *simulated* order book view are reduced accordingly for that user's perspective.\n3.  Test that the simulated order book updates in real-time based on incoming Binance price level changes.\n4.  Ensure the data provided for UI display accurately reflects the \"consumed\" liquidity from user trades.\n5.  Confirm that one user's simulated consumption does not alter the execution prices for other users (who still trade against the live Binance book).",
       "subtasks": [
         {
           "id": 1,
-          "title": "Design Hybrid Order Book Data Structures",
-          "description": "Define data structures for: a) Storing a real-time local copy of the Binance order book (synced via WebSocket). b) Managing active user orders. c) Representing a combined 'effective' order book view for matching and queries.",
+          "title": "Phase 1: Setup Binance Price Oracle (`binance-ws.js` extension)",
+          "description": "Extend `binance-ws.js` to subscribe to Binance's ticker or best bid/ask streams (e.g., `symbol@bookTicker`) and maintain a real-time local cache of current best bid/ask prices.",
+          "details": "Focus on efficient subscription and reliable caching of best bid/ask for multiple trading pairs. This forms the basis for Phase 1 executions.\n<info added on 2025-06-01T17:05:45.354Z>\nCLARIFICATION NEEDED: Before proceeding with implementation, need to confirm architecture approach with user.\nCURRENT UNDERSTANDING (from Task 16):\n- This is NOT a traditional user-to-user order book\n- This IS a trading simulation against Binance liquidity\n- Users trade against Binance prices (Binance as counterparty)\n- Visual order book shows Binance data with consumption feedback\n- Three phases: Basic execution → Depth-aware → Visual impact\nQUESTION FOR USER: Confirm this Binance-simulation approach vs traditional order matching before continuing implementation.\n</info added on 2025-06-01T17:05:45.354Z>",
           "dependencies": [],
-          "details": "For (a), consider efficient application of depth updates (diffs/snapshots) from Binance. For (b), ensure price-time priority for user orders. For (c), specify how user orders are layered onto Binance data to determine best bids/asks and available liquidity at various price levels. Document choices for performance and consistency.",
-          "status": "pending"
+          "status": "in-progress"
         },
         {
           "id": 2,
-          "title": "Implement User Order Placement Logic",
-          "description": "Implement functionality to accept and store new user orders (buy/sell). These orders are managed locally within our system and are not sent directly to Binance.",
+          "title": "Phase 1: Implement Basic Market Order Execution",
+          "description": "Implement logic for user market orders (buy/sell) to execute immediately at the cached Binance best bid/ask. Assume sufficient liquidity at this price level for Phase 1.",
+          "details": "Handle order requests, use cached prices from subtask 1 for execution. Calculate execution price and filled quantity. This is a simplified execution model.",
           "dependencies": [
             1
           ],
-          "details": "Upon placement, a user order should be validated and added to the local user order management system. It will then be considered by the matching engine against the hybrid order book. Ensure price-time priority is maintained for user orders at the same price level.",
           "status": "pending"
         },
         {
           "id": 3,
-          "title": "Implement User Order Lifecycle Management (Cancel, Modify)",
-          "description": "Implement logic for managing the lifecycle of user orders: cancellation by user, and modification (e.g., quantity update due to partial fills by the matching engine). This applies only to user orders.",
+          "title": "Phase 1: Implement Trade Recording & Basic Notifications",
+          "description": "Store executed trades from subtask 2 in a database. Implement basic WebSocket notifications to users upon trade execution.",
+          "details": "Database schema for trades (pair, side, quantity, price, timestamp, user_id). Simple WebSocket message for 'order filled' status.",
           "dependencies": [
-            1,
             2
           ],
-          "details": "Ensure user order cancellations are processed correctly, removing them from active consideration by the matching engine. Handle partial fills by updating the remaining quantity of the user order. Fully filled orders should be marked appropriately.",
           "status": "pending"
         },
         {
           "id": 4,
-          "title": "Implement Hybrid Order Book Query Functions",
-          "description": "Develop functions to query the current state of the *hybrid* order book. This includes retrieving the best bid/ask, spread, and order book depth, considering both Binance data and active user orders.",
+          "title": "Phase 2: Binance Order Book Depth Integration (`binance-ws.js` enhancement)",
+          "description": "Enhance `binance-ws.js` to subscribe to Binance's depth WebSocket streams (e.g., `symbol@depth5` or `symbol@depth@100ms`) and maintain a local, synchronized copy of Binance order book levels.",
+          "details": "Handle initial snapshot and differential updates for depth streams. Ensure data structures for local Binance book are efficient for updates and reads by the execution engine.",
           "dependencies": [
-            1,
-            2,
-            6
+            1
           ],
-          "details": "These functions will be used by the matching engine and potentially for UI display. Queries must reflect the combined view: e.g., if a user's bid is higher than Binance's best bid, it becomes the system's effective best bid. Optimize for read performance.",
           "status": "pending"
         },
         {
           "id": 5,
-          "title": "Develop Hybrid Order Book Service/Module",
-          "description": "Develop or extend an `OrderBookService` to encapsulate all functionalities: managing the local Binance order book copy, managing user orders, and providing an interface for the matching engine and other system components.",
+          "title": "Phase 2: Implement Depth-Aware Market Order Execution",
+          "description": "Modify market order execution to 'walk the book'. If an order's quantity exceeds liquidity at one price level, it consumes subsequent levels from the local Binance order book copy until filled or liquidity exhausted. Calculate VWAP.",
+          "details": "Use depth data from subtask 4. Handle partial fills if order quantity exceeds available simulated depth. Calculate Volume-Weighted Average Price for multi-level fills.",
           "dependencies": [
-            1,
             2,
-            3,
-            4,
-            6
+            4
           ],
-          "details": "This service will consume updates from `binance-ws.js` (for Binance book), manage user order state changes (add, cancel, fill), and expose APIs for querying the hybrid book and submitting user orders. Consider thread-safety if concurrent access is expected.",
           "status": "pending"
         },
         {
           "id": 6,
-          "title": "Extend `binance-ws.js` for Binance Order Book Synchronization",
-          "description": "Modify `binance-ws.js` to subscribe to Binance's depth WebSocket streams (e.g., `bnbbtc@depth` or `bnbbtc@depth@100ms`) for relevant trading pairs. Implement logic to maintain an accurate, real-time local copy of the Binance order book.",
+          "title": "Phase 2: Implement Limit Order Logic",
+          "description": "Implement placement of user limit orders (buy/sell). Monitor the live Binance price stream (best bid/ask or depth) and execute limit orders when market conditions meet order criteria, potentially walking the book.",
+          "details": "Store pending limit orders. Logic to check trigger conditions (e.g., Binance best ask <= limit buy price). Execution may consume multiple depth levels similar to market orders (subtask 5).",
           "dependencies": [
-            1
+            2,
+            4
           ],
-          "details": "Handle initial snapshot and subsequent differential updates from Binance. Ensure data structures for the local Binance book are efficient for updates and reads. Refer to Binance API documentation for depth stream details (e.g., managing sequence numbers for diffs).",
           "status": "pending"
         },
         {
           "id": 7,
-          "title": "Implement Hybrid Order Matching Logic",
-          "description": "Develop the matching engine logic that operates on the hybrid order book. It should be able to match user orders against the live Binance order book levels and against other user orders if a better price is available internally.",
+          "title": "Phase 2: Implement Order Management (Status, Cancellation)",
+          "description": "Implement comprehensive order status updates (e.g., pending, partially_filled, filled, cancelled). Allow users to cancel their pending limit orders.",
+          "details": "Update order state throughout its lifecycle. Ensure cancellations correctly remove orders from active consideration. Handle partial fills for both market (subtask 5) and limit orders (subtask 6).",
           "dependencies": [
-            5
+            6
           ],
-          "details": "Matching priorities: 1. User vs. User (if price is better than or equal to Binance). 2. User vs. Binance. Implement price-time priority for user orders. When a user order is matched against Binance, it's conceptually 'executed' at Binance's price. When matched user-to-user, it's an internal settlement.",
+          "status": "pending"
+        },
+        {
+          "id": 8,
+          "title": "Phase 3: Design & Implement Simulated Order Book State for Visual Impact",
+          "description": "Develop data structures and server-side logic to maintain a *simulated* view of the Binance order book. This view should reflect the *impact* of the current user's trades by showing reduced quantities at price levels they 'consumed'.",
+          "details": "This is not for matching, but for user-specific visual feedback. Initialize from live Binance data (subtask 4). Update based on user's executed trades (subtasks 5, 6). This state is transient or user-session specific.",
+          "dependencies": [
+            4,
+            5,
+            6
+          ],
+          "status": "pending"
+        },
+        {
+          "id": 9,
+          "title": "Phase 3: Backend for Real-time Visual Order Book Display",
+          "description": "Implement backend API endpoints or WebSocket messages to provide data for a UI to display the simulated order book (from subtask 8). This should show market consumption in real-time.",
+          "details": "Expose the simulated order book state. Ensure data can be pushed or polled for real-time UI updates, reflecting both Binance market changes and the user's simulated trade impacts.",
+          "dependencies": [
+            8
+          ],
           "status": "pending"
         }
       ]
@@ -562,57 +579,69 @@
     {
       "id": 17,
       "title": "BE: Order Matching Engine Development",
-      "description": "Develop the core order matching engine logic for a hybrid system. The engine will first attempt to match incoming user orders against other resting user orders (user-to-user matching) based on price-time priority, especially if better prices are available than on Binance. Subsequently, it will attempt to match any remaining quantity against live Binance order book data (user-to-Binance execution). The engine must handle a hybrid order book combining user orders with Binance data and manage partial/full fills. Refer to `depthcache-documentation.md` for general matching strategies and `binance-ws.js` for Binance integration.",
+      "description": "Develop the core order matching engine logic. This engine will execute user orders directly against Binance liquidity. The implementation will follow a phased approach: Phase 1 involves simple execution against cached Binance best bid/ask prices. Phase 2 introduces depth-aware execution, 'walking the book' using Binance order book levels. Phase 3 will support enhanced visual feedback of liquidity consumption. The engine will handle market and limit orders, managing partial/full fills against Binance. Refer to `binance-ws.js` for Binance integration.",
       "status": "pending",
       "dependencies": [
         16
       ],
       "priority": "high",
-      "details": "To be implemented in `OrderBookService.js` or a dedicated `MatchingEngine.js`.\nThe matching process for an incoming order:\n1.  **User-to-User Matching:**\n    *   Attempt to match against the local book of user orders.\n    *   If buy order, iterate through user asks (lowest price first).\n    *   If sell order, iterate through user bids (highest price first).\n    *   Prioritize these matches if user order prices are better than or equal to the best available Binance price for the user.\n    *   Price-time priority for user orders: match best price first; if multiple user orders at best price, match oldest first (FIFO based on timestamp).\n2.  **User-to-Binance Matching:**\n    *   If the incoming order is not fully matched against user orders, or if Binance offers a better price for the user, attempt to match the remaining quantity against the Binance order book.\n    *   Utilize real-time Binance order book data provided by the extended `binance-ws.js`.\n    *   Trades matched against Binance liquidity are executed at Binance prices.\n3.  **Hybrid Order Book Management:**\n    *   The engine must operate on a conceptual hybrid order book that layers user orders on top of or integrates them with Binance's market depth for matching decisions.\n4.  **Fill Logic:**\n    *   Determine fill quantity (min of incoming order quantity and resting order/Binance liquidity quantity).\n    *   If partial fill, update remaining quantity of the involved order(s).\n    *   If full fill, mark user order(s) for removal or reflect consumption of Binance liquidity.\n    *   An incoming order can be matched against multiple user orders and/or Binance liquidity.",
-      "testStrategy": "Test various scenarios:\n1.  **User-to-User Matches:**\n    *   New buy order matching existing user sell order(s) at prices better than Binance.\n    *   New sell order matching existing user buy order(s) at prices better than Binance.\n    *   Verify price-time priority for user orders (best price first, then FIFO for same price).\n2.  **User-to-Binance Matches:**\n    *   New buy order matching Binance asks when no better user sell orders exist or Binance price is superior.\n    *   New sell order matching Binance bids when no better user buy orders exist or Binance price is superior.\n    *   Verify execution at Binance prices.\n3.  **Hybrid Matching Scenarios:**\n    *   Incoming order partially filled by user orders, then remaining quantity filled by Binance liquidity.\n    *   Incoming order where Binance offers a better price than available user orders, leading to direct matching with Binance liquidity.\n    *   Scenarios where user orders are placed within the Binance spread.\n4.  **Fill Logic:**\n    *   Test partial fills, multiple fills for one incoming order (across user and Binance liquidity).\n    *   Test orders that don't match and get added to the user order book.\n5.  **Integration & Order Book Integrity:**\n    *   Verify correct interaction with `binance-ws.js` for fetching and using Binance order book data.\n    *   Verify the hybrid order book logic correctly prioritizes and matches orders.\n    *   Ensure user orders are correctly added to, updated in, and removed from the local order book.",
+      "details": "To be implemented in `OrderBookService.js` or a dedicated `MatchingEngine.js`.\nThe matching engine will execute user orders directly against Binance liquidity.\n\n**Order Types Handled:**\n*   **Market Orders:** Executed immediately against the current Binance order book.\n*   **Limit Orders:** Placed and monitored; executed when the market price reaches the order's limit price.\n\n**Matching Process (Phased Implementation):**\n\n1.  **Phase 1: Simple Execution (Top-of-Book)**\n    *   For market orders: Match against the best available bid (for sells) or ask (for buys) from the cached Binance order book.\n    *   For limit orders: Monitor against the best bid/ask. Trigger if the limit price is marketable.\n    *   Execution is based on the single best price level.\n\n2.  **Phase 2: Depth-Aware Execution (\"Walking the Book\")**\n    *   For market orders and triggered limit orders: If the order quantity exceeds liquidity at the best price level, the engine will \"walk the book,\" consuming liquidity from subsequent price levels on Binance until the order is filled or available depth is exhausted.\n    *   Calculates an average fill price if multiple levels are consumed.\n\n**Fill Logic:**\n*   Determine fill quantity based on available Binance liquidity at the matched price level(s).\n*   Handle partial fills: Update the remaining quantity of the user order. If a market order is partially filled due to insufficient depth, the remainder might be cancelled or handled based on policy. If a limit order, the remaining part stays active.\n*   Handle full fills: Mark the user order as completed.\n*   Generate trade execution records for each fill.\n\n**Binance Integration:**\n*   Utilize real-time Binance order book data (best bid/ask and depth) provided by `binance-ws.js`.\n*   All executions are against Binance liquidity at Binance prices.\n\n**Phase 3 Support:**\n*   The engine will be designed to provide necessary data points to support visual feedback of liquidity consumption during the matching process.",
+      "testStrategy": "Test various scenarios:\n1.  **Market Order Execution (Phase 1 - Top of Book):**\n    *   New buy market order matching Binance best ask.\n    *   New sell market order matching Binance best bid.\n    *   Verify execution at Binance prices and correct fill quantity for orders smaller than or equal to liquidity at best price.\n2.  **Limit Order Management & Execution:**\n    *   Limit buy order triggers when Binance ask price drops to or below limit price.\n    *   Limit sell order triggers when Binance bid price rises to or above limit price.\n    *   Test orders that don't match immediately and are correctly monitored.\n    *   Verify execution at limit price or better (price improvement).\n    *   Test limit orders partially filling and remaining active.\n3.  **Market Order Execution (Phase 2 - Depth-Aware \"Walking the Book\")**:\n    *   Market order larger than best price level liquidity, correctly consuming multiple depth levels.\n    *   Verify correct calculation of average fill price when multiple levels are hit.\n    *   Test scenarios where order quantity exceeds total available depth.\n4.  **Triggered Limit Order Execution (Phase 2 - Depth-Aware):**\n    *   Triggered limit order larger than best price level liquidity, correctly consuming multiple depth levels up to its limit price.\n    *   Verify correct fill quantities and average price if applicable.\n5.  **Fill Logic & Order State Management:**\n    *   Test partial fills for both market and limit orders, ensuring remaining quantity is correct.\n    *   Test full fills, ensuring order status is updated to completed.\n    *   Verify correct generation of trade execution records.\n6.  **Integration & Data Integrity:**\n    *   Verify correct interaction with `binance-ws.js` for fetching and using Binance order book data (top of book and depth).\n    *   Ensure order states (e.g., pending, active, partially_filled, filled, cancelled) are correctly managed and updated throughout the lifecycle.",
       "subtasks": [
         {
           "id": "subtask_17_1",
-          "title": "Design matching engine for hybrid (user + Binance) model",
+          "title": "Design overall architecture for the simplified matching engine",
           "status": "pending",
-          "description": "Define the architecture of the matching engine to support a two-phase matching process (user-to-user, then user-to-Binance) and manage a hybrid order book."
+          "description": "Define the high-level design, data flow, components (e.g., `MatchingEngine.js`), and interaction with `binance-ws.js` for Binance-only execution."
         },
         {
           "id": "subtask_17_2",
-          "title": "Implement user-to-user matching logic",
+          "title": "Implement core data structures for managing user orders and cached Binance order book data",
           "status": "pending",
-          "description": "Develop the functionality to match incoming user orders against resting user orders. Prioritize these matches if user order prices are better than or equal to Binance's. Implement price-time priority for user orders."
+          "description": "Develop structures for storing active user limit orders, tracking market orders, and representing cached Binance best bid/ask and order book depth levels."
         },
         {
           "id": "subtask_17_3",
-          "title": "Integrate with binance-ws.js for Binance order book data",
+          "title": "Enhance `binance-ws.js` integration for robust fetching and caching of Binance market data",
           "status": "pending",
-          "description": "Consume real-time Binance order book data from `binance-ws.js`. This data will serve as the external market liquidity layer."
+          "description": "Ensure the matching engine has reliable access to real-time best bid/ask prices and order book depth from Binance, with appropriate caching mechanisms."
         },
         {
           "id": "subtask_17_4",
-          "title": "Implement user-to-Binance matching logic",
+          "title": "Implement Phase 1: Simple market order execution against cached Binance best bid/ask",
           "status": "pending",
-          "description": "Develop the functionality to match remaining quantities of user orders (or orders where Binance offers a better price) against Binance liquidity. Ensure trades are marked for execution at Binance prices."
+          "description": "Develop the matching logic for market orders using only the top-of-the-book data from Binance. Handle immediate fills based on available liquidity at the best price."
         },
         {
           "id": "subtask_17_5",
-          "title": "Implement hybrid fill and order management logic",
+          "title": "Implement limit order management: placement, monitoring against Binance prices, and triggering",
           "status": "pending",
-          "description": "Handle partial and full fills for orders, considering that a single incoming order might be matched against multiple user orders and/or Binance liquidity. Update user order book state accordingly."
+          "description": "Develop logic for accepting user limit orders, storing them, continuously monitoring Binance market prices, and triggering them for execution when conditions are met."
         },
         {
           "id": "subtask_17_6",
-          "title": "Develop hybrid order book representation and management",
+          "title": "Implement Phase 2: Depth-aware execution (\"walking the book\") for market and triggered limit orders",
           "status": "pending",
-          "description": "Ensure the matching engine can effectively view and operate on a combined representation of local user orders and Binance market depth, making correct priority decisions."
+          "description": "Enhance matching logic to consume multiple levels of the Binance order book depth if an order cannot be fully filled at the best price or a triggered limit order can fill across levels up to its limit price."
+        },
+        {
+          "id": "subtask_17_7",
+          "title": "Implement fill processing logic: partial/full fills, order status updates, and trade event generation",
+          "status": "pending",
+          "description": "Develop robust logic to handle the results of matching attempts, including calculating fill amounts, updating order statuses (e.g., active, partially_filled, filled), and generating events/records for confirmed trades."
+        },
+        {
+          "id": "subtask_17_8",
+          "title": "Define and implement BE support for Phase 3: Visual feedback of liquidity consumption",
+          "status": "pending",
+          "description": "Specify and implement mechanisms for the backend to provide data points (e.g., consumed depth levels, fill progression) that can be used by a UI to visualize how an order interacts with market liquidity."
         }
       ]
     },
     {
       "id": 18,
       "title": "BE: Trade Execution & State Updates",
-      "description": "Implement the backend logic for trade execution when a match is found by the matching engine. This system must handle two distinct scenarios:\n1.  **User-to-User Trades:** Traditional exchange behavior where two user orders are matched. This involves atomically updating balances for both users (debit/credit fiat and crypto), creating a `Trade` record, and updating the status of both involved `Order` records in the database and in-memory order book.\n2.  **User-to-Binance Executions:** User orders are matched against Binance's external liquidity. This involves atomically updating only the participating user's balances, creating a `Trade` record that reflects Binance as the counterparty, and updating the user's `Order` record.\n\nAtomicity of database operations is critical for both scenarios.",
+      "description": "Implement the backend logic for simplified trade execution. When a match is provided by the matching engine (Task 17), this system will process the trade as a user execution against Binance, which acts as the price oracle and liquidity provider. There are no user-to-user settlements. The system must atomically update the user's balances (debiting the source currency, crediting the target currency), create a `Trade` record reflecting Binance as the counterparty, and update the status of the user's `Order` record in the database and in-memory order book. Atomicity of database operations is critical.",
       "status": "pending",
       "dependencies": [
         9,
@@ -620,37 +649,32 @@
         17
       ],
       "priority": "high",
-      "details": "The core responsibility is to process matched trades, whether they are internal User-to-User trades or external User-to-Binance executions. This involves atomic database updates for user balances, trade record creation, and order status management in both the database and the in-memory order book.\n\n**Key Requirements:**\n1.  **Differentiate Trade Types:** The system must distinguish between:\n    *   **User-to-User Trades:** Matches between two orders from users on our platform.\n    *   **User-to-Binance Executions:** Matches where a user's order is filled against Binance's liquidity.\n2.  **Atomicity:** All database operations for a single trade (balance updates, trade creation, order updates) must be performed within a single transaction to ensure data consistency.\n3.  **Trade Record:** A comprehensive `Trade` record must be created for every execution, indicating the type of trade.\n4.  **Order Updates:** Involved `Order` records must be updated (status, quantity remaining) in the database and reflected in the in-memory order book.\n\n**Detailed Process:**\n\n**I. Pre-Execution:**\n    1.  Upon receiving a match from the matching engine, determine if it's a User-to-User trade or a User-to-Binance execution.\n    2.  Start a database transaction.\n\n**II. User-to-User Trade Execution:**\n    1.  **Identify Parties:** Buyer user and Seller user.\n    2.  **Fiat Balances:**\n        *   Debit buyer's fiat account.\n        *   Credit seller's fiat account.\n    3.  **Crypto Balances:**\n        *   Debit seller's crypto holdings (for the traded crypto).\n        *   Credit buyer's crypto holdings (for the traded crypto).\n    4.  **Database Updates:** Persist changes to `Accounts` and `CryptoHoldings` tables for both users.\n    5.  **Trade Record Creation:** Create a new record in the `Trades` table.\n        *   Fields: `buyer_id` (buyer user's ID), `seller_id` (seller user's ID), `crypto_id`, `quantity`, `price`, `timestamp`, `trade_type` (e.g., 'USER_TO_USER').\n    6.  **Order Updates (Database):** For both the buyer's and seller's orders:\n        *   Update status (e.g., 'PARTIALLY_FILLED', 'FILLED').\n        *   Decrease `quantity_remaining`.\n    7.  **Order Updates (In-Memory):** Update or remove the corresponding orders from the in-memory order book.\n\n**III. User-to-Binance Trade Execution:**\n    1.  **Identify Party:** The user whose order is matched against Binance.\n    2.  **Balance Updates (User only):**\n        *   **If user is BUYING from Binance:**\n            *   Debit user's fiat account.\n            *   Credit user's crypto holdings.\n        *   **If user is SELLING to Binance:**\n            *   Credit user's fiat account.\n            *   Debit user's crypto holdings.\n    3.  **Database Updates:** Persist changes to the user's `Accounts` and `CryptoHoldings` tables.\n    4.  **Trade Record Creation:** Create a new record in the `Trades` table.\n        *   Fields:\n            *   If user buys: `buyer_id` (user's ID), `seller_id` (a designated system account ID for Binance).\n            *   If user sells: `seller_id` (user's ID), `buyer_id` (a designated system account ID for Binance).\n            *   Common fields: `crypto_id`, `quantity`, `price`, `timestamp`, `trade_type` (e.g., 'USER_TO_BINANCE').\n    5.  **Order Updates (Database):** For the user's order:\n        *   Update status (e.g., 'PARTIALLY_FILLED', 'FILLED').\n        *   Decrease `quantity_remaining`.\n    6.  **Order Updates (In-Memory):** Update or remove the user's order from the in-memory order book.\n\n**IV. Post-Execution (Common for both types):**\n    1.  **Commit Transaction:** If all operations succeed, commit the database transaction.\n    2.  **Rollback on Failure:** If any operation fails, roll back the entire transaction.\n    3.  **Event Emission:** Emit events (e.g., `TradeExecuted`, `BalanceUpdated`) to notify other services or for auditing.",
-      "testStrategy": "The test strategy must cover both User-to-User and User-to-Binance trade scenarios.\n\n1.  **User-to-User Trade Verification:**\n    *   Verify that after a trade, the buyer's fiat is debited, and crypto is credited correctly in the database.\n    *   Verify that the seller's fiat is credited, and crypto is debited correctly in the database.\n    *   Verify a `Trade` record is created with correct `buyer_id`, `seller_id`, `trade_type`='USER_TO_USER', and other trade details.\n    *   Verify that both involved `Order` statuses and `quantity_remaining` are correctly updated in the database.\n    *   Verify that both orders are correctly updated/removed from the in-memory order book.\n2.  **User-to-Binance Trade Verification:**\n    *   **User Buys from Binance:**\n        *   Verify user's fiat is debited, and crypto is credited correctly.\n        *   Verify no other internal user's balance is affected.\n        *   Verify `Trade` record with user as `buyer_id`, Binance system account as `seller_id`, and `trade_type`='USER_TO_BINANCE'.\n    *   **User Sells to Binance:**\n        *   Verify user's fiat is credited, and crypto is debited correctly.\n        *   Verify no other internal user's balance is affected.\n        *   Verify `Trade` record with user as `seller_id`, Binance system account as `buyer_id`, and `trade_type`='USER_TO_BINANCE'.\n    *   For both buy/sell scenarios with Binance:\n        *   Verify the user's `Order` status and `quantity_remaining` are correctly updated in the database.\n        *   Verify the user's order is correctly updated/removed from the in-memory order book.\n3.  **Atomicity Tests:**\n    *   Simulate failures at various points during the trade execution process (e.g., after debiting one user but before crediting another, or before creating the trade record).\n    *   Verify that the entire transaction is rolled back, and the system state remains consistent (no partial updates to balances or orders). This applies to both trade types.\n4.  **Concurrency Tests:**\n    *   Test concurrent trade executions to ensure data integrity and absence of race conditions.\n5.  **Edge Cases:**\n    *   Partial fills for both trade types.\n    *   Trades involving very small or very large quantities/prices.",
+      "details": "The core responsibility is to process matched trades from the simplified matching engine. All trades are user executions against Binance liquidity. This involves atomic database updates for the user's balances, trade record creation, and order status management in both the database and the in-memory order book.\n\n**Key Requirements:**\n1.  **Single Trade Execution Path:** All trades are processed as user orders filled against Binance liquidity.\n2.  **Atomicity:** All database operations for a single trade (balance updates, trade creation, order updates) must be performed within a single transaction to ensure data consistency.\n3.  **Trade Record:** A `Trade` record must be created for every execution, clearly identifying the user and Binance (as a designated system account) as counterparties. It should include a `trade_type` like 'EXTERNAL_LIQUIDITY_TRADE'.\n4.  **Order Updates:** The user's `Order` record must be updated (status, quantity remaining) in the database and reflected in the in-memory order book.\n\n**Detailed Process:**\n\n**I. Pre-Execution:**\n    1.  Upon receiving a match from the matching engine, identify the participating user and trade details.\n    2.  Start a database transaction.\n\n**II. Trade Execution Logic:**\n    1.  **Identify User:** The user whose order is matched.\n    2.  **Balance Updates (User only):**\n        *   **If user is BUYING the base asset:**\n            *   Debit user's quote currency account (e.g., USD).\n            *   Credit user's base currency holdings (e.g., BTC).\n        *   **If user is SELLING the base asset:**\n            *   Credit user's quote currency account (e.g., USD).\n            *   Debit user's base currency holdings (e.g., BTC).\n    3.  **Database Updates:** Persist changes to the user's `Accounts` (for fiat/quote currency) and `CryptoHoldings` (for crypto/base currency) tables.\n    4.  **Trade Record Creation:** Create a new record in the `Trades` table.\n        *   Fields:\n            *   If user buys base asset: `buyer_id` (user's ID), `seller_id` (a designated system account ID for Binance).\n            *   If user sells base asset: `seller_id` (user's ID), `buyer_id` (a designated system account ID for Binance).\n            *   Common fields: `crypto_id` (or `base_asset_id`), `quantity` (of base asset), `price` (in quote asset), `timestamp`, `trade_type` (e.g., 'EXTERNAL_LIQUIDITY_TRADE').\n    5.  **Order Updates (Database):** For the user's order:\n        *   Update status (e.g., 'PARTIALLY_FILLED', 'FILLED').\n        *   Decrease `quantity_remaining`.\n    6.  **Order Updates (In-Memory):** Update or remove the user's order from the in-memory order book.\n\n**III. Post-Execution:**\n    1.  **Commit Transaction:** If all operations succeed, commit the database transaction.\n    2.  **Rollback on Failure:** If any operation fails, roll back the entire transaction.\n    3.  **Event Emission:** Emit events (e.g., `TradeExecuted`, `BalanceUpdated`) to notify other services or for auditing.",
+      "testStrategy": "The test strategy must cover the simplified trade execution scenario against Binance liquidity.\n\n1.  **Trade Execution Verification:**\n    *   **User Buys Base Asset:**\n        *   Verify user's quote currency is debited, and base currency is credited correctly in the database.\n        *   Verify `Trade` record is created with user as `buyer_id`, Binance system account as `seller_id`, `trade_type`='EXTERNAL_LIQUIDITY_TRADE', and other trade details.\n    *   **User Sells Base Asset:**\n        *   Verify user's quote currency is credited, and base currency is debited correctly in the database.\n        *   Verify `Trade` record is created with user as `seller_id`, Binance system account as `buyer_id`, `trade_type`='EXTERNAL_LIQUIDITY_TRADE', and other trade details.\n    *   For both scenarios:\n        *   Verify the user's `Order` status and `quantity_remaining` are correctly updated in the database.\n        *   Verify the user's order is correctly updated/removed from the in-memory order book.\n2.  **Atomicity Tests:**\n    *   Simulate failures at various points during the trade execution process (e.g., after debiting user but before crediting, or before creating the trade record).\n    *   Verify that the entire transaction is rolled back, and the system state remains consistent (no partial updates to balances or orders).\n3.  **Concurrency Tests:**\n    *   Test concurrent trade executions to ensure data integrity and absence of race conditions.\n4.  **Edge Cases:**\n    *   Partial fills.\n    *   Trades involving very small or very large quantities/prices.",
       "subtasks": [
         {
           "id": "18_S1",
-          "title": "Define/Update `Trades` table schema to include `trade_type` (e.g., 'USER_TO_USER', 'USER_TO_BINANCE') and establish a method for representing Binance as a counterparty (e.g., using a designated system account ID in `buyer_id`/`seller_id` fields).",
+          "title": "Define/Update `Trades` table schema to establish a method for representing Binance as the counterparty (e.g., using a designated system account ID in `buyer_id`/`seller_id` fields) and include a simplified `trade_type` (e.g., 'EXTERNAL_LIQUIDITY_TRADE').",
           "status": "pending"
         },
         {
           "id": "18_S2",
-          "title": "Implement trade execution service entry point that accurately determines if a match corresponds to a User-to-User trade or a User-to-Binance execution.",
+          "title": "Implement the trade execution service entry point that receives matched orders from the simplified matching engine (Task 17).",
           "status": "pending"
         },
         {
           "id": "18_S3",
-          "title": "Implement User-to-User trade execution logic, including: atomic balance updates for both users (fiat and crypto), creation of `Trade` record with `trade_type`='USER_TO_USER', update of both `Order` records (DB and in-memory).",
+          "title": "Implement the core trade execution logic: atomically update user balances (debit source currency, credit target currency), create a `Trade` record with the user and Binance as counterparties, and update the user's `Order` record (status and quantity in DB and in-memory order book).",
           "status": "pending"
         },
         {
           "id": "18_S4",
-          "title": "Implement User-to-Binance trade execution logic, including: atomic balance updates for the single user (fiat and crypto), creation of `Trade` record with `trade_type`='USER_TO_BINANCE' and Binance as counterparty, update of the user's `Order` record (DB and in-memory).",
+          "title": "Implement robust database transaction management for all trade execution operations to ensure atomicity.",
           "status": "pending"
         },
         {
           "id": "18_S5",
-          "title": "Implement robust database transaction management covering all trade execution paths (User-to-User and User-to-Binance) to ensure atomicity of operations.",
-          "status": "pending"
-        },
-        {
-          "id": "18_S6",
-          "title": "Implement event emission for successful trades (e.g., `TradeExecutedEvent`, `BalanceUpdatedEvent`) for both User-to-User and User-to-Binance trade types.",
+          "title": "Implement event emission (e.g., `TradeExecuted`, `BalanceUpdated`) upon successful trade execution.",
           "status": "pending"
         }
       ]
@@ -658,7 +682,7 @@
     {
       "id": 19,
       "title": "BE: Real-time Order Book Broadcasting",
-      "description": "Implement a real-time broadcasting system for a hybrid order book. This hybrid order book combines user orders (local internal orders from platform users) and Binance order book data (external market liquidity). When changes occur (user order added/cancelled/filled, trade executed, or Binance data updates), the system must broadcast the complete hybrid order book state via WebSockets to all connected and subscribed frontend clients. This ensures transparency, allowing users to see both internal order activity and external market liquidity, potentially in a layered display.",
+      "description": "Implement a simplified real-time broadcasting system via WebSockets. This system will be developed in phases:\nPhase 1: Broadcast basic trade notifications and user balance updates.\nPhase 2: Broadcast live Binance order book data directly to clients.\nPhase 3: Enhance the system with visual consumption feedback, showing how user trades impact the displayed Binance order book.\nThis approach focuses on clean WebSocket messaging, direct streaming of Binance data, and providing users with clear feedback on their trading activity, ensuring a simple and maintainable architecture.",
       "status": "pending",
       "dependencies": [
         14,
@@ -666,44 +690,44 @@
         18
       ],
       "priority": "high",
-      "details": "1. **Hybrid Order Book Construction:**\n    *   Develop logic within `OrderBookService.js` or a new dedicated module to construct and maintain the hybrid order book.\n    *   This involves integrating local user orders with real-time data fetched from the Binance order book (e.g., via Task 18: BE: Binance Order Book Integration).\n    *   The broadcast data should facilitate a layered display where user orders are visible alongside or integrated with Binance market depth.\n\n2.  **Triggering Updates:**\n    *   The system must react to changes from multiple sources:\n        *   Local user order events: new order, cancellation, fill (partial or full) from `User Order Management` (Task 16).\n        *   Internal trade executions from the `MatchingEngine.js`.\n        *   Updates from the Binance order book data stream (Task 18).\n\n3.  **Broadcasting Mechanism:**\n    *   Utilize the WebSocket infrastructure (Task 14: BE: WebSocket Setup).\n    *   After any relevant change, serialize the *complete current state* of the hybrid order book for the specific trading pair.\n    *   Broadcast this data to clients subscribed to that pair.\n\n4.  **Data Format:**\n    *   Define a clear WebSocket message format. A suggested format that supports layered display:\n        `{ type: 'HYBRID_ORDER_BOOK_UPDATE', pair: 'SIM_BTC/SIM_USD', data: { bids: [{price, qty, source: 'user'|'binance'}, ...], asks: [{price, qty, source: 'user'|'binance'}, ...] } }`\n    *   The `source` attribute will help the frontend distinguish between user orders and Binance liquidity for the layered display.\n\n5.  **Integration Points:**\n    *   Ensure `MatchingEngine.js` and `OrderBookService.js` correctly trigger updates to the hybrid order book and its subsequent broadcast.\n    *   Leverage Task 18 for the source of Binance data.\n    *   Leverage Task 14 for the WebSocket broadcasting mechanism.\n    *   Leverage Task 16 for user order events.",
-      "testStrategy": "1. Verify that frontend clients receive WebSocket messages when the hybrid order book changes for a subscribed pair.\n2. Confirm that updates are triggered by:\n    *   New user orders.\n    *   User order cancellations.\n    *   User order fills (trades).\n    *   Updates from the Binance order book data stream.\n3. The data received by the client must accurately reflect the complete current state of the hybrid order book on the server, clearly distinguishing between user orders and Binance liquidity (e.g., via a 'source' field).\n4. Test scenarios with varying levels of user orders and Binance market depth to ensure correct merging and broadcasting.\n5. Ensure the broadcast data structure supports the intended layered display on the frontend.",
+      "details": "1.  **Phase 1: Trade Notifications & Balance Updates:**\n    *   Develop logic to capture trade execution events from `MatchingEngine.js`.\n    *   Broadcast trade details (pair, price, quantity, direction, timestamp) to involved users.\n    *   Broadcast user balance updates resulting from trades or other relevant actions (e.g., deposits, withdrawals, fee deductions if applicable).\n    *   Utilize WebSocket infrastructure (Task 14: BE: WebSocket Setup).\n\n2.  **Phase 2: Binance Order Book Broadcasting:**\n    *   Integrate with the Binance order book data stream (Task 18: BE: Binance Order Book Integration).\n    *   Stream the live Binance order book (bids and asks) for subscribed trading pairs directly to clients. This involves broadcasting snapshots or deltas of the Binance order book.\n\n3.  **Phase 3: Visual Consumption Feedback:**\n    *   When a user's market order executes against the Binance order book, identify the consumed liquidity.\n    *   Broadcast information to the client to visually indicate this consumption on the displayed Binance order book (e.g., highlighting affected price levels or quantities).\n\n4.  **WebSocket Messaging:**\n    *   Define clear WebSocket message formats. Suggested formats:\n        *   Trade Notification: `{ type: 'TRADE_EXECUTED', pair: 'SIM_BTC/SIM_USD', data: { tradeId, orderId, price, quantity, side, timestamp, fee, feeCurrency } }`\n        *   Balance Update: `{ type: 'BALANCE_UPDATE', data: { asset: 'SIM_USD', total: '1000.00', available: '950.00' } }` (per asset)\n        *   Binance Order Book: `{ type: 'BINANCE_ORDER_BOOK_UPDATE', pair: 'SIM_BTC/SIM_USD', data: { bids: [[price, qty], ...], asks: [[price, qty], ...], lastUpdateId: 12345678 } }`\n        *   Visual Consumption Feedback: `{ type: 'TRADE_IMPACT_ON_BOOK', pair: 'SIM_BTC/SIM_USD', data: { tradeId, consumedBids: [[price, qtyConsumed], ...], consumedAsks: [[price, qtyConsumed], ...] } }`\n\n5.  **Integration Points:**\n    *   `MatchingEngine.js`: Source for trade execution events.\n    *   `UserOrderService.js` / `AccountService.js`: For events leading to balance changes.\n    *   `BinanceStreamService.js` (from Task 18): Source for live Binance order book data.\n    *   WebSocket infrastructure (Task 14): For broadcasting messages to subscribed clients.",
+      "testStrategy": "1.  Verify that clients receive WebSocket messages for trade notifications when their orders are executed, containing accurate trade details.\n2.  Confirm that user balance updates are broadcast correctly and promptly after trades or other relevant account activities.\n3.  Ensure that live Binance order book data (snapshots or diffs) is streamed accurately and efficiently to subscribed clients for relevant pairs.\n4.  Test the visual consumption feedback mechanism:\n    *   Verify that messages indicating consumed liquidity from the Binance book are sent after user market orders execute.\n    *   Ensure the data provided is sufficient for the frontend to correctly visualize the impact on the displayed order book.\n5.  Validate the structure, content, and correctness of all defined WebSocket message types.\n6.  Test system performance and reliability with multiple connected clients, various trading pairs, and high-frequency updates.\n7.  Ensure proper subscription management for different message types and trading pairs.",
       "subtasks": [
         {
           "id": "19_1",
-          "title": "Design hybrid order book data structure and WebSocket message format",
+          "title": "Design WebSocket message formats for simplified broadcasting",
           "status": "pending",
-          "description": "Define the in-memory structure for the hybrid order book (combining user and Binance orders) and the precise JSON format for WebSocket messages broadcasting these updates. Ensure the format supports distinguishing order sources for layered display."
+          "description": "Define clear and efficient JSON formats for all WebSocket messages: trade notifications (e.g., `TRADE_EXECUTED`), user balance updates (e.g., `BALANCE_UPDATE`), live Binance order book data (e.g., `BINANCE_ORDER_BOOK_UPDATE` for snapshots/diffs), and visual consumption feedback (e.g., `TRADE_IMPACT_ON_BOOK`). Specify the exact payload for each message type."
         },
         {
           "id": "19_2",
-          "title": "Implement hybrid order book merging logic",
+          "title": "Implement broadcasting of trade notifications and balance updates (Phase 1)",
           "status": "pending",
-          "description": "Develop logic in `OrderBookService.js` or a new module to merge local user orders with incoming Binance order book data to form and maintain the consolidated hybrid order book."
+          "description": "Develop server-side logic (e.g., in a `NotificationService.js`) to capture trade execution events and balance change events. Broadcast these events as formatted WebSocket messages to the relevant subscribed clients."
         },
         {
           "id": "19_3",
-          "title": "Integrate user order events for hybrid book updates",
+          "title": "Integrate user trade and account events for notifications",
           "status": "pending",
-          "description": "Modify event handling for user order changes (add, cancel, fill) in `MatchingEngine.js` or `OrderBookService.js` to trigger updates and re-broadcasting of the hybrid order book."
+          "description": "Ensure that events from `MatchingEngine.js` (for trade executions) and services managing user accounts/orders (e.g., `UserOrderService.js`, `AccountService.js`) correctly trigger the broadcasting of trade notifications and balance updates through the notification system."
         },
         {
           "id": "19_4",
-          "title": "Integrate Binance data feed for hybrid book updates",
+          "title": "Implement broadcasting of live Binance order book data (Phase 2)",
           "status": "pending",
-          "description": "Connect the Binance data feed (from Task 18) to the hybrid order book module, ensuring that updates from the external market trigger recalculation and re-broadcasting of the hybrid order book."
+          "description": "Integrate the Binance data feed from `BinanceStreamService.js` (Task 18) with the WebSocket broadcasting module. Implement logic to stream live Binance order book data (bids, asks, and potentially update identifiers) for subscribed trading pairs to clients, using the format defined in `19_1`."
         },
         {
           "id": "19_5",
-          "title": "Implement WebSocket broadcasting of hybrid order book",
+          "title": "Implement visual consumption feedback on displayed order book (Phase 3)",
           "status": "pending",
-          "description": "Implement the mechanism to serialize the complete hybrid order book state and broadcast it via WebSockets to subscribed clients upon any relevant change."
+          "description": "Develop the server-side mechanism to identify liquidity consumed from the Binance order book by user market orders. Broadcast this information (e.g., via a `TRADE_IMPACT_ON_BOOK` message) to the client, enabling visual feedback on the displayed order book."
         },
         {
           "id": "19_6",
-          "title": "Develop tests for hybrid order book broadcasting",
+          "title": "Develop tests for simplified real-time broadcasting",
           "status": "pending",
-          "description": "Write unit and integration tests covering hybrid order book construction, update triggers from both user and Binance sources, and WebSocket broadcasting accuracy and data format."
+          "description": "Write comprehensive unit and integration tests covering: broadcasting of trade notifications, balance updates, live Binance order book data, and visual consumption feedback. Verify WebSocket message formats, data integrity, subscription logic, and timely delivery of messages."
         }
       ]
     },
