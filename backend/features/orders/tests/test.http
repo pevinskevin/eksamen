@@ -60,12 +60,10 @@ POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
 {
-  "data": {
     "cryptocurrencyId": 1,
     "orderType": "market",
     "orderVariant": "buy",
-    "quantity": 0.1
-  }
+    "quantityTotal": "0.1"
 }
 
 ### 11. Create new limit sell order successfully (should return 201)
@@ -73,13 +71,11 @@ POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
 {
-  "data": {
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "sell",
-    "quantity": 0.25,
-    "price": 60000
-  }
+    "quantityTotal": "0.25",
+    "price": "60000"
 }
 
 ### 12. Create order with missing required fields (should return 400)
@@ -87,10 +83,8 @@ POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
 {
-  "data": {
     "orderType": "limit",
     "orderVariant": "buy"
-  }
 }
 
 ### 13. Create order with malformed JSON (should return 400)
@@ -98,13 +92,11 @@ POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
 {
-  "data": {
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantity": 0.5,
-    "price": 50000,
-  }
+    "quantityTotal": "0.5",
+    "price": "50000",
 }
 
 ### 14. Create order without authentication (should return 401)
@@ -113,13 +105,11 @@ Content-Type: {{contentType}}
 Cookie: 
 
 {
-  "data": {
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantity": 0.5,
-    "price": 50000
-  }
+    "quantity": "0.5",
+    "price": "50000"
 }
 
 ### 15. Create order with insufficient balance (should return 402)
@@ -127,13 +117,11 @@ POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
 {
-  "data": {
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantity": 10000,
-    "price": 100000
-  }
+    "quantityTotal": "10000",
+    "price": "100000"
 }
 
 ### 16. Create order with invalid cryptocurrency ID (should return 404)
@@ -141,13 +129,11 @@ POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
 {
-  "data": {
     "cryptocurrencyId": 99999,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantity": 0.5,
-    "price": 50000
-  }
+    "quantity": "0.5",
+    "price": "50000"
 }
 
 ### 17. Create limit order without price (should return 422)
@@ -155,12 +141,10 @@ POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
 {
-  "data": {
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantity": 0.5
-  }
+    "quantity": "0.5"
 }
 
 ### 18. Create order with negative price (should return 422)
@@ -168,13 +152,11 @@ POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
 {
-  "data": {
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantity": 0.5,
-    "price": -1000
-  }
+    "quantity": "0.5",
+    "price": "-1000"
 }
 
 ### 19. Create order with zero quantity (should return 422)
@@ -182,13 +164,11 @@ POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
 {
-  "data": {
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantity": 0,
-    "price": 50000
-  }
+    "quantity": "0",
+    "price": "50000"
 }
 
 ### 20. Create order with negative quantity (should return 422)
@@ -196,13 +176,11 @@ POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
 {
-  "data": {
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantity": -0.5,
-    "price": 50000
-  }
+    "quantity": "-0.5",
+    "price": "50000"
 }
 
 ### 21. Create order with invalid order type (should return 422)
@@ -210,13 +188,11 @@ POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
 {
-  "data": {
     "cryptocurrencyId": 1,
     "orderType": "invalid",
     "orderVariant": "buy",
-    "quantity": 0.5,
-    "price": 50000
-  }
+    "quantity": "0.5",
+    "price": "50000"
 }
 
 ### 22. Create order with invalid order variant (should return 422)
@@ -224,13 +200,11 @@ POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
 {
-  "data": {
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "invalid",
-    "quantity": 0.5,
-    "price": 50000
-  }
+    "quantity": "0.5",
+    "price": "50000"
 }
 
 ### UPDATE ORDER TESTS ###
@@ -240,10 +214,8 @@ PUT {{baseUrl}}/order/{{orderId}}
 Content-Type: {{contentType}}
 
 {
-  "data": {
-    "quantity": 0.75,
-    "price": 55000
-  }
+    "quantity": "0.75",
+    "price": "55000"
 }
 
 ### 24. Update order with invalid data format (should return 400)
@@ -251,7 +223,7 @@ PUT {{baseUrl}}/order/{{orderId}}
 Content-Type: {{contentType}}
 
 {
-  "invalidField": "value"
+    "invalidField": "value"
 }
 
 ### 25. Update order without authentication (should return 401)
@@ -260,9 +232,7 @@ Content-Type: {{contentType}}
 Cookie: 
 
 {
-  "data": {
-    "price": 55000
-  }
+    "price": "55000"
 }
 
 ### 26. Update order that doesn't belong to user (should return 403)
@@ -273,9 +243,7 @@ PUT {{baseUrl}}/order/99999
 Content-Type: {{contentType}}
 
 {
-  "data": {
-    "price": 55000
-  }
+    "price": "55000"
 }
 
 ### 28. Update already executed order (should return 409)
@@ -286,9 +254,7 @@ PUT {{baseUrl}}/order/{{orderId}}
 Content-Type: {{contentType}}
 
 {
-  "data": {
     "status": "invalid_status"
-  }
 }
 
 ### DELETE ORDER TESTS ###

@@ -1,3 +1,4 @@
+import { ORDER_VARIANT } from '../../shared/validators/validators.js';
 export default class OrderRepository {
     constructor(db) {
         this.db = db;
@@ -21,6 +22,13 @@ export default class OrderRepository {
         return (await this.db.query(query)).rows.at(0);
     }
 
+    async findAllOpenBuyOrders(userId) {
+        const query = {
+            text: `SUM quantity_remaining FROM orders WHERE user_id = 1$ and order_status = $2 or order_status = $3`,
+            values: [userId, ORDER_VARIANT],
+        };
+    }
+
     async findAll(userId) {
         const query = {
             text: 'SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC',
@@ -29,15 +37,15 @@ export default class OrderRepository {
         return (await this.db.query(query)).rows;
     }
 
-    async save(cryptocurrencyId, orderType, orderVariant, quantity, price, userId) {
-        const quantityRemaining = quantity;
+    async save(cryptocurrencyId, orderType, orderVariant, quantityTotal, price, userId) {
+        const quantityRemaining = quantityTotal;
         const query = {
             text: 'INSERT INTO orders (cryptocurrency_id, order_type, order_variant, quantity_total, quantity_remaining, price, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
             values: [
                 cryptocurrencyId,
                 orderType,
                 orderVariant,
-                quantity,
+                quantityTotal,
                 quantityRemaining,
                 price,
                 userId,

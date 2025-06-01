@@ -958,6 +958,31 @@ components:
     #   name: connect.sid
 
   schemas:
+    # Reusable enum definitions (for reference - actual schemas use inline enums for readability)
+    UserRole:
+      type: string
+      enum: [user, admin]
+
+    OrderType:
+      type: string
+      enum: [limit, market]
+
+    OrderVariant:
+      type: string
+      enum: [buy, sell]
+
+    OrderStatus:
+      type: string
+      enum: [open, partially_filled, fully_filled, cancelled]
+
+    TransactionType:
+      type: string
+      enum: [deposit_fiat, withdrawal_fiat, deposit_crypto, withdrawal_crypto]
+
+    TransactionStatus:
+      type: string
+      enum: [pending, completed, failed]
+
     UserRegistration:
       type: object
       required:

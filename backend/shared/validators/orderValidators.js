@@ -3,6 +3,8 @@
  * Only contains rules that OpenAPI cannot enforce -- Claude Sonnet 4 generated.
  */
 import * as v from 'valibot';
+import { ORDER_TYPE, ORDER_VARIANT, ORDER_STATUS } from './validators.js';
+import { CryptocurrencyIdSchema } from './cryptoValidators.js';
 
 // Business rule: Positive integer IDs only
 const OrderIdSchema = v.pipe(
@@ -19,27 +21,12 @@ const OrderIdSchema = v.pipe(
     v.minValue(1, 'Order ID must be a positive integer (greater than 0)')
 );
 
-// Business rule: Cryptocurrency ID validation
-const CryptocurrencyIdSchema = v.pipe(
-    v.union([v.string(), v.number()]),
-    v.transform((input) => {
-        const num = typeof input === 'string' ? parseInt(input, 10) : input;
-        if (isNaN(num)) {
-            throw new Error('Cryptocurrency ID must be a valid number');
-        }
-        return num;
-    }),
-    v.number(),
-    v.integer(),
-    v.minValue(1, 'Cryptocurrency ID must be a positive integer (greater than 0)')
-);
-
 // Business rule: Order type validation
 const OrderTypeSchema = v.pipe(
     v.string('Order type must be a string'),
     v.trim(),
     v.toLowerCase(),
-    v.picklist(['limit', 'market'], 'Order type must be either "limit" or "market"')
+    v.picklist(Object.values(ORDER_TYPE), 'Order type must be either "limit" or "market"')
 );
 
 // Business rule: Order variant validation
@@ -47,7 +34,7 @@ const OrderVariantSchema = v.pipe(
     v.string('Order variant must be a string'),
     v.trim(),
     v.toLowerCase(),
-    v.picklist(['buy', 'sell'], 'Order variant must be either "buy" or "sell"')
+    v.picklist(Object.values(ORDER_VARIANT), 'Order variant must be either "buy" or "sell"')
 );
 
 // Business rule: Quantity validation (minimum trading amount)
@@ -87,7 +74,7 @@ const OrderStatusSchema = v.pipe(
     v.trim(),
     v.toLowerCase(),
     v.picklist(
-        ['open', 'partially_filled', 'fully_filled', 'cancelled'],
+        Object.values(ORDER_STATUS),
         'Order status must be one of: open, partially_filled, fully_filled, cancelled'
     )
 );
@@ -162,10 +149,6 @@ export const validateOrderStatusTransition = (currentStatus, newStatus) => {
     return v.parse(OrderStatusTransitionSchema, { currentStatus, newStatus });
 };
 
-export const validateCryptocurrencyId = (id) => {
-    return v.parse(CryptocurrencyIdSchema, id);
-};
-
 // Business rule validation for minimum order value (example business rule)
 export const validateMinimumOrderValue = (quantity, price, orderType) => {
     if (orderType === 'limit') {
@@ -193,7 +176,6 @@ export default {
     validateCreateOrder,
     validateUpdateOrder,
     validateOrderStatusTransition,
-    validateCryptocurrencyId,
     validateMinimumOrderValue,
 
     // Schema exports

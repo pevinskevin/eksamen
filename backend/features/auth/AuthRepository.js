@@ -1,3 +1,5 @@
+import { USER_ROLES } from '../../shared/validators/validators.js';
+
 export default class AuthRepository {
     constructor(db) {
         this.db = db;
@@ -13,7 +15,7 @@ export default class AuthRepository {
     async create(firstName, lastName, email, hashedPassword) {
         const createUserQuery = {
             text: 'INSERT INTO users (first_name, last_name, email, password_hash, role) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            values: [firstName, lastName, email, hashedPassword, 'user'],
+            values: [firstName, lastName, email, hashedPassword, USER_ROLES.USER],
         };
         return (await this.db.query(createUserQuery)).rows[0];
     }
