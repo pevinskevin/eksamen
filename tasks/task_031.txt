@@ -1,6 +1,6 @@
 # Task ID: 31
 # Title: BE: OpenAPI Specification Compliance
-# Status: pending
+# Status: done
 # Dependencies: 1, 2, 3, 4, 33
 # Priority: high
 # Description: Refactor all API endpoints to comply with OpenAPI specifications

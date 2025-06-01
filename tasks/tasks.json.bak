@@ -321,7 +321,7 @@
       "id": 12,
       "title": "BE: Order Placement API (Limit Orders)",
       "description": "Implement a backend API endpoint for users to place new buy or sell orders, supporting both 'limit' and 'market' order types as per the updated request structure. This endpoint must validate the order through a 4-layer architecture (Input Validation, Business Rules Validation, Balance Validation, Error Handling) and, if valid, store it in the `Orders` table with an 'open' status. The request structure is { cryptocurrency_id, type, order_type, quantity, price (optional for market orders) }.",
-      "status": "deferred",
+      "status": "done",
       "dependencies": [
         4,
         9,
@@ -350,7 +350,7 @@
             1
           ],
           "details": "This involves:\n**Layer 1: Input Validation (No Database Calls)**\n1.  Validate data types for all fields: `cryptocurrency_id` (integer), `type` (string), `order_type` (string), `quantity` (number), `price` (number, if present).\n2.  Validate required fields: `cryptocurrency_id`, `type`, `order_type`, `quantity` are always required.\n3.  Conditional `price` validation: `price` is required if `order_type` is 'limit'; optional if `order_type` is 'market'. If provided for market, it might be ignored or used as a ceiling, per system design.\n4.  Validate enum values: `type` must be 'buy' or 'sell'. `order_type` must be 'limit' or 'market'.\n5.  Validate numeric formats: `quantity` must be a positive number. `price` (if provided) must be a positive number. Adhere to any precision/min/max rules.\n\n**Layer 2: Business Rules Validation (Lightweight DB Calls)**\n1.  Validate `cryptocurrency_id`: Ensure it exists in the `cryptocurrencies` table.\n2.  Basic quantity/price validation (e.g., positive values) - primarily covered in Layer 1, re-verify if any DB-dependent rules apply here (e.g., lot sizes, tick sizes if defined).\n\nEnsure validation errors from both layers lead to appropriate early responses (e.g., HTTP 400 Bad Request or 422 Unprocessable Entity).",
-          "status": "deferred"
+          "status": "done"
         },
         {
           "id": 3,
@@ -360,7 +360,7 @@
             2
           ],
           "details": "This involves:\n1.  Retrieving the authenticated user's ID (from the auth middleware).\n2.  For 'buy' orders:\n    a.  Query the `accounts` table for the user's available SIM_USD balance.\n    b.  If `order_type` is 'limit', ensure `available_SIM_USD_balance >= quantity * price`.\n    c.  If `order_type` is 'market', the mechanism for determining the funds to hold (e.g., based on quantity and current market price or a buffer) needs to be defined. For this task, prioritize limit order logic.\n3.  For 'sell' orders:\n    a.  Query the `crypto_holdings_base` table for the user's available balance of the specified `cryptocurrency_id`.\n    b.  Ensure `available_crypto_balance >= quantity`.\n4.  Ensure the balance check considers only *available* funds (e.g., not funds locked in other open orders).\n5.  This logic is critical and should be callable from the order placement handler after Layer 1 and Layer 2 validations pass. If balance is insufficient, respond with an appropriate error (e.g., HTTP 400 or 422).",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
@@ -370,7 +370,7 @@
             3
           ],
           "details": "This involves:\n1.  Constructing the data object for the new order, including `user_id`, `cryptocurrency_id`, `type` (buy/sell), `order_type` (limit/market), `quantity_total` (from request `quantity`), `price` (from request `price` for limit orders; can be null for market orders if not provided or not applicable at creation), `status` ('open'), and `quantity_remaining` (initially equal to `quantity_total`), `created_at` (timestamp).\n2.  Using the project's database access layer (e.g., ORM, query builder, or raw SQL client) to insert the new record into the `Orders` table.\n3.  Ensure the operation is robust. Consider if this operation should be part of a larger transaction if funds are to be locked/deducted simultaneously (though fund movement might be handled by a separate ledger service or subsequent step).",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 5,
@@ -382,7 +382,7 @@
             4
           ],
           "details": "This involves:\n1.  Defining or adhering to a project-wide standardized JSON error response format (e.g., `{ \"error\": { \"message\": \"...\", \"code\": \"...\" } }`).\n2.  Handling errors from Layer 1 & 2 (Input and Business Rule Validation) with HTTP 400 (Bad Request) or HTTP 422 (Unprocessable Entity) for client-side errors. Include detailed messages indicating which field or rule failed.\n3.  Handling errors from Layer 3 (Balance Validation - e.g., insufficient funds) with an appropriate HTTP status (e.g., HTTP 400 or 422), with a clear message.\n4.  Handling potential errors during database interaction (Order Creation in Subtask 4) with HTTP 500 (Internal Server Error) for unexpected server-side issues.\n5.  Ensuring all success responses (e.g., HTTP 201 Created for new order) also follow a consistent format, returning relevant information about the created order.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
@@ -701,7 +701,7 @@
       "description": "Refactor all API endpoints to comply with OpenAPI specifications",
       "details": "Create OpenAPI specification document and ensure all endpoints follow standards for request/response formats, status codes, error responses, and data schemas. Add validation middleware and documentation generation.",
       "testStrategy": "",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1,
         2,
@@ -718,7 +718,7 @@
       "description": "Remove all error handling from services and repositories, centralizing it in routers",
       "details": "Refactor the backend architecture to move all try-catch blocks and error handling logic from service and repository layers to their respective routers. Services and repositories should throw errors and let routers handle HTTP responses and status codes.",
       "testStrategy": "",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1,
         2,
@@ -726,7 +726,62 @@
         4
       ],
       "priority": "high",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Audit Current Error Handling in Services and Repositories",
+          "description": "Review all existing service and repository files to identify current error handling patterns and try-catch blocks that need to be moved to routers",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 32
+        },
+        {
+          "id": 2,
+          "title": "Refactor User Services to Remove Error Handling",
+          "description": "Remove try-catch blocks from user services and let them throw errors instead",
+          "details": "",
+          "status": "done",
+          "dependencies": [
+            1
+          ],
+          "parentTaskId": 32
+        },
+        {
+          "id": 3,
+          "title": "Refactor Other Services (Crypto, Account, Order) to Remove Error Handling",
+          "description": "Remove try-catch blocks from cryptocurrency, account, and order services",
+          "details": "",
+          "status": "done",
+          "dependencies": [
+            1
+          ],
+          "parentTaskId": 32
+        },
+        {
+          "id": 4,
+          "title": "Update All Routers with Centralized Error Handling",
+          "description": "Add proper try-catch blocks and error handling to all router files to handle errors thrown by services",
+          "details": "",
+          "status": "done",
+          "dependencies": [
+            2,
+            3
+          ],
+          "parentTaskId": 32
+        },
+        {
+          "id": 5,
+          "title": "Test and Verify Error Handling Refactor",
+          "description": "Test all endpoints to ensure error handling works correctly and consistently across all routers",
+          "details": "<info added on 2025-06-01T14:09:48.577Z>\nSuccessfully identified and fixed authentication middleware OpenAPI compliance issue. Authentication error handling now works correctly:\n\nFixed authentication middleware to use sendUnauthorized helper.\nVerified accounts endpoint returns proper 401 with error object.\nVerified orders endpoint returns proper 401 with error object.\nRemoved hardcoded authentication bypass (completed Task 35).\n\nThe error handling refactor is working correctly. All routers have comprehensive try-catch blocks and proper error response formatting.\n</info added on 2025-06-01T14:09:48.577Z>\n<info added on 2025-06-01T14:11:53.726Z>\nCompleted comprehensive error handling verification across all routers:\n\nAuthentication Errors: 401 responses with proper error format\nValidation Errors: 400/422 responses for OpenAPI and custom validation\nBusiness Logic Errors: 409 for conflicts, 422 for custom business rules\nResource Not Found: 404 responses with proper error messages\nInput Validation: 400 responses for malformed parameters\nAuthenticated Endpoints: Proper success responses with valid sessions\nAuthenticated Error Handling: 404 errors work correctly in authenticated context\n\nAll routers consistently use proper error response format:\n{\n  \"error\": \"ErrorType\",\n  \"message\": \"Descriptive error message\"\n}\n\nStatus codes are appropriate:\n- 400: Bad Request (OpenAPI validation)\n- 401: Unauthorized (authentication required)\n- 404: Not Found (resource doesn't exist)\n- 409: Conflict (duplicate resources)\n- 422: Unprocessable Entity (business rule violations)\n\nError handling refactor is complete and working perfectly.\n</info added on 2025-06-01T14:11:53.726Z>",
+          "status": "done",
+          "dependencies": [
+            4
+          ],
+          "parentTaskId": 32
+        }
+      ]
     },
     {
       "id": 33,
@@ -734,7 +789,7 @@
       "description": "Create comprehensive validation schemas for all existing features using a validation library",
       "details": "Implement validation schemas for all existing backend features including users, auth, cryptocurrencies, accounts, and orders. Choose and integrate a validation library (e.g., Joi, Yup, or Zod) and create reusable validation schemas for request bodies, query parameters, and response data. This includes validation for registration, login, cryptocurrency data, account balances, and order placement.",
       "testStrategy": "",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1,
         2,
@@ -758,6 +813,105 @@
         33
       ],
       "priority": "low",
+      "subtasks": []
+    },
+    {
+      "id": 35,
+      "title": "BE: Fix Authentication Middleware Security Bypass",
+      "description": "Remove hardcoded authentication bypass from backend/shared/middleware/authorisation.js. The middleware currently hardcodes userId=1 and role='admin' for all requests instead of validating sessions. This creates a critical security vulnerability.",
+      "details": "1. Remove the hardcoded authentication bypass (lines 9-14 in authorisation.js)\n2. Uncomment and restore the proper session validation logic (lines 2-8)\n3. Ensure proper 401 responses for unauthenticated requests\n4. Verify req.user is correctly populated from session data\n5. Test all protected endpoints to ensure authentication works correctly\n\nThis is critical for application security before any production deployment.",
+      "testStrategy": "1. Test that protected routes return 401 when no session cookie is sent\n2. Test that protected routes return 401 when session exists but userId is missing\n3. Test that protected routes allow access when valid session exists\n4. Verify req.user is correctly populated with session data\n5. Test logout functionality properly destroys sessions",
+      "status": "done",
+      "dependencies": [
+        32,
+        33
+      ],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 36,
+      "title": "BE: Restore OpenAPI Cookie Authentication Validation",
+      "description": "Ensure the OpenAPI specification properly validates cookie authentication and that the cookieAuth security scheme is correctly configured for all protected endpoints.",
+      "details": "1. Verify the cookieAuth security scheme is properly defined in openapi.yml components/securitySchemes\n2. Ensure all protected endpoints have the 'security: - cookieAuth: []' declaration\n3. Confirm the OpenAPI validation middleware correctly validates cookies before requests reach application middleware\n4. Test that OpenAPI validation rejects requests without proper cookies\n5. Ensure API documentation accurately reflects authentication requirements\n\nThis provides the first line of defense and ensures API documentation accuracy.",
+      "testStrategy": "1. Test that OpenAPI validation rejects requests without connect.sid cookie\n2. Test that OpenAPI validation rejects requests with invalid session IDs\n3. Verify protected endpoints in API docs show authentication requirement\n4. Test that valid authenticated requests pass OpenAPI validation\n5. Confirm error responses match OpenAPI specification",
+      "status": "deferred",
+      "dependencies": [
+        31,
+        35
+      ],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 37,
+      "title": "Test AI Functionality with Google API Key",
+      "description": "Perform comprehensive testing to verify that the Task Master AI features, integrated with the newly added Google API key, are operating correctly and delivering accurate results.",
+      "details": "This task involves end-to-end testing of all AI-powered functionalities within the Task Master application.\nKey objectives include:\n1.  Confirmation that the Google API key is correctly configured and utilized by the AI modules.\n2.  Identification and systematic testing of each specific AI feature (e.g., AI-assisted task description generation, dependency suggestion, content summarization, etc.).\n3.  Validation of AI feature inputs, processing logic (at a high level), and output accuracy and relevance.\n4.  Ensuring backend services/APIs supporting these AI features are stable and responsive.\n5.  Verifying robust error handling for scenarios such as Google API errors (e.g., quota limits, invalid key, network connectivity issues) or invalid inputs to AI features.",
+      "testStrategy": "1. **Environment & Configuration Verification**:\n    *   Confirm the Google API key is securely configured and accessible in the testing environment.\n    *   Ensure all AI-related modules/services are deployed and running.\n2.  **AI Feature Inventory & Test Case Design**:\n    *   Compile an exhaustive list of all implemented Task Master AI features.\n    *   For each feature, design specific test cases covering:\n        *   **Positive Scenarios**: Valid inputs expected to yield successful AI processing and relevant outputs.\n        *   **Edge Cases**: Inputs that test the boundaries of expected behavior.\n        *   **Negative Scenarios (Input Validation)**: Invalid or malformed inputs to ensure graceful error handling by the system before AI invocation (if applicable).\n3.  **Functional Testing (Per AI Feature)**:\n    *   Execute positive test cases: Provide valid inputs and meticulously verify the AI-generated output for accuracy, relevance, and correct formatting.\n    *   Execute edge case test cases: Observe system behavior and AI output.\n    *   Execute negative input test cases: Confirm user-friendly error messages and system stability.\n4.  **Google API Interaction & Error Handling Tests**:\n    *   Simulate Google API unavailability or errors (if feasible in a controlled test environment, e.g., by temporarily revoking/misconfiguring the key or using mock services that simulate error responses).\n    *   Verify that the Task Master application handles these external errors gracefully (e.g., informative messages to the user, proper logging, no crashes).\n    *   Test with a valid key that might hit a (test) quota limit if possible, to see how that's handled.\n5.  **Output Validation**:\n    *   For features generating text or suggestions, assess the quality, coherence, and usefulness of the AI output against predefined criteria or expert judgment.\n    *   For features making predictions or classifications, compare results against known outcomes if possible.\n6.  **Logging & Monitoring Review**:\n    *   Inspect application logs during testing for any errors, warnings, or unexpected behavior related to AI feature execution or Google API calls.\n    *   Verify that successful operations and significant errors are logged appropriately for diagnostics.\n7.  **Basic Performance Check**:\n    *   For interactive AI features, assess if the response time is acceptable from a user experience perspective. This is an observational check, not a formal load test.",
+      "status": "pending",
+      "dependencies": [
+        35,
+        36
+      ],
+      "priority": "low",
+      "subtasks": []
+    },
+    {
+      "id": 38,
+      "title": "Simple MCP AI Functionality Verification",
+      "description": "Perform a targeted, simple test to confirm a core capability of the MCP AI (Task Master AI) is functioning as expected, post-integration with the Google API key and initial comprehensive testing.",
+      "details": "1. Prerequisite: MCP AI (Task Master AI) has been integrated with the Google API key and has undergone comprehensive testing (as per Task 37).\n2. Identify a single, straightforward AI function to test. Example: Given a short user story, the AI should generate 3 relevant tags.\n3. Input: A specific, concise user story (e.g., \"As a user, I want to reset my password so I can regain access to my account.\").\n4. Expected Output: A list of 3 relevant tags (e.g., [\"password reset\", \"account recovery\", \"security\"]). The expected tags should be predefined for the chosen test case.\n5. Execution:\n    a. Access the MCP AI interface or API endpoint.\n    b. Provide the defined input user story.\n    c. Capture the AI's generated tags.",
+      "testStrategy": "1. Verify the MCP AI endpoint is accessible and responsive.\n2. Submit the predefined user story to the AI.\n3. Collect the generated tags from the AI's response.\n4. Compare the generated tags against the predefined expected tags. The test passes if the generated output sufficiently matches the expected output (e.g., at least 2 out of 3 tags match or are clear semantic equivalents, or as defined by the specific test case criteria).\n5. Document the input, expected output, actual output, and pass/fail result. Note any discrepancies or unexpected behavior for further review.",
+      "status": "done",
+      "dependencies": [
+        37
+      ],
+      "priority": "low",
+      "subtasks": []
+    },
+    {
+      "id": 39,
+      "title": "BE: Implement Google OAuth 2.0 Login Integration",
+      "description": "Integrate Google OAuth 2.0 to allow users to sign in or register using their Google accounts. This involves backend setup for the OAuth flow, handling Google's callback, and managing user account creation/linking and session state.",
+      "details": "### 1. Google Cloud Project Setup:\n   - Navigate to the Google Cloud Console.\n   - Create a new project or select an existing one.\n   - Enable the \"Google People API\" under \"APIs & Services -> Enabled APIs & Services\".\n   - Configure the OAuth consent screen under \"APIs & Services -> OAuth consent screen\":\n     - Specify User Type (e.g., External).\n     - Provide App name, User support email, App logo (optional).\n     - Add Scopes: `openid`, `https://www.googleapis.com/auth/userinfo.email`, `https://www.googleapis.com/auth/userinfo.profile`.\n     - Fill in developer contact information.\n   - Create OAuth 2.0 Client ID under \"APIs & Services -> Credentials\":\n     - Select Application type: \"Web application\".\n     - Name it (e.g., \"Exchange App Web Client\").\n     - Add Authorized JavaScript origins (e.g., frontend URL like `http://localhost:3001`).\n     - Add Authorized redirect URIs for the backend (e.g., `http://localhost:3000/api/auth/google/callback`).\n     - Securely store the generated Client ID and Client Secret (e.g., in environment variables).\n\n### 2. Backend Implementation (using Passport.js):\n   - Install necessary packages: `npm install passport passport-google-oauth20 express-session`.\n   - Ensure `express-session` middleware is configured and initialized before Passport middleware. This might be partially covered by Task 4 but ensure it's compatible with Passport's session needs.\n   - Initialize Passport middleware: `app.use(passport.initialize()); app.use(passport.session());`.\n   - Configure `passport-google-oauth20` strategy:\n     ```javascript\n     passport.use(new GoogleStrategy({\n       clientID: process.env.GOOGLE_CLIENT_ID,\n       clientSecret: process.env.GOOGLE_CLIENT_SECRET,\n       callbackURL: '/api/auth/google/callback',\n       scope: ['profile', 'email']\n     },\n     async (accessToken, refreshToken, profile, done) => {\n       try {\n         const googleId = profile.id;\n         const email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;\n         const firstName = profile.name ? profile.name.givenName : '';\n         const lastName = profile.name ? profile.name.familyName : '';\n\n         if (!email) {\n           return done(new Error('Email not provided by Google.'), null);\n         }\n\n         let user = await User.findOne({ where: { googleId: googleId } });\n         if (user) {\n           return done(null, user);\n         }\n\n         user = await User.findOne({ where: { email: email } });\n         if (user) {\n           // Link Google ID to existing email account\n           user.googleId = googleId;\n           // Optionally update name fields if they are empty or prefer Google's\n           user.firstName = user.firstName || firstName;\n           user.lastName = user.lastName || lastName;\n           user.isEmailVerified = true; // Google verifies email\n           await user.save();\n           return done(null, user);\n         }\n\n         // Create new user\n         const newUser = await User.create({\n           googleId: googleId,\n           email: email,\n           firstName: firstName,\n           lastName: lastName,\n           isEmailVerified: true, // Email from Google is considered verified\n           // Password field can be null or a placeholder if schema requires it for OAuth users\n           // Ensure User model (from Task 3) accommodates this\n         });\n         return done(null, newUser);\n       } catch (err) {\n         return done(err, null);\n       }\n     }));\n     ```\n   - Implement Passport `serializeUser` and `deserializeUser` for session management:\n     ```javascript\n     passport.serializeUser((user, done) => {\n       done(null, user.id); // Assuming user object has an 'id' property (PK)\n     });\n\n     passport.deserializeUser(async (id, done) => {\n       try {\n         const user = await User.findByPk(id);\n         done(null, user);\n       } catch (err) {\n         done(err);\n       }\n     });\n     ```\n   - Update User model/schema (from Task 2/3) to include `googleId` (String, unique, nullable), `firstName`, `lastName`, and `isEmailVerified` (Boolean) fields if not already present.\n\n### 3. API Routes:\n   - **`GET /api/auth/google`**: Initiates the Google OAuth flow.\n     ```javascript\n     router.get('/auth/google', passport.authenticate('google'));\n     ```\n   - **`GET /api/auth/google/callback`**: Handles the callback from Google.\n     ```javascript\n     router.get('/auth/google/callback',\n       passport.authenticate('google', {\n         successRedirect: process.env.GOOGLE_OAUTH_SUCCESS_REDIRECT_URL || '/dashboard',\n         failureRedirect: process.env.GOOGLE_OAUTH_FAILURE_REDIRECT_URL || '/login?error=google_auth_failed',\n         failureMessage: true // Store failure message in req.session.messages\n       })\n     );\n     ```\n   - Ensure these routes adhere to OpenAPI specifications (Task 31) and centralized error handling (Task 32).\n\n### 4. Session Management:\n   - Successful authentication via Passport will establish a session using `express-session` and populate `req.user`.\n   - This session should be compatible with the authentication middleware from Task 4.",
+      "testStrategy": "### 1. Unit Tests (e.g., Jest, Mocha):\n   - Test the Passport strategy's verify callback logic extensively:\n     - Mock `User.findOne`, `User.create`, `user.save`.\n     - Scenario: User found by `googleId`.\n     - Scenario: User found by `email` (account linking), verify `googleId` and `isEmailVerified` are updated.\n     - Scenario: New user creation, verify all fields are set correctly.\n     - Scenario: Google profile does not provide an email.\n     - Scenario: Database errors during find or save operations.\n   - Test `serializeUser` and `deserializeUser` with mock user objects and IDs.\n\n### 2. Integration Tests (e.g., Supertest):\n   - Test `GET /api/auth/google` endpoint:\n     - Verify it returns a 302 redirect.\n     - Verify the `Location` header in the response points to Google's OAuth URL with correct parameters (client_id, redirect_uri, scope, response_type).\n   - Test `GET /api/auth/google/callback` (requires mocking Google's response or a more complex setup):\n     - Simulate a successful callback from Google: Mock `passport.authenticate` or the strategy execution to return a mock user.\n       - Verify session cookie is set.\n       - Verify redirection to `successRedirect` URL.\n     - Simulate a failed callback from Google:\n       - Verify redirection to `failureRedirect` URL.\n       - Verify appropriate error message is available (e.g., in session or query param).\n\n### 3. Manual End-to-End Testing:\n   - **Prerequisites**: Frontend with a \"Sign in with Google\" button pointing to `/api/auth/google`.\n   - **Scenario 1: New User Registration**\n     - Use a Google account not previously registered in the application.\n     - Click \"Sign in with Google\", authenticate with Google, grant permissions.\n     - Verify successful redirection to the application's dashboard or specified success URL.\n     - Check database: A new user record should exist with `googleId`, email, name from Google, and `isEmailVerified` set to true.\n     - Verify session is active and user can access protected routes.\n   - **Scenario 2: Existing Google User Login**\n     - Log out. Use the same Google account from Scenario 1.\n     - Click \"Sign in with Google\".\n     - Verify successful login and redirection without creating a new user account.\n   - **Scenario 3: Linking Google to Existing Email Account**\n     - Create an account using traditional email/password (e.g., `test.user@example.com`).\n     - Log out. Click \"Sign in with Google\" using a Google account associated with `test.user@example.com`.\n     - Verify successful login. Check database: The existing user record for `test.user@example.com` should now have its `googleId` field populated and `isEmailVerified` set to true.\n   - **Scenario 4: Google Authentication Failure**\n     - On Google's consent screen, deny permission or simulate an error from Google's side.\n     - Verify redirection to the specified `failureRedirect` URL with an appropriate error indicator.\n   - **Scenario 5: Session Persistence**\n     - After logging in with Google, close and reopen the browser (if session is persistent) or navigate within the app.\n     - Verify the user remains logged in and the session is correctly managed by the middleware from Task 4.\n\n### 4. Security Checks:\n   - Verify Client ID and Client Secret are stored securely as environment variables and not exposed client-side.\n   - Ensure the `redirect_uri` configured in Google Cloud Console exactly matches the one used by the backend to prevent open redirector vulnerabilities.",
+      "status": "pending",
+      "dependencies": [
+        3,
+        4,
+        31,
+        32,
+        33
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 40,
+      "title": "Refactor Validation to Express.js Middleware with Valibot",
+      "description": "Refactor existing validation logic from service layers to a centralized Express.js middleware pattern using Valibot schemas. This will improve separation of concerns and standardize error handling for request validation.",
+      "details": "This task involves creating reusable Express.js middleware for request validation using the Valibot schemas developed in Task 33. Key steps include:\n1. Develop a generic validation middleware factory function. This function should accept a Valibot schema as an argument.\n2. The middleware should parse and validate `req.body`, `req.params`, and `req.query` against the provided schema.\n3. Upon successful validation, the middleware should call `next()` to pass control to the next handler. If Valibot parsing results in transformed/parsed data, it should be attached to `req` (e.g., `req.validatedData = parsedOutput`).\n4. If validation fails, the middleware must not call `next()`. Instead, it should immediately respond with a 400 Bad Request status and a JSON body detailing the validation errors, utilizing Valibot's error reporting capabilities for clear messages.\n5. Identify all routes currently performing validation within their service/controller logic.\n6. Integrate the new validation middleware into these Express routes, applying the appropriate Valibot schema for each.\n   Example: `router.post('/resource', validationMiddleware(resourceCreateSchema), resourceController.createResource);`\n7. Remove all data validation logic from the service layer methods. Services should now assume that incoming data has been pre-validated and is schema-compliant.\n8. Ensure that this refactoring centralizes validation error handling, providing consistent error responses across the API for input validation issues.",
+      "testStrategy": "Verify the correct implementation through a combination of unit and integration tests:\n1. **Unit Tests for Validation Middleware**:\n   - Create test suites for the generic validation middleware factory.\n   - Test with various Valibot schemas (covering `body`, `params`, `query`).\n   - Mock `req`, `res`, `next` objects.\n   - Assert that `next()` is called when provided with valid data matching the schema.\n   - Assert that `res.status(400).json()` is called with a correctly structured error payload (derived from Valibot errors) when provided with invalid data, and `next()` is not called.\n   - Verify that parsed and validated data is correctly attached to the `req` object if applicable.\n2. **Integration Tests for Routes**:\n   - For each API endpoint refactored to use the new validation middleware:\n     - Send requests with valid payloads: Confirm the request passes validation, reaches the controller/service, and returns the expected successful response (e.g., 200 OK, 201 Created).\n     - Send requests with various invalid payloads (e.g., missing required fields, incorrect data types, values violating schema constraints): Confirm a 400 Bad Request response is returned with a JSON body detailing the specific validation errors. Ensure the underlying service logic is not executed.\n3. **Service Layer Tests Verification**:\n   - Review and update existing service layer tests to ensure they no longer test for input validation that is now handled by the middleware. Service tests should focus on business logic, assuming valid inputs.\n4. **Manual API Testing**:\n   - Use an API client (e.g., Postman) to manually test a selection of refactored endpoints with diverse valid and invalid inputs to confirm behavior and consistent error responses.",
+      "status": "deferred",
+      "dependencies": [
+        33
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 41,
+      "title": "BE: Refactor OrderService for Improved Maintainability and Testability",
+      "description": "Refactor `save()` and `updateByUserAndOrderId()` methods in `OrderService.js` to eliminate code duplication, simplify complex logic using patterns like Strategy, and improve error handling and validation. This will enhance code maintainability, testability, and robustness of the core order processing functionality.",
+      "details": "The refactoring of `OrderService.js` methods `save()` and `updateByUserAndOrderId()` will involve the following key activities:\n1.  **Balance Validation Logic Extraction:**\n    *   Identify and consolidate the balance validation logic currently duplicated in `save()` and `updateByUserAndOrderId()`.\n    *   Create a private method, e.g., `_validateAndReserveBalance(userId, orderDetails, existingOrder = null)`, responsible for verifying sufficient funds for both new orders and updates that might affect cost. This method should handle both fiat and crypto balances and consider existing reserved amounts if an order is being updated.\n    *   Refactor `save()` and `updateByUserAndOrderId()` to call this unified balance validation method.\n2.  **Dedicated Buy/Sell Order Processing Handlers:**\n    *   Create distinct private helper methods for buy and sell order logic, e.g., `_processNewBuyOrder(orderData, user)` and `_processNewSellOrder(orderData, user)` for the `save()` method.\n    *   Similarly, create `_processBuyOrderUpdate(orderData, existingOrder, user)` and `_processSellOrderUpdate(orderData, existingOrder, user)` for `updateByUserAndOrderId()` if update logic significantly differs based on order side.\n    *   These handlers will manage specifics like debiting/crediting the correct accounts, unique validation rules, and calculating costs/proceeds for buy vs. sell orders.\n3.  **Strategy Pattern for Order Type/Variant Processing:**\n    *   Define an `IOrderTypeStrategy` interface with methods like `validateOrderTypeSpecifics(orderData, existingOrder = null)`, `calculateCostAndFees(orderData)`, and `prepareOrderAttributes(orderData)`.\n    *   Implement concrete classes such as `LimitOrderStrategy` and `MarketOrderStrategy`.\n    *   `OrderService` methods (`save` and `updateByUserAndOrderId`) will use a context or factory to select and delegate to the appropriate strategy based on `orderData.order_type`. This will replace complex nested conditional structures for order type and variant checking.\n4.  **Consolidate Common Logic & Reduce Duplication:**\n    *   Review `save()` and `updateByUserAndOrderId()` for any remaining duplicated code beyond balance validation and type-specific processing (e.g., common database interaction patterns for creating/updating order records, status transitions, audit logging).\n    *   Extract these into well-named private helper methods to ensure DRY principles are followed throughout the service.\n5.  **Improved Error Handling and Validation Flow:**\n    *   Standardize error responses using specific, custom error classes (e.g., `InsufficientBalanceError`, `InvalidOrderParametersError`, `OrderUpdateNotAllowedError`).\n    *   Refine the validation sequence to be clear, efficient, and fail-fast. Ensure comprehensive validation of all input parameters and business rules.\n    *   Ensure all database operations within `save()` and `updateByUserAndOrderId()` are wrapped in transactions to maintain data integrity.\n6.  **Refactor `updateByUserAndOrderId()` Method:**\n    *   Specifically address the `updateByUserAndOrderId()` method to ensure it fully leverages the new extracted logic (balance validation, strategy pattern for any type-specific update rules, buy/sell handlers if applicable).\n    *   Clearly define which order attributes are updatable by users and enforce these limitations. Validate order status to prevent updates to non-updatable orders (e.g., filled, cancelled).\n    *   Ensure that updates correctly interact with the order's lifecycle and status transitions, and re-validate balances if necessary (e.g., if quantity is increased).",
+      "testStrategy": "Verification of the refactored `OrderService.js` will be achieved through comprehensive unit testing:\n1.  **Unit Tests for Extracted Private Methods:**\n    *   For `_validateAndReserveBalance`: Test with sufficient/insufficient fiat/crypto balances for new orders and updates, various user scenarios, and correct handling of existing reservations.\n    *   For `_processNewBuyOrder`/`_processNewSellOrder` (and update counterparts): Test correct processing flow, data transformation, and interaction with mocked dependencies for buy/sell specific logic.\n2.  **Unit Tests for Strategy Pattern Components:**\n    *   For each `IOrderTypeStrategy` implementation (e.g., `LimitOrderStrategy`, `MarketOrderStrategy`):\n        *   Test `validateOrderTypeSpecifics()` with valid and invalid order data specific to that type (e.g., presence/absence of price for limit/market).\n        *   Test `calculateCostAndFees()` for accurate calculations under various conditions.\n        *   Test `prepareOrderAttributes()` for correct construction of order attributes specific to the type.\n3.  **Unit Tests for `save()` Method (Orchestration Logic):**\n    *   Mock all dependencies (database repository, strategy processors, private helper methods).\n    *   Verify that `save()` correctly orchestrates calls to these components for various scenarios: successful limit buy/sell, successful market buy/sell, failures due to balance validation, failures due to order type specific validation, and correct error propagation.\n4.  **Unit Tests for `updateByUserAndOrderId()` Method (Orchestration Logic):**\n    *   Mock all dependencies.\n    *   Verify correct orchestration for scenarios: successful updates (e.g., quantity/price changes if allowed), attempts to update non-existent orders, unauthorized updates (if service layer checks exist), updates to orders in non-updatable states, updates failing due to re-validation (e.g., balance check for increased quantity), and correct error propagation.\n5.  **Error Handling Tests:**\n    *   Ensure that custom error classes are thrown correctly by the service under appropriate failure conditions (e.g., `InsufficientBalanceError`, `InvalidOrderParametersError`).\n    *   Verify that database transaction rollbacks are correctly handled/simulated in tests upon service method failure.\n6.  **Test Coverage:**\n    *   Utilize a code coverage tool (e.g., Jest's built-in coverage) to ensure a high percentage (target >90%) of the refactored code in `OrderService.js` is covered by unit tests, especially critical paths and decision points.\n7.  **Regression Testing:**\n    *   Ensure all existing unit tests related to `OrderService` (if any) continue to pass after refactoring.\n    *   If available, run relevant integration tests that involve order creation and updates to catch any unintended side effects not covered by unit tests.",
+      "status": "pending",
+      "dependencies": [
+        12,
+        18
+      ],
+      "priority": "medium",
       "subtasks": []
     }
   ]

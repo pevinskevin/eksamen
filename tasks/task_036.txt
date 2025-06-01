@@ -1,6 +1,6 @@
 # Task ID: 36
 # Title: BE: Restore OpenAPI Cookie Authentication Validation
-# Status: pending
+# Status: deferred
 # Dependencies: 31, 35
 # Priority: high
 # Description: Ensure the OpenAPI specification properly validates cookie authentication and that the cookieAuth security scheme is correctly configured for all protected endpoints.

@@ -3,9 +3,84 @@
 # Status: pending
 # Dependencies: 16
 # Priority: high
-# Description: Develop the core order matching engine logic. This engine will take an incoming order and attempt to match it against resting orders in the in-memory order book based on price-time priority. It should handle partial and full fills. Refer to `depthcache-documentation.md` for potential strategies.
+# Description: Develop the core order matching engine logic for a hybrid system. The engine will first attempt to match incoming user orders against other resting user orders (user-to-user matching) based on price-time priority, especially if better prices are available than on Binance. Subsequently, it will attempt to match any remaining quantity against live Binance order book data (user-to-Binance execution). The engine must handle a hybrid order book combining user orders with Binance data and manage partial/full fills. Refer to `depthcache-documentation.md` for general matching strategies and `binance-ws.js` for Binance integration.
 # Details:
-In `OrderBookService.js` or a dedicated `MatchingEngine.js`. When a new order arrives: If buy order, iterate through asks (lowest price first). If sell order, iterate through bids (highest price first). If prices cross/match: determine fill quantity (min of incoming order qty and resting order qty). If partial fill, update remaining quantity of the involved order(s). If full fill, mark order(s) for removal. Price-time priority: match best price first; if multiple orders at best price, match oldest first (FIFO based on timestamp).
+To be implemented in `OrderBookService.js` or a dedicated `MatchingEngine.js`.
+The matching process for an incoming order:
+1.  **User-to-User Matching:**
+    *   Attempt to match against the local book of user orders.
+    *   If buy order, iterate through user asks (lowest price first).
+    *   If sell order, iterate through user bids (highest price first).
+    *   Prioritize these matches if user order prices are better than or equal to the best available Binance price for the user.
+    *   Price-time priority for user orders: match best price first; if multiple user orders at best price, match oldest first (FIFO based on timestamp).
+2.  **User-to-Binance Matching:**
+    *   If the incoming order is not fully matched against user orders, or if Binance offers a better price for the user, attempt to match the remaining quantity against the Binance order book.
+    *   Utilize real-time Binance order book data provided by the extended `binance-ws.js`.
+    *   Trades matched against Binance liquidity are executed at Binance prices.
+3.  **Hybrid Order Book Management:**
+    *   The engine must operate on a conceptual hybrid order book that layers user orders on top of or integrates them with Binance's market depth for matching decisions.
+4.  **Fill Logic:**
+    *   Determine fill quantity (min of incoming order quantity and resting order/Binance liquidity quantity).
+    *   If partial fill, update remaining quantity of the involved order(s).
+    *   If full fill, mark user order(s) for removal or reflect consumption of Binance liquidity.
+    *   An incoming order can be matched against multiple user orders and/or Binance liquidity.
 
 # Test Strategy:
-Test various scenarios: new buy order matching existing sell order(s), new sell matching existing buy(s). Test partial fills, multiple fills for one incoming order, and orders that don't match and get added to the book. Verify price-time priority.
+Test various scenarios:
+1.  **User-to-User Matches:**
+    *   New buy order matching existing user sell order(s) at prices better than Binance.
+    *   New sell order matching existing user buy order(s) at prices better than Binance.
+    *   Verify price-time priority for user orders (best price first, then FIFO for same price).
+2.  **User-to-Binance Matches:**
+    *   New buy order matching Binance asks when no better user sell orders exist or Binance price is superior.
+    *   New sell order matching Binance bids when no better user buy orders exist or Binance price is superior.
+    *   Verify execution at Binance prices.
+3.  **Hybrid Matching Scenarios:**
+    *   Incoming order partially filled by user orders, then remaining quantity filled by Binance liquidity.
+    *   Incoming order where Binance offers a better price than available user orders, leading to direct matching with Binance liquidity.
+    *   Scenarios where user orders are placed within the Binance spread.
+4.  **Fill Logic:**
+    *   Test partial fills, multiple fills for one incoming order (across user and Binance liquidity).
+    *   Test orders that don't match and get added to the user order book.
+5.  **Integration & Order Book Integrity:**
+    *   Verify correct interaction with `binance-ws.js` for fetching and using Binance order book data.
+    *   Verify the hybrid order book logic correctly prioritizes and matches orders.
+    *   Ensure user orders are correctly added to, updated in, and removed from the local order book.
+
+# Subtasks:
+## subtask_17_1. Design matching engine for hybrid (user + Binance) model [pending]
+### Dependencies: None
+### Description: Define the architecture of the matching engine to support a two-phase matching process (user-to-user, then user-to-Binance) and manage a hybrid order book.
+### Details:
+
+
+## subtask_17_2. Implement user-to-user matching logic [pending]
+### Dependencies: None
+### Description: Develop the functionality to match incoming user orders against resting user orders. Prioritize these matches if user order prices are better than or equal to Binance's. Implement price-time priority for user orders.
+### Details:
+
+
+## subtask_17_3. Integrate with binance-ws.js for Binance order book data [pending]
+### Dependencies: None
+### Description: Consume real-time Binance order book data from `binance-ws.js`. This data will serve as the external market liquidity layer.
+### Details:
+
+
+## subtask_17_4. Implement user-to-Binance matching logic [pending]
+### Dependencies: None
+### Description: Develop the functionality to match remaining quantities of user orders (or orders where Binance offers a better price) against Binance liquidity. Ensure trades are marked for execution at Binance prices.
+### Details:
+
+
+## subtask_17_5. Implement hybrid fill and order management logic [pending]
+### Dependencies: None
+### Description: Handle partial and full fills for orders, considering that a single incoming order might be matched against multiple user orders and/or Binance liquidity. Update user order book state accordingly.
+### Details:
+
+
+## subtask_17_6. Develop hybrid order book representation and management [pending]
+### Dependencies: None
+### Description: Ensure the matching engine can effectively view and operate on a combined representation of local user orders and Binance market depth, making correct priority decisions.
+### Details:
+
+

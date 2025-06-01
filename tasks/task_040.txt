@@ -1,6 +1,6 @@
 # Task ID: 40
 # Title: Refactor Validation to Express.js Middleware with Valibot
-# Status: pending
+# Status: deferred
 # Dependencies: 33
 # Priority: medium
 # Description: Refactor existing validation logic from service layers to a centralized Express.js middleware pattern using Valibot schemas. This will improve separation of concerns and standardize error handling for request validation.

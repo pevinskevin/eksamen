@@ -64,101 +64,71 @@ The backend will be built with NodeJS and the frontend with Svelte.
 
 - Real-time Order Book Visualization:
   What it does:
-  Displays a live, two-sided list of buy orders (bids) and sell orders (asks)
-  for a selected cryptocurrency, organized by price levels.
-  For each price level, it shows the quantity of the cryptocurrency available to
-  be bought or sold.
-  The display updates in real-time as new orders are placed, matched (filled),
-  or canceled.
+  Displays a live, hybrid order book combining real Binance market data (bids and asks) 
+  with user-placed orders for a selected cryptocurrency. The system layers user orders 
+  on top of live Binance data to create an effective order book where users can see 
+  both external market liquidity and internal user orders.
+  For each price level, it shows the quantity available from both Binance and user orders.
+  The display updates in real-time as Binance data changes, new user orders are placed, 
+  matched (filled), or canceled.
   Why it's important:
-  This is a cornerstone of any trading interface, providing transparency into
-  market depth (supply and demand).
-  It helps users make informed decisions about what price to trade at.
+  This provides transparency into both external market depth and internal user activity.
+  It helps users make informed decisions by showing real market prices alongside 
+  user trading activity.
   Crucially, it directly fulfills the Sockets hard requirement for both frontend
-  and backend, as the data must be streamed live.
+  and backend, as the data must be streamed live from both Binance and internal sources.
   The depthcache-documentation.md you provided suggests this is a key component
   you've already researched.
   How it works at a high level:
-  Backend (Express, Database, Sockets, and the custom Order Book logic possibly
-  informed by depthcache-documentation.md and binance-ws.js):
-  The server will maintain an in-memory order book for each tradable
-  cryptocurrency pair (e.g., BTC/USD, ETH/USD). This might be initially
-  populated or influenced by external data (e.g., from binance-ws.js to
-  simulate a live market) but will primarily be driven by user orders within
-  our simulation.
-  When users submit buy or sell orders, if they aren't immediately matched by
-  the Order Matching Engine (which we'll detail next), they are added to this
-  order book.
-  Sockets: The backend will use WebSockets to broadcast changes to the order
-  book to all connected and subscribed frontend clients. When an order is
-  added, removed (filled/canceled), or modified, the backend sends a message
-  (either the full updated book or just the changes/deltas) through the socket
-  for the relevant cryptocurrency.
+  Backend (Express, Database, Sockets, and Binance Integration via binance-ws.js):
+  The server maintains a real-time local copy of Binance order book data for each 
+  tradable cryptocurrency pair (e.g., BTC/USDT, ETH/USDT) via WebSocket connection.
+  Additionally, it maintains user-placed orders in memory and database, layering 
+  them on top of the Binance data to create a hybrid order book.
+  When users submit buy or sell orders, the matching engine first attempts to match 
+  them against other user orders (if better than Binance prices), then against 
+  Binance liquidity if no internal matches are available.
+  Sockets: The backend uses WebSockets to broadcast changes to the hybrid order book 
+  to all connected frontend clients. This includes both Binance data updates and 
+  user order changes.
   Frontend (Svelte & Sockets):
-  When a user selects a cryptocurrency to view, the Svelte frontend will
-  establish or use an existing WebSocket connection to the backend.
-  It will subscribe to order book updates for that specific cryptocurrency.
-  Upon subscription, or via an initial fetch call, it receives the current
-  state of the order book.
-  It then listens for incoming messages on the socket. When an update is
-  received, Svelte will efficiently re-render the order book display
-  (typically two lists: bids and asks, sorted by price, often with cumulative
-  totals). This ensures the user sees changes in near real-time without page
-  reloads.
-  Styling will be important here to make it readable (e.g., green for bids, red
-  for asks).
+  When a user selects a cryptocurrency to view, the Svelte frontend subscribes to 
+  hybrid order book updates for that specific cryptocurrency.
+  It receives the current state combining Binance data with active user orders.
+  It then listens for incoming messages on the socket for both external market 
+  updates and internal user order changes, efficiently re-rendering the combined 
+  order book display in near real-time.
 
 - Simulated Trading (Buy/Sell Orders):
   What it does:
   Allows authenticated users to place buy orders (bids) and sell orders (asks)
-  for selected cryptocurrencies.
-  Users can specify the quantity and, for limit orders, the desired price. (We
-  might also consider implementing "market orders" which buy/sell at the best
-  currently available price).
+  for selected cryptocurrencies. Orders can be matched against other user orders
+  or executed against live Binance market prices for realistic trading simulation.
+  Users can specify the quantity and, for limit orders, the desired price.
   Why it's important: This is the primary way users interact with the market.
-  It's the mechanism that drives changes in the order book and leads to
-  simulated trades. It's a core functional requirement.
+  It drives changes in the user order layers and leads to simulated trades against
+  both internal users and external market data. It's a core functional requirement.
   How it works at a high level:
   Frontend (Svelte):
   Provides a trading form where users select the cryptocurrency, order type
   (buy/sell), quantity, and price (for limit orders).
-  Performs basic client-side validation (e.g., numeric inputs, sufficient
-  simulated funds based on locally cached balance info – though final check is
-  on the backend).
-  Uses fetch to send the order details to a secure backend API endpoint (e.g.,
-  /api/orders/place).
-  Backend (Express, Database, Sockets, Order Matching Engine):
+  Performs basic client-side validation and uses fetch to send the order details 
+  to a secure backend API endpoint.
+  Backend (Express, Database, Sockets, Hybrid Order Matching Engine):
   An Express route receives the order request.
   Crucial Steps:
-  Authentication/Authorization: Verifies the user is logged in and authorized
-  to trade.
-  Validation & Balance Check: Validates order parameters (e.g., valid currency,
-  positive quantity/price). Critically, it checks the user's account balance
-  in the Database to ensure they have enough simulated fiat currency (for buys)
-  or cryptocurrency (for sells) to cover the order. If not, the order is
-  rejected.
-  Order Matching Engine: The order is passed to the matching engine.
-  The engine attempts to match it against existing orders on the internal order
-  book for that cryptocurrency (as discussed above).
-  If a trade (or trades) occurs, the database is updated:
-  User balances are adjusted (e.g., buyer's fiat decreases, crypto increases;
-  seller's crypto decreases, fiat increases).
-  Trade history is recorded.
-  The matched order(s) on the book are updated/removed.
-  If the order is not fully matched, the remainder is added to the order book.
+  Authentication/Authorization: Verifies the user is logged in and authorized to trade.
+  Validation & Balance Check: Validates order parameters and checks user's account 
+  balance to ensure sufficient simulated funds.
+  Hybrid Order Matching Engine: The order is passed to the matching engine which:
+  - First attempts to match against other user orders if better prices are available
+  - Then attempts to match against live Binance order book data
+  - Executes trades at Binance prices when user orders cross with Binance liquidity
+  If trades occur, the database is updated with balance changes and trade records.
+  Unmatched portions are added to the user order layer of the hybrid order book.
   Response & Notifications:
-  The backend responds to the frontend's fetch request indicating success (and
-  details of any trade) or failure (with a reason).
-  Sockets:
-  Sends updates about changes to the order book to all subscribed clients.
-  Sends specific notifications to the user who placed the order about its
-  status (e.g., "Order placed," "Order partially filled," "Order filled,"
-  "Order failed").
-  Sends updates about balance changes to the relevant user(s).
-  Database: Stores user account balances (fiat and crypto), records all
-  trades, and holds the state of open orders if the application restarts and
-  needs to repopulate the in-memory order book (though often order books are
-  primarily in-memory for performance).
+  The backend responds indicating success/failure and uses Sockets to send 
+  updates about hybrid order book changes and trade notifications to users.
 
 - Order Matching Engine:
   What it does:
@@ -581,16 +551,19 @@ Here we'll outline step-by-step how users achieve common goals.
         *   User authentication and authorization (e.g., using JWT or
             session-based auth).
         *   Business logic for all features (trading, account management).
-        *   **Order Matching Engine:** Core custom logic for matching buy/sell
-            orders.
+        *   **Hybrid Order Matching Engine:** Core custom logic for matching 
+            user orders against each other and against live Binance market data.
+        *   **Binance Integration:** Maintaining real-time local copy of Binance 
+            order book data via WebSocket connection (extending binance-ws.js).
         *   Managing WebSocket server and broadcasting real-time updates.
         *   Interacting with the Database for data persistence.
         *   Communicating with third-party services:
             *   Stripe API (for simulated fiat deposits).
             *   Blockchain explorers or nodes (for monitoring simulated crypto
                 deposits and initiating withdrawals on testnets).
-            *   Potentially `binance-ws.js` or similar for external market data
-                feeds to add realism to price displays or initial book seeding.
+            *   **Binance WebSocket API (via binance-ws.js):** For real-time 
+                market data that serves as the foundation for price discovery 
+                and market making in the hybrid order book system.
 
 3.  **Database:**
     *   **Technology:** To be chosen (e.g., PostgreSQL, MySQL, MongoDB). This
@@ -694,10 +667,9 @@ Here we'll outline step-by-step how users achieve common goals.
         Solscan for Solana Testnet) for monitoring deposit addresses and
         confirming withdrawal transactions. (Or direct node interaction if more
         advanced).
-    *   **(Optional) Binance WebSocket API (`binance-ws.js`):** Could be used
-        to feed external market prices for display or to provide some initial
-        liquidity/realism to the simulated order books, but *not* for directly
-        executing trades against.
+    *   **(Optional) Binance WebSocket API (via binance-ws.js):** For real-time 
+        market data that serves as the foundation for price discovery 
+        and market making in the hybrid order book system.
 
 ## Infrastructure Requirements (for local development & potential hosting)
 
@@ -1089,20 +1061,23 @@ I've added this section to the PRD. The final section is the "Appendix."
         a future optimization if needed.
 
 *   **External Price Feed (`binance-ws.js`):**
-    *   **Purpose:** The existing `binance-ws.js` suggests an intent to use
-        external price data.
+    *   **Purpose:** The existing `binance-ws.js` serves as the foundation for 
+        the hybrid order book system.
     *   **Role in Simulation:**
-        *   Option 1: Display a "real-world reference price" alongside the
-            simulated market.
-        *   Option 2: Use it to *seed* the initial order book with some
-            plausible liquidity or to gently guide the simulated market price.
-        *   **Important:** It should *not* be used to directly execute
-            simulated trades against, as that would make our internal order
-            book and matching engine redundant or overly complex to
-            synchronize. The simulation's trades should occur between users on
-            *this* platform.
-    *   **Action:** Decide on the exact role of this feed. For MVP, displaying
-        it as a reference price is simplest.
+        *   **Primary:** Provides real-time market data that acts as the market 
+            maker for the trading simulation. User orders can be executed against 
+            live Binance prices when no better internal user orders are available.
+        *   **Secondary:** Displays real-world reference prices to users alongside 
+            the hybrid order book.
+        *   **Implementation:** Extended to maintain a local, real-time copy of 
+            Binance order book data that the matching engine uses for price 
+            discovery and trade execution.
+    *   **Integration Strategy:** User orders are layered on top of Binance data. 
+        The matching engine prioritizes user-to-user matches at favorable prices, 
+        then executes against Binance liquidity. This creates a realistic trading 
+        environment with actual market prices while allowing user interaction.
+    *   **Action:** Extend the existing binance-ws.js to support the hybrid order 
+        book architecture as defined in Task 16.
 
 ## Notes on Exam Requirements
 

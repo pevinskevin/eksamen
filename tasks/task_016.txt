@@ -3,9 +3,68 @@
 # Status: pending
 # Dependencies: 11, 12
 # Priority: high
-# Description: Design and implement in-memory data structures on the backend to hold the live order book for each cryptocurrency pair (e.g., bids and asks sorted by price). Implement logic to add new orders (from the Order Placement API) to this in-memory book and remove/update them when they are matched or cancelled. Refer to `depthcache-documentation.md` for potential strategies.
+# Description: Integrate with the Binance WebSocket API to maintain a real-time local copy of the Binance order book for each cryptocurrency pair. Layer user-placed orders on top of this live Binance data. Implement logic to manage the lifecycle of these user orders (add, cancel, fill) and a matching engine that can match user orders against the live Binance price levels or against other user orders within our system. This creates a hybrid order book where Binance acts as the primary market maker and price discovery mechanism, while our platform manages its users' orders and internal matching opportunities. Refer to `binance-ws.js` as the module to extend for Binance integration and `depthcache-documentation.md` for general order book concepts if still relevant.
 # Details:
-Create a service/module for managing order books, e.g., `OrderBookService.js`. For each trading pair (e.g., 'SIM_BTC/SIM_USD'), maintain two sorted lists/arrays: one for bids (buy orders, sorted high to low price) and one for asks (sell orders, sorted low to high price). Each entry should store price, quantity, timestamp, order_id. When a new order comes from `/orders/place` and isn't immediately matched, add it to the appropriate side of the book. Consider using efficient data structures if performance becomes a concern (e.g., balanced trees or heaps, though arrays with sorting might suffice for simulation). The `depthcache-documentation.md` might provide insights on structure and management.
+1. Extend `binance-ws.js` to subscribe to Binance's depth WebSocket streams (e.g., `bnbbtc@depth`) and maintain an in-memory, synchronized copy of the Binance order book (bids and asks).
+2. Create an `OrderBookService.js` (or similar module) to manage this hybrid system. This service will:
+    a. Consume the live Binance order book data from `binance-ws.js`.
+    b. Manage user-placed orders (buy/sell orders from `/orders/place`), storing their price, quantity, timestamp, order_id, and status (pending, partially_filled, filled, cancelled). These user orders are *not* sent to Binance.
+    c. Present a 'hybrid' view of the order book, where user orders are layered on top of Binance's data. For example, if a user's bid is higher than Binance's best bid, it becomes the effective best bid for our system.
+3. Implement matching logic within a `MatchingEngine` module (or as part of the `OrderBookService`) that:
+    a. Attempts to match incoming user orders against other existing user orders if a favorable price (better than or equal to Binance's) is available (user-to-user match).
+    b. If no user-to-user match is possible or favorable, attempts to match user orders against the live Binance order book (user-to-Binance 'fill'). This means if a user places a market buy, it would fill against Binance's asks; if a limit buy is at or above Binance's best ask, it would fill.
+    c. Manages the lifecycle of user orders based on matching outcomes (e.g., updating quantity for partial fills, changing status for full fills).
+4. User orders should maintain price-time priority. The `depthcache-documentation.md` might offer general insights, but the primary source for Binance integration will be their API documentation.
 
 # Test Strategy:
-New orders are correctly added to the in-memory order book, maintaining price-time priority. Test adding buy and sell orders at various prices and quantities. Verify internal state of the order book.
+1. Verify `binance-ws.js` correctly subscribes to and synchronizes with Binance depth streams, accurately reflecting the Binance order book locally. Test handling of snapshots and differential updates.
+2. Test placement of user orders: ensure they are correctly stored and layered onto the local Binance book data, forming the hybrid order book. Verify price-time priority for user orders.
+3. Test user order lifecycle: cancellation, partial fills, and full fills, ensuring status and quantity are updated correctly.
+4. Test matching logic:
+    a. User-to-user matches: Verify that if two user orders can cross, they are matched internally.
+    b. User-to-Binance matches: Verify user orders are correctly matched against the Binance book (e.g., a user market buy order fills at Binance's ask prices; a user limit buy order above Binance's best ask fills).
+5. Verify the hybrid order book queries (best bid/ask, depth) accurately reflect the combination of Binance data and active user orders.
+
+# Subtasks:
+## 1. Design Hybrid Order Book Data Structures [pending]
+### Dependencies: None
+### Description: Define data structures for: a) Storing a real-time local copy of the Binance order book (synced via WebSocket). b) Managing active user orders. c) Representing a combined 'effective' order book view for matching and queries.
+### Details:
+For (a), consider efficient application of depth updates (diffs/snapshots) from Binance. For (b), ensure price-time priority for user orders. For (c), specify how user orders are layered onto Binance data to determine best bids/asks and available liquidity at various price levels. Document choices for performance and consistency.
+
+## 2. Implement User Order Placement Logic [pending]
+### Dependencies: 16.1
+### Description: Implement functionality to accept and store new user orders (buy/sell). These orders are managed locally within our system and are not sent directly to Binance.
+### Details:
+Upon placement, a user order should be validated and added to the local user order management system. It will then be considered by the matching engine against the hybrid order book. Ensure price-time priority is maintained for user orders at the same price level.
+
+## 3. Implement User Order Lifecycle Management (Cancel, Modify) [pending]
+### Dependencies: 16.1, 16.2
+### Description: Implement logic for managing the lifecycle of user orders: cancellation by user, and modification (e.g., quantity update due to partial fills by the matching engine). This applies only to user orders.
+### Details:
+Ensure user order cancellations are processed correctly, removing them from active consideration by the matching engine. Handle partial fills by updating the remaining quantity of the user order. Fully filled orders should be marked appropriately.
+
+## 4. Implement Hybrid Order Book Query Functions [pending]
+### Dependencies: 16.1, 16.2, 16.6
+### Description: Develop functions to query the current state of the *hybrid* order book. This includes retrieving the best bid/ask, spread, and order book depth, considering both Binance data and active user orders.
+### Details:
+These functions will be used by the matching engine and potentially for UI display. Queries must reflect the combined view: e.g., if a user's bid is higher than Binance's best bid, it becomes the system's effective best bid. Optimize for read performance.
+
+## 5. Develop Hybrid Order Book Service/Module [pending]
+### Dependencies: 16.1, 16.2, 16.3, 16.4, 16.6
+### Description: Develop or extend an `OrderBookService` to encapsulate all functionalities: managing the local Binance order book copy, managing user orders, and providing an interface for the matching engine and other system components.
+### Details:
+This service will consume updates from `binance-ws.js` (for Binance book), manage user order state changes (add, cancel, fill), and expose APIs for querying the hybrid book and submitting user orders. Consider thread-safety if concurrent access is expected.
+
+## 6. Extend `binance-ws.js` for Binance Order Book Synchronization [pending]
+### Dependencies: 16.1
+### Description: Modify `binance-ws.js` to subscribe to Binance's depth WebSocket streams (e.g., `bnbbtc@depth` or `bnbbtc@depth@100ms`) for relevant trading pairs. Implement logic to maintain an accurate, real-time local copy of the Binance order book.
+### Details:
+Handle initial snapshot and subsequent differential updates from Binance. Ensure data structures for the local Binance book are efficient for updates and reads. Refer to Binance API documentation for depth stream details (e.g., managing sequence numbers for diffs).
+
+## 7. Implement Hybrid Order Matching Logic [pending]
+### Dependencies: 16.5
+### Description: Develop the matching engine logic that operates on the hybrid order book. It should be able to match user orders against the live Binance order book levels and against other user orders if a better price is available internally.
+### Details:
+Matching priorities: 1. User vs. User (if price is better than or equal to Binance). 2. User vs. Binance. Implement price-time priority for user orders. When a user order is matched against Binance, it's conceptually 'executed' at Binance's price. When matched user-to-user, it's an internal settlement.
+
