@@ -9,9 +9,9 @@ export default class OrderRepository {
             text: 'DELETE FROM orders WHERE user_id = $1 AND id = $2 RETURNING *',
             values: [userId, orderId],
         };
-        const result = await this.db.query(query);
-        const resultData = result.rows[0];
-        return resultData;
+        const result = (await this.db.query(query)).rows.at(0);
+        console.log(result);
+        return result;
     }
 
     async find(userId, orderId) {
@@ -50,7 +50,6 @@ export default class OrderRepository {
         const result = (await this.db.query(query)).rows.at(0);
         console.log(result);
         return result;
-        
     }
 
     async save(cryptocurrencyId, orderType, orderVariant, quantityTotal, price, userId) {
@@ -70,31 +69,22 @@ export default class OrderRepository {
         return (await this.db.query(query)).rows.at(0);
     }
 
-    async update(
-        cryptocurrencyId,
-        orderType,
-        orderVariant,
-        quantity,
-        quantityRemaining,
-        price,
-        userId,
-        orderid
-    ) {
+    async update(userId, orderid, cryptocurrencyId, quantityTotal, price, status) {
+        const quantityRemaining = quantityTotal;
         const query = {
-            text: 'UPDATE orders SET cryptocurrency_id = $1, order_type = $2, order_variant = $3, quantity_total = $4, quantity_remaining = $5, price = $6 WHERE user_id = $7 AND id = $8 RETURNING *',
+            text: 'UPDATE orders SET cryptocurrency_id = COALESCE($1, cryptocurrency_id), quantity_total = COALESCE($2, quantity_total), quantity_remaining = COALESCE($3, quantity_remaining), price = COALESCE($4, price), status = COALESCE($5, status) WHERE user_id = $6 AND id = $7 RETURNING *',
             values: [
                 cryptocurrencyId,
-                orderType,
-                orderVariant,
-                quantity,
+                quantityTotal,
                 quantityRemaining,
                 price,
+                status,
                 userId,
                 orderid,
             ],
         };
-        const result = await this.db.query(query);
-        const resultData = result.rows[0];
-        return resultData;
+        const result = (await this.db.query(query)).rows.at(0);
+        console.log(result);
+        return result;
     }
 }

@@ -214,7 +214,7 @@ PUT {{baseUrl}}/order/{{orderId}}
 Content-Type: {{contentType}}
 
 {
-    "quantity": "0.75",
+    "quantityTotal": "0.075",
     "price": "55000"
 }
 

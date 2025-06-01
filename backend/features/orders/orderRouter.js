@@ -2,7 +2,7 @@ import { Router } from 'express';
 const router = Router();
 import isAuthenticated from '../../shared/middleware/authorisation.js';
 
-import { orderService, cryptoService } from '../../shared/factory/factory.js';
+import { orderService } from '../../shared/factory/factory.js';
 import {
     sendCreated,
     sendInternalServerError,
@@ -23,10 +23,10 @@ router.get('/', isAuthenticated, async (req, res) => {
 
 router.get('/:id', isAuthenticated, async (req, res) => {
     try {
-        const order = await orderService.getByOrderId(req.user.id, req.params.id);
-        if (!order) sendNotFound(res, `Order with ID ${req.params.id}`);
+        const order = await orderService.getOpenOrderByUserAndOrderId(req.user.id, req.params.id);
         return sendSuccess(res, order);
     } catch (error) {
+        if (error.message.includes('Order with ID ')) return sendNotFound(res, error.message);
         if (error.name === 'ValiError') {
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');
             return sendUnprocessableEntity(res, validationMessage);
@@ -57,18 +57,37 @@ router.post('/', isAuthenticated, async (req, res) => {
 
 router.put('/:id', isAuthenticated, async (req, res) => {
     try {
-        const orders = orderService.getAll(req.user.id);
-        return sendSuccess(res, orders);
+        const orderId = Number(req.params.id); // params.id is string.
+        const order = await orderService.updateByUserAndOrderId(req.user.id, orderId, req.body);
+        return sendSuccess(res, order);
     } catch (error) {
+        if (
+            error.message.includes('Updated order value exceeds available balance') ||
+            error.message.includes('Updated order quantity exceeds available balance')
+        )
+            return sendPaymentRequired(res, error.message);
+        if (error.message.includes('Cryptocurrency with id'))
+            return sendNotFound(res, error.message);
+        if (error.message.includes('Order with ID ')) return sendNotFound(res, error.message);
+        if (error.name === 'ValiError') {
+            const validationMessage = error.issues.map((issue) => issue.message).join(', ');
+            return sendUnprocessableEntity(res, validationMessage);
+        }
         return sendInternalServerError(res, error.message);
     }
 });
 
 router.delete('/:id', isAuthenticated, async (req, res) => {
     try {
-        const orders = orderService.getAll(req.user.id);
-        return sendSuccess(res, orders);
+        const orderId = req.params.id;
+        const order = await orderService.deleteByUserAndOrderId(req.user.id, orderId);
+        return sendSuccess(res, order);
     } catch (error) {
+        if (error.name === 'ValiError') {
+            const validationMessage = error.issues.map((issue) => issue.message).join(', ');
+            return sendUnprocessableEntity(res, validationMessage);
+        }
+        if (error.message.includes('Order with ID ')) return sendNotFound(res, error.message);
         return sendInternalServerError(res, error.message);
     }
 });

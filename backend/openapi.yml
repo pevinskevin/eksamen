@@ -817,6 +817,15 @@ paths:
               example:
                 error: "AuthenticationError"
                 message: "Authentication required"
+        "402":
+          description: Payment Required (insufficient balance)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "InsufficientFundsError"
+                message: "Updated order value exceeds available balance"
         "403":
           description: Forbidden (not user's order)
           content:
@@ -1248,6 +1257,7 @@ components:
 
     UpdateOrder:
       type: object
+      additionalProperties: false
       properties:
         quantityTotal:
           type: string
