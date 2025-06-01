@@ -7,7 +7,6 @@ import {
     sendSuccess,
     sendError,
     sendNotFound,
-    sendBadRequest,
     sendUnauthorized,
     sendUnprocessableEntity,
 } from '../../shared/utils/responseHelpers.js';
@@ -16,6 +15,7 @@ router.get('/balances', isAuthenticated, async (req, res) => {
     try {
         const fiatAccount = await accountService.getFiatAccountByUserID(req.user.id);
         const cryptoHoldings = await accountService.getCryptoHoldingsByUserId(req.user.id);
+        // Combine fiat and crypto balances in single response
         const accountObj = { fiatAccount: fiatAccount, cryptoHoldings: cryptoHoldings };
         if (!fiatAccount)
             return sendUnauthorized(res, 'No account found. Invalid ID: ' + req.user.id);
@@ -26,17 +26,20 @@ router.get('/balances', isAuthenticated, async (req, res) => {
 });
 
 router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {
+    // Normalize symbol to uppercase for database lookup
     const symbol = req.params.symbol.toUpperCase();
     try {
         const holding = await accountService.getCryptoHoldingByUserIdAndSymbol(req.user.id, symbol);
+        // Return 404 if user has zero balance (no actual holdings)
         if (holding.balance == 0) return sendNotFound(res, 'Cryptocurrency holding ');
         return sendSuccess(res, holding);
     } catch (error) {
+        // Validation errors: invalid symbol format
         if (error.name === 'ValiError') {
-            // Valibot validation error
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');
             return sendUnprocessableEntity(res, validationMessage);
         }
+        // Cryptocurrency doesn't exist in our system
         if (error.message.includes('Invalid symbol: ')) return sendNotFound(res, error.message);
         sendError(res, error, 500);
     }

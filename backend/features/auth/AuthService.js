@@ -9,19 +9,18 @@ export default class AuthService {
     }
 
     async register(userData) {
-        // First validate the input data
         const validatedData = parse(userDataAndPasswordMatchValidation, userData);
 
-        // Check if user already exists
+        // Ensure email is not already registered in the system
         const existingUser = await this.authRepository.findByEmail(validatedData.email);
         if (existingUser) {
             throw new Error('Email already registered');
         }
 
-        // Hash the password
+        // Hash password using bcrypt before storing (never store plain text)
         const hashedPassword = await hashPassword(validatedData.password);
 
-        // Create the user
+        // Create user record in database with hashed password
         const newUser = await this.authRepository.create(
             validatedData.firstName,
             validatedData.lastName,
@@ -29,13 +28,14 @@ export default class AuthService {
             hashedPassword
         );
 
-        // Seed initial fiat account
+        // Seed initial fiat account with starting balance for trading
         await this.authRepository.seedUserFiatAccount(validatedData.email);
 
-        // Send welcome email
+        // Send welcome email to new user (async operation)
         await welcomeNewUser(validatedData.email);
 
-        // Return user data in camelCase format (matching OpenAPI User schema)
+        // Transform database snake_case to API camelCase format
+        // Matches OpenAPI User schema for consistent API responses
         return {
             id: newUser.id,
             email: newUser.email,
@@ -48,22 +48,21 @@ export default class AuthService {
     }
 
     async login(email, password) {
-        // Validate input
+        // Validate email format and password requirements
         const validatedData = parse(loginBusinessRules, { email, password });
 
-        // Find user by email
         const user = await this.authRepository.findByEmail(validatedData.email);
         if (!user) {
             throw new Error('Invalid credentials');
         }
 
-        // Check password
         const isPasswordValid = await comparePassword(validatedData.password, user.password_hash);
         if (!isPasswordValid) {
             throw new Error('Invalid credentials');
         }
 
-        // Return user data in camelCase format (matching OpenAPI LoginResponse schema)
+        // Transform database snake_case to API camelCase format
+        // Matches OpenAPI LoginResponse schema (excludes sensitive fields)
         return {
             id: user.id,
             email: user.email,

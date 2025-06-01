@@ -22,6 +22,7 @@ router.post('/register', async (req, res) => {
         if (error.message === 'Email already registered') {
             return sendConflict(res, 'Email already registered');
         }
+        // Validation errors: missing fields, invalid email format, password mismatch, weak password
         if (error.name === 'ValiError') {
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');
             return sendUnprocessableEntity(res, validationMessage);
@@ -44,15 +45,15 @@ router.post('/login', async (req, res) => {
         if (error.message === 'Invalid credentials') {
             return sendUnauthorized(res, 'Invalid credentials');
         }
+        // Validation errors: missing email/password, invalid email format
         if (error.name === 'ValiError') {
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');
             return sendUnprocessableEntity(res, validationMessage);
-        }
-        else return sendError(res, error, 500);
+        } else return sendInternalServerError(res, error.message);
     }
 });
 
-router.post('/logout',  async (req, res) => {
+router.post('/logout', async (req, res) => {
     try {
         if (!req.session.userId) {
             return sendBadRequest(res, 'User not logged in');

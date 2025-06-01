@@ -14,7 +14,7 @@ import {
     sendUnprocessableEntity,
 } from '../../shared/utils/responseHelpers.js';
 
-// Get all cryptocurrencies
+// Get all cryptocurrencies - public endpoint
 router.get('/cryptocurrencies', async (req, res) => {
     try {
         const cryptocurrencies = await cryptoService.getAllCryptocurrencies();
@@ -24,7 +24,7 @@ router.get('/cryptocurrencies', async (req, res) => {
     }
 });
 
-// Get cryptocurrency by ID
+// Get cryptocurrency by ID - public endpoint
 router.get('/cryptocurrencies/:id', async (req, res) => {
     try {
         const cryptocurrency = await cryptoService.getCryptocurrencyById(req.params.id);
@@ -33,6 +33,7 @@ router.get('/cryptocurrencies/:id', async (req, res) => {
         if (error.message.includes('Cryptocurrency with id')) {
             return sendNotFound(res, error.message);
         }
+        // Validation errors: invalid ID format
         if (error.name === 'ValiError') {
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');
             return sendUnprocessableEntity(res, validationMessage);
@@ -46,10 +47,12 @@ router.post('/cryptocurrencies', isAuthenticated, async (req, res) => {
         const cryptocurrency = await cryptoService.createCryptocurrency(req.body);
         return sendCreated(res, cryptocurrency);
     } catch (error) {
+        // Validation errors: missing fields, invalid symbol format
         if (error.name === 'ValiError') {
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');
             return sendUnprocessableEntity(res, validationMessage);
         }
+        // Database constraint: symbol already exists
         if (error.message.includes('duplicate key')) sendConflict(res, error.message);
         else sendInternalServerError(res, error.message);
     }
@@ -62,10 +65,12 @@ router.put('/cryptocurrencies/:id', isAuthenticated, async (req, res) => {
         return sendSuccess(res, cryptocurrency);
     } catch (error) {
         if (error.message.includes('Cryptocurrency ID')) sendNotFound(res, error.message);
+        // Validation errors: invalid ID or update data format
         if (error.name === 'ValiError') {
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');
             return sendUnprocessableEntity(res, validationMessage);
         }
+        // Database constraint: symbol already exists (if changing symbol)
         if (error.message.includes('duplicate key')) sendConflict(res, error.message);
         else sendInternalServerError(res, error.message);
     }
@@ -77,12 +82,14 @@ router.delete('/cryptocurrencies/:id', isAuthenticated, async (req, res) => {
         const cryptocurrency = await cryptoService.deleteCryptocurrency(req.params.id);
         return sendSuccess(res, cryptocurrency);
     } catch (error) {
+        // Foreign key constraint: cryptocurrency is referenced by orders/holdings
         if (error.message.includes('update or delete on table')) {
             return sendForbidden(res, error.message);
         }
         if (error.message.includes('Cryptocurrency ID')) {
             return sendNotFound(res, error.message);
         }
+        // Validation errors: invalid ID format
         if (error.name === 'ValiError') {
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');
             return sendUnprocessableEntity(res, validationMessage);

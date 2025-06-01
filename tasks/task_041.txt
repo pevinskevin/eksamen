@@ -1,0 +1,56 @@
+# Task ID: 41
+# Title: BE: Refactor OrderService for Improved Maintainability and Testability
+# Status: pending
+# Dependencies: 12, 18
+# Priority: medium
+# Description: Refactor `save()` and `updateByUserAndOrderId()` methods in `OrderService.js` to eliminate code duplication, simplify complex logic using patterns like Strategy, and improve error handling and validation. This will enhance code maintainability, testability, and robustness of the core order processing functionality.
+# Details:
+The refactoring of `OrderService.js` methods `save()` and `updateByUserAndOrderId()` will involve the following key activities:
+1.  **Balance Validation Logic Extraction:**
+    *   Identify and consolidate the balance validation logic currently duplicated in `save()` and `updateByUserAndOrderId()`.
+    *   Create a private method, e.g., `_validateAndReserveBalance(userId, orderDetails, existingOrder = null)`, responsible for verifying sufficient funds for both new orders and updates that might affect cost. This method should handle both fiat and crypto balances and consider existing reserved amounts if an order is being updated.
+    *   Refactor `save()` and `updateByUserAndOrderId()` to call this unified balance validation method.
+2.  **Dedicated Buy/Sell Order Processing Handlers:**
+    *   Create distinct private helper methods for buy and sell order logic, e.g., `_processNewBuyOrder(orderData, user)` and `_processNewSellOrder(orderData, user)` for the `save()` method.
+    *   Similarly, create `_processBuyOrderUpdate(orderData, existingOrder, user)` and `_processSellOrderUpdate(orderData, existingOrder, user)` for `updateByUserAndOrderId()` if update logic significantly differs based on order side.
+    *   These handlers will manage specifics like debiting/crediting the correct accounts, unique validation rules, and calculating costs/proceeds for buy vs. sell orders.
+3.  **Strategy Pattern for Order Type/Variant Processing:**
+    *   Define an `IOrderTypeStrategy` interface with methods like `validateOrderTypeSpecifics(orderData, existingOrder = null)`, `calculateCostAndFees(orderData)`, and `prepareOrderAttributes(orderData)`.
+    *   Implement concrete classes such as `LimitOrderStrategy` and `MarketOrderStrategy`.
+    *   `OrderService` methods (`save` and `updateByUserAndOrderId`) will use a context or factory to select and delegate to the appropriate strategy based on `orderData.order_type`. This will replace complex nested conditional structures for order type and variant checking.
+4.  **Consolidate Common Logic & Reduce Duplication:**
+    *   Review `save()` and `updateByUserAndOrderId()` for any remaining duplicated code beyond balance validation and type-specific processing (e.g., common database interaction patterns for creating/updating order records, status transitions, audit logging).
+    *   Extract these into well-named private helper methods to ensure DRY principles are followed throughout the service.
+5.  **Improved Error Handling and Validation Flow:**
+    *   Standardize error responses using specific, custom error classes (e.g., `InsufficientBalanceError`, `InvalidOrderParametersError`, `OrderUpdateNotAllowedError`).
+    *   Refine the validation sequence to be clear, efficient, and fail-fast. Ensure comprehensive validation of all input parameters and business rules.
+    *   Ensure all database operations within `save()` and `updateByUserAndOrderId()` are wrapped in transactions to maintain data integrity.
+6.  **Refactor `updateByUserAndOrderId()` Method:**
+    *   Specifically address the `updateByUserAndOrderId()` method to ensure it fully leverages the new extracted logic (balance validation, strategy pattern for any type-specific update rules, buy/sell handlers if applicable).
+    *   Clearly define which order attributes are updatable by users and enforce these limitations. Validate order status to prevent updates to non-updatable orders (e.g., filled, cancelled).
+    *   Ensure that updates correctly interact with the order's lifecycle and status transitions, and re-validate balances if necessary (e.g., if quantity is increased).
+
+# Test Strategy:
+Verification of the refactored `OrderService.js` will be achieved through comprehensive unit testing:
+1.  **Unit Tests for Extracted Private Methods:**
+    *   For `_validateAndReserveBalance`: Test with sufficient/insufficient fiat/crypto balances for new orders and updates, various user scenarios, and correct handling of existing reservations.
+    *   For `_processNewBuyOrder`/`_processNewSellOrder` (and update counterparts): Test correct processing flow, data transformation, and interaction with mocked dependencies for buy/sell specific logic.
+2.  **Unit Tests for Strategy Pattern Components:**
+    *   For each `IOrderTypeStrategy` implementation (e.g., `LimitOrderStrategy`, `MarketOrderStrategy`):
+        *   Test `validateOrderTypeSpecifics()` with valid and invalid order data specific to that type (e.g., presence/absence of price for limit/market).
+        *   Test `calculateCostAndFees()` for accurate calculations under various conditions.
+        *   Test `prepareOrderAttributes()` for correct construction of order attributes specific to the type.
+3.  **Unit Tests for `save()` Method (Orchestration Logic):**
+    *   Mock all dependencies (database repository, strategy processors, private helper methods).
+    *   Verify that `save()` correctly orchestrates calls to these components for various scenarios: successful limit buy/sell, successful market buy/sell, failures due to balance validation, failures due to order type specific validation, and correct error propagation.
+4.  **Unit Tests for `updateByUserAndOrderId()` Method (Orchestration Logic):**
+    *   Mock all dependencies.
+    *   Verify correct orchestration for scenarios: successful updates (e.g., quantity/price changes if allowed), attempts to update non-existent orders, unauthorized updates (if service layer checks exist), updates to orders in non-updatable states, updates failing due to re-validation (e.g., balance check for increased quantity), and correct error propagation.
+5.  **Error Handling Tests:**
+    *   Ensure that custom error classes are thrown correctly by the service under appropriate failure conditions (e.g., `InsufficientBalanceError`, `InvalidOrderParametersError`).
+    *   Verify that database transaction rollbacks are correctly handled/simulated in tests upon service method failure.
+6.  **Test Coverage:**
+    *   Utilize a code coverage tool (e.g., Jest's built-in coverage) to ensure a high percentage (target >90%) of the refactored code in `OrderService.js` is covered by unit tests, especially critical paths and decision points.
+7.  **Regression Testing:**
+    *   Ensure all existing unit tests related to `OrderService` (if any) continue to pass after refactoring.
+    *   If available, run relevant integration tests that involve order creation and updates to catch any unintended side effects not covered by unit tests.

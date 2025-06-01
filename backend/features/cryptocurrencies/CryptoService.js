@@ -28,33 +28,35 @@ export default class CryptoService {
     }
 
     async createCryptocurrency(cryptocurrency) {
-        // validate data
+        // Validate input data format
         parse(CreateCryptocurrencySchema, cryptocurrency);
-        cryptocurrency.symbol = cryptocurrency.symbol.toUpperCase(); // covnert to upper-case if not done before submission.
+        // Normalize symbol to uppercase for consistency
+        cryptocurrency.symbol = cryptocurrency.symbol.toUpperCase();
         const createdCryptocurrency = await this.cryptoRepository.create(cryptocurrency);
         return {
             id: createdCryptocurrency.id,
             symbol: createdCryptocurrency.symbol,
             name: createdCryptocurrency.name,
-            description: createdCryptocurrency.description || '', // optional field - returns empty string if null
-            iconUrl: createdCryptocurrency.icon_url || '', // optional field - returns empty string if null
+            description: createdCryptocurrency.description || '', // Convert null to empty string for API
+            iconUrl: createdCryptocurrency.icon_url || '', // Convert null to empty string for API
             createdAt: createdCryptocurrency.created_at,
             updatedAt: createdCryptocurrency.updated_at,
         };
     }
 
     async updateCryptocurrency(id, cryptocurrency) {
-        // validate format
-        validateCryptoId(id); //
+        // Validate ID format
+        validateCryptoId(id);
 
-        //validate id exists in db
+        // Verify cryptocurrency exists
         const exists = await this.cryptoRepository.findById(id);
         if (!exists) throw new Error('Cryptocurrency ID ' + id);
 
-        // validate format
+        // Validate update data format
         parse(UpdateCryptocurrencySchema, cryptocurrency);
 
         const { symbol, name, description, iconUrl } = cryptocurrency;
+        // Normalize symbol to uppercase if provided
         if (cryptocurrency.symbol) {
             cryptocurrency.symbol = cryptocurrency.symbol.toUpperCase();
         }
@@ -66,18 +68,19 @@ export default class CryptoService {
             iconUrl
         );
         return {
-            id: updatedCryptocurrency.id, // note to self: req.params are always strings.
+            id: updatedCryptocurrency.id,
             symbol: updatedCryptocurrency.symbol,
             name: updatedCryptocurrency.name,
-            description: updatedCryptocurrency.description || '', // optional field - returns empty string if null
-            iconUrl: updatedCryptocurrency.icon_url || '', // optional field - returns empty string if null
+            description: updatedCryptocurrency.description || '', // Convert null to empty string for API
+            iconUrl: updatedCryptocurrency.icon_url || '', // Convert null to empty string for API
             createdAt: updatedCryptocurrency.created_at,
             updatedAt: updatedCryptocurrency.updated_at,
         };
     }
 
     async deleteCryptocurrency(id) {
-        validateCryptoId(id); // validate format
+        validateCryptoId(id);
+        // Verify cryptocurrency exists before deletion
         const exists = await this.cryptoRepository.findById(id);
         if (!exists) throw new Error('Cryptocurrency ID ' + id);
         return await this.cryptoRepository.deleteById(id);

@@ -13,10 +13,10 @@ export default class AccountService {
     async getFiatAccountByUserID(userId) {
         const account = await this.accountRepository.findFiatAccount(userId);
 
-        // transform balance from number to string to adhere to openAPI spec.
+        // Transform balance from number to string for OpenAPI compliance
         const transformedAccount = transformFinancialFields(account);
 
-        // Return user data in camelCase format (matching OpenAPI User schema)
+        // Convert snake_case to camelCase for API response
         return {
             id: transformedAccount.id,
             currencyCode: transformedAccount.currency_code,
@@ -29,12 +29,12 @@ export default class AccountService {
     async getCryptoHoldingByUserIdAndSymbol(userId, symbol) {
         validateCryptoSymbol(symbol);
 
-        // Check if symbol exists
+        // Verify cryptocurrency exists in our system
         const crypto = await cryptoService.getCryptocurrencyBySymbol(symbol);
         if (!crypto) throw new Error('Invalid symbol: ' + symbol);
 
         const holding = await this.accountRepository.findCryptoHolding(userId, symbol);
-        // transform balance from number to string to adhere to openAPI spec.
+        // Transform balance from number to string for OpenAPI compliance
         const transformedHolding = transformBalanceToString(holding);
 
         return {
@@ -45,15 +45,15 @@ export default class AccountService {
             name: transformedHolding.name,
             description: transformedHolding.description,
             iconUrl: transformedHolding.icon_url,
-            balance: transformedHolding.balance || '0', // returns zero if holdings is zero = not owned.
-            createdAt: holding.created_at, // using original value since transformBalanceToString corrupts date format.
-            updatedAt: holding.updated_at, // using original value since transformBalanceToString corrupts date format.
+            balance: transformedHolding.balance || '0', // Default to '0' if user has no holdings
+            createdAt: holding.created_at, // Use original - transformer corrupts date format
+            updatedAt: holding.updated_at, // Use original - transformer corrupts date format
         };
     }
 
     async getCryptoHoldingsByUserId(id) {
         const holdings = await this.accountRepository.findAllCryptoHoldings(id);
-        // Return user data in camelCase format (matching OpenAPI User schema)
+        // Convert each holding record to API format
         let finalArray = [];
         await holdings.forEach((element) => {
             const transformedHoldings = transformBalanceToString(element);
@@ -65,9 +65,9 @@ export default class AccountService {
                 name: transformedHoldings.name,
                 description: transformedHoldings.description,
                 iconUrl: transformedHoldings.icon_url,
-                balance: transformedHoldings.balance || '0', // returns zero if holdings is zero = not owned.
-                createdAt: element.created_at, // using original value since transformBalanceToString corrupts date format.
-                updatedAt: element.updated_at, // using original value since transformBalanceToString corrupts date format.
+                balance: transformedHoldings.balance || '0', // Default to '0' if user has no holdings
+                createdAt: element.created_at, // Use original - transformer corrupts date format
+                updatedAt: element.updated_at, // Use original - transformer corrupts date format
             });
         });
         return finalArray;
