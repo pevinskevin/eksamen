@@ -51,7 +51,7 @@
                 const responseData = await response.json();
 
                 if (response.ok) {
-                    authStore.login(responseData.data.user);
+                    authStore.login(responseData);
                     connectSocket();
                 } else console.log(responseData.error);
             } catch (error) {

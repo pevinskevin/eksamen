@@ -15,7 +15,7 @@
             if (response.ok) {
                 authStore.logout();
                 disconnectSocket();
-            } else console.log(responseData.errorMessage);
+            } else console.log(responseData.error);
         } catch (error) {
             console.log(error);
         }

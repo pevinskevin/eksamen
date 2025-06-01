@@ -3,7 +3,7 @@
     import { onMount } from 'svelte';
     import authStore from '../../store/authStore.js';
 
-    let accountBalance = '';
+    let accountBalance = null;
 
     async function fetchAccountBalance() {
         try {
@@ -18,7 +18,7 @@
             const responseData = await response.json();
 
             if (response.ok) {
-                accountBalance = responseData.data;
+                accountBalance = responseData;
             } else console.log(responseData.error);
         } catch (error) {
             console.log(error);
@@ -35,19 +35,17 @@
 <h2>Account</h2>
 
 <h4>Fiat Holdings</h4>
-{#if accountBalance && accountBalance.account}
+{#if accountBalance && accountBalance.fiatAccount}
     <p>We have monies YAY! ٩(＾◡＾)۶</p>
-    {#each accountBalance.account as fiatAccount}
-        <p>{fiatAccount.currency_code}: {fiatAccount.balance}</p>
-    {/each}
+    <p>{accountBalance.fiatAccount.currencyCode}: {accountBalance.fiatAccount.balance}</p>
 {:else}
     <p>Broke boi.</p>
 {/if}
 
 <h4>Cryptocurrency Holdings</h4>
-{#if accountBalance && accountBalance.holdings}
+{#if accountBalance && accountBalance.cryptoHoldings}
     <p>We have cwypto YAY! ٩(＾◡＾)۶</p>
-    {#each accountBalance.holdings as cryptoAccount}
+    {#each accountBalance.cryptoHoldings as cryptoAccount}
         <p>{cryptoAccount.symbol}: {cryptoAccount.balance}</p>
     {/each}
 {:else}

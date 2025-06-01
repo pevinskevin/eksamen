@@ -177,6 +177,7 @@ export async function createTables() {
     `);
         console.log('✓ Added sample cryptocurrencies');
 
+        // test1234
         const testPasswordHash = '$2b$12$dfLA6yiDAoKXRE46e0SRsucUvOG/uH6/heHRtDWrNDyHNy/rkgAUS'; // In real app: await bcrypt.hash('admin', 10)
 
         await client.query(

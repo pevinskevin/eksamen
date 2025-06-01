@@ -1,7 +1,7 @@
 <script>
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
     import { onMount } from 'svelte';
-    let cryptocurrenciesArray = '';
+    let cryptocurrenciesArray = null;
 
     async function getCryptocurrencies() {
         try {
@@ -16,7 +16,7 @@
             const responseData = await response.json();
 
             if (response.ok) {
-                cryptocurrenciesArray = responseData.data;
+                cryptocurrenciesArray = responseData;
             } else console.log(responseData.error);
         } catch (error) {
             console.log('Error fetching data', error);
