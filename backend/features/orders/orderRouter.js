@@ -7,6 +7,7 @@ import {
     sendCreated,
     sendInternalServerError,
     sendNotFound,
+    sendPaymentRequired,
     sendSuccess,
     sendUnprocessableEntity, // ← Add this
 } from '../../shared/utils/responseHelpers.js';
@@ -39,6 +40,13 @@ router.post('/', isAuthenticated, async (req, res) => {
         const order = await orderService.save(req.body, req.user.id);
         return sendCreated(res, order);
     } catch (error) {
+        if (
+            error.message.includes('Order value exceeds available balance') ||
+            error.message.includes('Order quantity exceeds available balance')
+        )
+            return sendPaymentRequired(res, error.message);
+        if (error.message.includes('Cryptocurrency with id'))
+            return sendNotFound(res, error.message);
         if (error.name === 'ValiError') {
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');
             return sendUnprocessableEntity(res, validationMessage);

@@ -51,7 +51,7 @@ Content-Type: {{contentType}}
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantityTotal": "0.5",
+    "quantityTotal": "0.05",
     "price": "50000"
 }
 
@@ -74,7 +74,7 @@ Content-Type: {{contentType}}
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "sell",
-    "quantityTotal": "0.25",
+    "quantityTotal": "0.9",
     "price": "60000"
 }
 
@@ -108,7 +108,7 @@ Cookie:
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantity": "0.5",
+    "quantityTotal": "0.5",
     "price": "50000"
 }
 
@@ -132,7 +132,7 @@ Content-Type: {{contentType}}
     "cryptocurrencyId": 99999,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantity": "0.5",
+    "quantityTotal": "0.5",
     "price": "50000"
 }
 
@@ -144,7 +144,7 @@ Content-Type: {{contentType}}
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantity": "0.5"
+    "quantityTotal": "0.5"
 }
 
 ### 18. Create order with negative price (should return 422)
@@ -155,7 +155,7 @@ Content-Type: {{contentType}}
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantity": "0.5",
+    "quantityTotal": "0.5",
     "price": "-1000"
 }
 
@@ -167,7 +167,7 @@ Content-Type: {{contentType}}
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantity": "0",
+    "quantityTotal": "0",
     "price": "50000"
 }
 
@@ -179,7 +179,7 @@ Content-Type: {{contentType}}
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantity": "-0.5",
+    "quantityTotal": "-0.5",
     "price": "50000"
 }
 
@@ -191,7 +191,7 @@ Content-Type: {{contentType}}
     "cryptocurrencyId": 1,
     "orderType": "invalid",
     "orderVariant": "buy",
-    "quantity": "0.5",
+    "quantityTotal": "0.5",
     "price": "50000"
 }
 
@@ -203,7 +203,7 @@ Content-Type: {{contentType}}
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "invalid",
-    "quantity": "0.5",
+    "quantityTotal": "0.5",
     "price": "50000"
 }
 

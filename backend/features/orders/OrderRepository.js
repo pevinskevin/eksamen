@@ -1,4 +1,4 @@
-import { ORDER_VARIANT } from '../../shared/validators/validators.js';
+import { ORDER_VARIANT, ORDER_STATUS } from '../../shared/validators/validators.js';
 export default class OrderRepository {
     constructor(db) {
         this.db = db;
@@ -22,19 +22,35 @@ export default class OrderRepository {
         return (await this.db.query(query)).rows.at(0);
     }
 
-    async findAllOpenBuyOrders(userId) {
+    async findAllAscending(userId) {
         const query = {
-            text: `SUM quantity_remaining FROM orders WHERE user_id = 1$ and order_status = $2 or order_status = $3`,
-            values: [userId, ORDER_VARIANT],
-        };
-    }
-
-    async findAll(userId) {
-        const query = {
-            text: 'SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC',
+            text: 'SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at ASC',
             values: [userId],
         };
         return (await this.db.query(query)).rows;
+    }
+
+    async findAllOpenBuyOrders(userId) {
+        const query = {
+            text: `SELECT quantity_remaining, price FROM orders WHERE user_id = $1 AND order_variant = $2 AND (status = $3 OR status = $4)`,
+            values: [userId, ORDER_VARIANT.BUY, ORDER_STATUS.OPEN, ORDER_STATUS.PARTIALLY_FILLED],
+        };
+        const result = (await this.db.query(query)).rows;
+        console.log(result);
+
+        return result;
+    }
+
+    async findAllOpenSellOrders(userId) {
+        // I've chosen not to use ::float as it can't return more than 6 decimals.
+        const query = {
+            text: `SELECT SUM(quantity_remaining) FROM orders WHERE user_id = $1 AND order_variant = $2 AND (status = $3 OR status = $4)`,
+            values: [userId, ORDER_VARIANT.SELL, ORDER_STATUS.OPEN, ORDER_STATUS.PARTIALLY_FILLED],
+        };
+        const result = (await this.db.query(query)).rows.at(0);
+        console.log(result);
+        return result;
+        
     }
 
     async save(cryptocurrencyId, orderType, orderVariant, quantityTotal, price, userId) {

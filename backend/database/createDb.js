@@ -218,12 +218,52 @@ export async function createTables() {
         // Create a sample order for the admin user
         await client.query(`
       INSERT INTO orders (user_id, cryptocurrency_id, order_type, order_variant, quantity_total, quantity_remaining, price)
-      SELECT u.id, c.id, 'limit', 'sell', 0.5, 0.5, 45000.00
+      SELECT u.id, c.id, 'limit', 'sell', 0.05, 0.05, 45000.00
       FROM users u
       CROSS JOIN cryptocurrencies c
       WHERE u.email = 'admin@test.com' AND c.symbol = 'BTC'
     `);
         console.log('✓ Added sample BTC sell order for admin');
+
+        // Add another BTC order (buy order this time)
+        await client.query(`
+      INSERT INTO orders (user_id, cryptocurrency_id, order_type, order_variant, quantity_total, quantity_remaining, price)
+      SELECT u.id, c.id, 'limit', 'buy', 0.05, 0.05, 44000.00
+      FROM users u
+      CROSS JOIN cryptocurrencies c
+      WHERE u.email = 'admin@test.com' AND c.symbol = 'BTC'
+    `);
+        console.log('✓ Added sample BTC buy order for admin');
+
+        // Add an ETH order
+        await client.query(`
+      INSERT INTO orders (user_id, cryptocurrency_id, order_type, order_variant, quantity_total, quantity_remaining, price)
+      SELECT u.id, c.id, 'limit', 'sell', 0.5, 0.5, 3200.00
+      FROM users u
+      CROSS JOIN cryptocurrencies c
+      WHERE u.email = 'admin@test.com' AND c.symbol = 'ETH'
+    `);
+        console.log('✓ Added sample ETH sell order for admin');
+
+        // Add another BTC buy order
+        await client.query(`
+      INSERT INTO orders (user_id, cryptocurrency_id, order_type, order_variant, quantity_total, quantity_remaining, price)
+      SELECT u.id, c.id, 'limit', 'buy', 0.1, 0.1, 43500.00
+      FROM users u
+      CROSS JOIN cryptocurrencies c
+      WHERE u.email = 'admin@test.com' AND c.symbol = 'BTC'
+    `);
+        console.log('✓ Added additional BTC buy order for admin');
+
+        // Add another BTC sell order
+        await client.query(`
+      INSERT INTO orders (user_id, cryptocurrency_id, order_type, order_variant, quantity_total, quantity_remaining, price)
+      SELECT u.id, c.id, 'limit', 'sell', 0.3, 0.3, 45500.00
+      FROM users u
+      CROSS JOIN cryptocurrencies c
+      WHERE u.email = 'admin@test.com' AND c.symbol = 'BTC'
+    `);
+        console.log('✓ Added additional BTC sell order for admin');
 
         console.log('\n✅ Database schema created successfully!');
     } catch (err) {

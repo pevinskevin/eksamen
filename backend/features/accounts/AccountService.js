@@ -12,7 +12,6 @@ export default class AccountService {
 
     async getFiatAccountByUserID(userId) {
         const account = await this.accountRepository.findFiatAccount(userId);
-        console.log(account);
 
         // transform balance from number to string to adhere to openAPI spec.
         const transformedAccount = transformFinancialFields(account);
@@ -27,7 +26,7 @@ export default class AccountService {
         };
     }
 
-    async getCryptoHoldingBySymbolAndUserID(userId, symbol) {
+    async getCryptoHoldingByUserIdAndSymbol(userId, symbol) {
         validateCryptoSymbol(symbol);
 
         // Check if symbol exists
