@@ -1,6 +1,6 @@
 # Task ID: 35
 # Title: BE: Fix Authentication Middleware Security Bypass
-# Status: pending
+# Status: done
 # Dependencies: 32, 33
 # Priority: high
 # Description: Remove hardcoded authentication bypass from backend/shared/middleware/authorisation.js. The middleware currently hardcodes userId=1 and role='admin' for all requests instead of validating sessions. This creates a critical security vulnerability.

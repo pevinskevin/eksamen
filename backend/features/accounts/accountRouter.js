@@ -6,11 +6,9 @@ import isAuthenticated from '../../shared/middleware/authorisation.js';
 import {
     sendSuccess,
     sendError,
-    sendCreated,
     sendNotFound,
     sendBadRequest,
     sendUnauthorized,
-    sendForbidden,
     sendUnprocessableEntity,
 } from '../../shared/utils/responseHelpers.js';
 
@@ -30,7 +28,7 @@ router.get('/balances', isAuthenticated, async (req, res) => {
 router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {
     const symbol = req.params.symbol.toUpperCase();
     try {
-        const holding = await accountService.getCryptoHoldingBySymbolAndUserID(req.user.id, symbol);
+        const holding = await accountService.getCryptoHoldingByUserIdAndSymbol(req.user.id, symbol);
         if (holding.balance == 0) return sendNotFound(res, 'Cryptocurrency holding ');
         return sendSuccess(res, holding);
     } catch (error) {

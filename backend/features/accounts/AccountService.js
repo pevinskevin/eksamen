@@ -70,8 +70,6 @@ export default class AccountService {
                 updatedAt: element.updated_at, // using original value since transformBalanceToString corrupts date format.
             });
         });
-        console.log(await finalArray);
-
-        return await finalArray;
+        return finalArray;
     }
 }

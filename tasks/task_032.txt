@@ -1,6 +1,6 @@
 # Task ID: 32
 # Title: BE: Error Handling Architecture Refactor
-# Status: in-progress
+# Status: done
 # Dependencies: 1, 2, 3, 4
 # Priority: high
 # Description: Remove all error handling from services and repositories, centralizing it in routers
@@ -29,15 +29,50 @@ Refactor the backend architecture to move all try-catch blocks and error handlin
 ### Details:
 
 
-## 4. Update All Routers with Centralized Error Handling [pending]
+## 4. Update All Routers with Centralized Error Handling [done]
 ### Dependencies: 32.2, 32.3
 ### Description: Add proper try-catch blocks and error handling to all router files to handle errors thrown by services
 ### Details:
 
 
-## 5. Test and Verify Error Handling Refactor [pending]
+## 5. Test and Verify Error Handling Refactor [done]
 ### Dependencies: 32.4
 ### Description: Test all endpoints to ensure error handling works correctly and consistently across all routers
 ### Details:
+<info added on 2025-06-01T14:09:48.577Z>
+Successfully identified and fixed authentication middleware OpenAPI compliance issue. Authentication error handling now works correctly:
 
+Fixed authentication middleware to use sendUnauthorized helper.
+Verified accounts endpoint returns proper 401 with error object.
+Verified orders endpoint returns proper 401 with error object.
+Removed hardcoded authentication bypass (completed Task 35).
+
+The error handling refactor is working correctly. All routers have comprehensive try-catch blocks and proper error response formatting.
+</info added on 2025-06-01T14:09:48.577Z>
+<info added on 2025-06-01T14:11:53.726Z>
+Completed comprehensive error handling verification across all routers:
+
+Authentication Errors: 401 responses with proper error format
+Validation Errors: 400/422 responses for OpenAPI and custom validation
+Business Logic Errors: 409 for conflicts, 422 for custom business rules
+Resource Not Found: 404 responses with proper error messages
+Input Validation: 400 responses for malformed parameters
+Authenticated Endpoints: Proper success responses with valid sessions
+Authenticated Error Handling: 404 errors work correctly in authenticated context
+
+All routers consistently use proper error response format:
+{
+  "error": "ErrorType",
+  "message": "Descriptive error message"
+}
+
+Status codes are appropriate:
+- 400: Bad Request (OpenAPI validation)
+- 401: Unauthorized (authentication required)
+- 404: Not Found (resource doesn't exist)
+- 409: Conflict (duplicate resources)
+- 422: Unprocessable Entity (business rule violations)
+
+Error handling refactor is complete and working perfectly.
+</info added on 2025-06-01T14:11:53.726Z>
 

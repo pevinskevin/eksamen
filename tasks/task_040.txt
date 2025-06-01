@@ -1,0 +1,35 @@
+# Task ID: 40
+# Title: Refactor Validation to Express.js Middleware with Valibot
+# Status: pending
+# Dependencies: 33
+# Priority: medium
+# Description: Refactor existing validation logic from service layers to a centralized Express.js middleware pattern using Valibot schemas. This will improve separation of concerns and standardize error handling for request validation.
+# Details:
+This task involves creating reusable Express.js middleware for request validation using the Valibot schemas developed in Task 33. Key steps include:
+1. Develop a generic validation middleware factory function. This function should accept a Valibot schema as an argument.
+2. The middleware should parse and validate `req.body`, `req.params`, and `req.query` against the provided schema.
+3. Upon successful validation, the middleware should call `next()` to pass control to the next handler. If Valibot parsing results in transformed/parsed data, it should be attached to `req` (e.g., `req.validatedData = parsedOutput`).
+4. If validation fails, the middleware must not call `next()`. Instead, it should immediately respond with a 400 Bad Request status and a JSON body detailing the validation errors, utilizing Valibot's error reporting capabilities for clear messages.
+5. Identify all routes currently performing validation within their service/controller logic.
+6. Integrate the new validation middleware into these Express routes, applying the appropriate Valibot schema for each.
+   Example: `router.post('/resource', validationMiddleware(resourceCreateSchema), resourceController.createResource);`
+7. Remove all data validation logic from the service layer methods. Services should now assume that incoming data has been pre-validated and is schema-compliant.
+8. Ensure that this refactoring centralizes validation error handling, providing consistent error responses across the API for input validation issues.
+
+# Test Strategy:
+Verify the correct implementation through a combination of unit and integration tests:
+1. **Unit Tests for Validation Middleware**:
+   - Create test suites for the generic validation middleware factory.
+   - Test with various Valibot schemas (covering `body`, `params`, `query`).
+   - Mock `req`, `res`, `next` objects.
+   - Assert that `next()` is called when provided with valid data matching the schema.
+   - Assert that `res.status(400).json()` is called with a correctly structured error payload (derived from Valibot errors) when provided with invalid data, and `next()` is not called.
+   - Verify that parsed and validated data is correctly attached to the `req` object if applicable.
+2. **Integration Tests for Routes**:
+   - For each API endpoint refactored to use the new validation middleware:
+     - Send requests with valid payloads: Confirm the request passes validation, reaches the controller/service, and returns the expected successful response (e.g., 200 OK, 201 Created).
+     - Send requests with various invalid payloads (e.g., missing required fields, incorrect data types, values violating schema constraints): Confirm a 400 Bad Request response is returned with a JSON body detailing the specific validation errors. Ensure the underlying service logic is not executed.
+3. **Service Layer Tests Verification**:
+   - Review and update existing service layer tests to ensure they no longer test for input validation that is now handled by the middleware. Service tests should focus on business logic, assuming valid inputs.
+4. **Manual API Testing**:
+   - Use an API client (e.g., Postman) to manually test a selection of refactored endpoints with diverse valid and invalid inputs to confirm behavior and consistent error responses.

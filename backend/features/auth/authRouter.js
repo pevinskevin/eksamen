@@ -10,6 +10,7 @@ import {
     sendUnauthorized,
     sendConflict,
     sendUnprocessableEntity,
+    sendInternalServerError,
 } from '../../shared/utils/responseHelpers.js';
 
 router.post('/register', async (req, res) => {
@@ -22,12 +23,10 @@ router.post('/register', async (req, res) => {
             return sendConflict(res, 'Email already registered');
         }
         if (error.name === 'ValiError') {
-            // Valibot validation error
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');
             return sendUnprocessableEntity(res, validationMessage);
         }
-        console.error('Registration error:', error);
-        return sendError(res, error, 500);
+        return sendInternalServerError(res, error.message);
     }
 });
 
@@ -46,12 +45,10 @@ router.post('/login', async (req, res) => {
             return sendUnauthorized(res, 'Invalid credentials');
         }
         if (error.name === 'ValiError') {
-            // Valibot validation error
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');
             return sendUnprocessableEntity(res, validationMessage);
         }
-        console.error('Login error:', error);
-        return sendError(res, error, 500);
+        else return sendError(res, error, 500);
     }
 });
 
@@ -63,8 +60,7 @@ router.post('/logout',  async (req, res) => {
         req.session.destroy();
         return sendSuccess(res, { message: 'Successfully logged out' });
     } catch (error) {
-        console.error('Logout error:', error);
-        return sendError(res, error, 500);
+        return sendInternalServerError(res, error.message);
     }
 });
 

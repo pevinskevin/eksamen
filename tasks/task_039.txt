@@ -1,0 +1,166 @@
+# Task ID: 39
+# Title: BE: Implement Google OAuth 2.0 Login Integration
+# Status: pending
+# Dependencies: 3, 4, 31, 32, 33
+# Priority: medium
+# Description: Integrate Google OAuth 2.0 to allow users to sign in or register using their Google accounts. This involves backend setup for the OAuth flow, handling Google's callback, and managing user account creation/linking and session state.
+# Details:
+### 1. Google Cloud Project Setup:
+   - Navigate to the Google Cloud Console.
+   - Create a new project or select an existing one.
+   - Enable the "Google People API" under "APIs & Services -> Enabled APIs & Services".
+   - Configure the OAuth consent screen under "APIs & Services -> OAuth consent screen":
+     - Specify User Type (e.g., External).
+     - Provide App name, User support email, App logo (optional).
+     - Add Scopes: `openid`, `https://www.googleapis.com/auth/userinfo.email`, `https://www.googleapis.com/auth/userinfo.profile`.
+     - Fill in developer contact information.
+   - Create OAuth 2.0 Client ID under "APIs & Services -> Credentials":
+     - Select Application type: "Web application".
+     - Name it (e.g., "Exchange App Web Client").
+     - Add Authorized JavaScript origins (e.g., frontend URL like `http://localhost:3001`).
+     - Add Authorized redirect URIs for the backend (e.g., `http://localhost:3000/api/auth/google/callback`).
+     - Securely store the generated Client ID and Client Secret (e.g., in environment variables).
+
+### 2. Backend Implementation (using Passport.js):
+   - Install necessary packages: `npm install passport passport-google-oauth20 express-session`.
+   - Ensure `express-session` middleware is configured and initialized before Passport middleware. This might be partially covered by Task 4 but ensure it's compatible with Passport's session needs.
+   - Initialize Passport middleware: `app.use(passport.initialize()); app.use(passport.session());`.
+   - Configure `passport-google-oauth20` strategy:
+     ```javascript
+     passport.use(new GoogleStrategy({
+       clientID: process.env.GOOGLE_CLIENT_ID,
+       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+       callbackURL: '/api/auth/google/callback',
+       scope: ['profile', 'email']
+     },
+     async (accessToken, refreshToken, profile, done) => {
+       try {
+         const googleId = profile.id;
+         const email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;
+         const firstName = profile.name ? profile.name.givenName : '';
+         const lastName = profile.name ? profile.name.familyName : '';
+
+         if (!email) {
+           return done(new Error('Email not provided by Google.'), null);
+         }
+
+         let user = await User.findOne({ where: { googleId: googleId } });
+         if (user) {
+           return done(null, user);
+         }
+
+         user = await User.findOne({ where: { email: email } });
+         if (user) {
+           // Link Google ID to existing email account
+           user.googleId = googleId;
+           // Optionally update name fields if they are empty or prefer Google's
+           user.firstName = user.firstName || firstName;
+           user.lastName = user.lastName || lastName;
+           user.isEmailVerified = true; // Google verifies email
+           await user.save();
+           return done(null, user);
+         }
+
+         // Create new user
+         const newUser = await User.create({
+           googleId: googleId,
+           email: email,
+           firstName: firstName,
+           lastName: lastName,
+           isEmailVerified: true, // Email from Google is considered verified
+           // Password field can be null or a placeholder if schema requires it for OAuth users
+           // Ensure User model (from Task 3) accommodates this
+         });
+         return done(null, newUser);
+       } catch (err) {
+         return done(err, null);
+       }
+     }));
+     ```
+   - Implement Passport `serializeUser` and `deserializeUser` for session management:
+     ```javascript
+     passport.serializeUser((user, done) => {
+       done(null, user.id); // Assuming user object has an 'id' property (PK)
+     });
+
+     passport.deserializeUser(async (id, done) => {
+       try {
+         const user = await User.findByPk(id);
+         done(null, user);
+       } catch (err) {
+         done(err);
+       }
+     });
+     ```
+   - Update User model/schema (from Task 2/3) to include `googleId` (String, unique, nullable), `firstName`, `lastName`, and `isEmailVerified` (Boolean) fields if not already present.
+
+### 3. API Routes:
+   - **`GET /api/auth/google`**: Initiates the Google OAuth flow.
+     ```javascript
+     router.get('/auth/google', passport.authenticate('google'));
+     ```
+   - **`GET /api/auth/google/callback`**: Handles the callback from Google.
+     ```javascript
+     router.get('/auth/google/callback',
+       passport.authenticate('google', {
+         successRedirect: process.env.GOOGLE_OAUTH_SUCCESS_REDIRECT_URL || '/dashboard',
+         failureRedirect: process.env.GOOGLE_OAUTH_FAILURE_REDIRECT_URL || '/login?error=google_auth_failed',
+         failureMessage: true // Store failure message in req.session.messages
+       })
+     );
+     ```
+   - Ensure these routes adhere to OpenAPI specifications (Task 31) and centralized error handling (Task 32).
+
+### 4. Session Management:
+   - Successful authentication via Passport will establish a session using `express-session` and populate `req.user`.
+   - This session should be compatible with the authentication middleware from Task 4.
+
+# Test Strategy:
+### 1. Unit Tests (e.g., Jest, Mocha):
+   - Test the Passport strategy's verify callback logic extensively:
+     - Mock `User.findOne`, `User.create`, `user.save`.
+     - Scenario: User found by `googleId`.
+     - Scenario: User found by `email` (account linking), verify `googleId` and `isEmailVerified` are updated.
+     - Scenario: New user creation, verify all fields are set correctly.
+     - Scenario: Google profile does not provide an email.
+     - Scenario: Database errors during find or save operations.
+   - Test `serializeUser` and `deserializeUser` with mock user objects and IDs.
+
+### 2. Integration Tests (e.g., Supertest):
+   - Test `GET /api/auth/google` endpoint:
+     - Verify it returns a 302 redirect.
+     - Verify the `Location` header in the response points to Google's OAuth URL with correct parameters (client_id, redirect_uri, scope, response_type).
+   - Test `GET /api/auth/google/callback` (requires mocking Google's response or a more complex setup):
+     - Simulate a successful callback from Google: Mock `passport.authenticate` or the strategy execution to return a mock user.
+       - Verify session cookie is set.
+       - Verify redirection to `successRedirect` URL.
+     - Simulate a failed callback from Google:
+       - Verify redirection to `failureRedirect` URL.
+       - Verify appropriate error message is available (e.g., in session or query param).
+
+### 3. Manual End-to-End Testing:
+   - **Prerequisites**: Frontend with a "Sign in with Google" button pointing to `/api/auth/google`.
+   - **Scenario 1: New User Registration**
+     - Use a Google account not previously registered in the application.
+     - Click "Sign in with Google", authenticate with Google, grant permissions.
+     - Verify successful redirection to the application's dashboard or specified success URL.
+     - Check database: A new user record should exist with `googleId`, email, name from Google, and `isEmailVerified` set to true.
+     - Verify session is active and user can access protected routes.
+   - **Scenario 2: Existing Google User Login**
+     - Log out. Use the same Google account from Scenario 1.
+     - Click "Sign in with Google".
+     - Verify successful login and redirection without creating a new user account.
+   - **Scenario 3: Linking Google to Existing Email Account**
+     - Create an account using traditional email/password (e.g., `test.user@example.com`).
+     - Log out. Click "Sign in with Google" using a Google account associated with `test.user@example.com`.
+     - Verify successful login. Check database: The existing user record for `test.user@example.com` should now have its `googleId` field populated and `isEmailVerified` set to true.
+   - **Scenario 4: Google Authentication Failure**
+     - On Google's consent screen, deny permission or simulate an error from Google's side.
+     - Verify redirection to the specified `failureRedirect` URL with an appropriate error indicator.
+   - **Scenario 5: Session Persistence**
+     - After logging in with Google, close and reopen the browser (if session is persistent) or navigate within the app.
+     - Verify the user remains logged in and the session is correctly managed by the middleware from Task 4.
+
+### 4. Security Checks:
+   - Verify Client ID and Client Secret are stored securely as environment variables and not exposed client-side.
+   - Ensure the `redirect_uri` configured in Google Cloud Console exactly matches the one used by the backend to prevent open redirector vulnerabilities.
