@@ -23,3 +23,7 @@ import OrderRepository from '../../features/orders/OrderRepository.js';
 import OrderService from '../../features/orders/OrderService.js';
 export const orderRepository = new OrderRepository(db);
 export const orderService = new OrderService(orderRepository);
+
+// Trades
+import TradeRepository from '../../features/trades/tradeRepository.js';
+export const tradeRepository = new TradeRepository(db);

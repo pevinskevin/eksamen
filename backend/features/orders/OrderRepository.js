@@ -154,10 +154,10 @@ export default class OrderRepository {
      * @param {string|null} status - New status (optional)
      * @returns {Promise<Object>} Updated order object
      */
-    async update(userId, orderid, cryptocurrencyId, quantityTotal, price, status) {
+    async update(userId, orderid, cryptocurrencyId, quantityTotal, quantityRemaining, price, status) {
         // If quantity_total is being updated, reset quantity_remaining to match
         // This assumes order modifications reset any partial fills
-        const quantityRemaining = quantityTotal;
+        if (!quantityTotal) quantityRemaining = quantityTotal;
 
         // COALESCE ensures only non-null parameters update their respective columns
         const query = {

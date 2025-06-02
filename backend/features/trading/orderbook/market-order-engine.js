@@ -2,27 +2,32 @@ import { marketOrderEmitter } from '../../../shared/events/marketOrderEmitter.js
 import { getBestPrice } from './binance-ws.js';
 import { cryptoService } from '../../../shared/factory/factory.js';
 import { ORDER_VARIANT } from '../../../shared/validators/validators.js';
+import { executeTradeAgainstBinance } from './trade-executor.js';
 
-function catSymbolUSDT(cryptocurrencyId) {
-    const symbol = cryptoService.getCryptocurrencyBySymbol(cryptocurrencyId);
+function getSymbolUsingCryptoIDAndCatWithUSDT(cryptocurrencyId) {
+    const symbol = cryptoService.getCryptocurrencyById(cryptocurrencyId).symbol;
     const symbolUSDT = symbol + 'USDT';
     return symbolUSDT;
-}
-
-function orderVariantToSideTransformer(orderVariant) {
-    if (orderVariant === ORDER_VARIANT.BUY) return 'bids';
-    else return 'asks';
 }
 
 function executeTradeAgainstBinance(order, executionPrice) {}
 
 marketOrderEmitter.on('marketOrderCreated', async (order) => {
-    const { id, userId, cryptocurrencyId, orderVariant, quantityRemaining, status } = order;
-    const symbol = catSymbolUSDT(orderData.cryptocyrrencyId);
+    const { id: orderId, userId, cryptocurrencyId, orderVariant, quantityRemaining, status } = order;
+    const symbol = getSymbolUsingCryptoIDAndCatWithUSDT(order.cryptocurrencyId);
 
-    const executionPrice = getBestPrice(symbol);
+    const priceData = getBestPrice(symbol);
+    const executionPrice = orderVariant === ORDER_VARIANT.BUY ? priceData.asks : priceData.bids;
 
-    
+    const trade = await executeTradeAgainstBinance(
+        orderId,
+        userId,
+        cryptocurrencyId,
+        orderVariant,
+        quantityRemaining,
+        status,
+        executionPrice
+    );
 });
 
 // Needs to be able to account for both limit and market orders.

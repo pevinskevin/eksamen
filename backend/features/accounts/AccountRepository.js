@@ -14,7 +14,7 @@ export default class AccountRepository {
         const cryptoHoldingsQuery = {
             text: 'SELECT * FROM crypto_holdings where crypto_holdings.user_id = $1',
             values: [userId],
-        };        
+        };
         return (await this.db.query(cryptoHoldingsQuery)).rows;
     }
 
@@ -22,6 +22,22 @@ export default class AccountRepository {
         const query = {
             text: 'SELECT * FROM crypto_holdings WHERE user_id = $1 AND symbol = $2',
             values: [userId, symbol],
+        };
+        return (await this.db.query(query)).rows.at(0);
+    }
+
+    async incrementCryptoHolding(userId, symbol, increment) {
+        const query = {
+            text: 'UPDATE crypto_holdings SET balance = balance + $1 WHERE user_id = $2 AND symbol = $3 RETURNING *',
+            values: [increment, userId, symbol],
+        };
+        return (await this.db.query(query)).rows.at(0);
+    }
+
+    async incrementFiatAccount(userId, increment) {
+        const query = {
+            text: 'UPDATE accounts SET balance = balance + $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2 RETURNING *',
+            values: [increment, userId],
         };
         return (await this.db.query(query)).rows.at(0);
     }
