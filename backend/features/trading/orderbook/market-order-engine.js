@@ -10,24 +10,71 @@ function getSymbolUsingCryptoIDAndCatWithUSDT(cryptocurrencyId) {
     return symbolUSDT;
 }
 
-function executeTradeAgainstBinance(order, executionPrice) {}
+marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
+    const { order } = eventData;
+    if (!order) {
+        console.error('[MarketOrderEngine] Event data did not contain an order object.');
+        return;
+    }
 
-marketOrderEmitter.on('marketOrderCreated', async (order) => {
-    const { id: orderId, userId, cryptocurrencyId, orderVariant, quantityRemaining, status } = order;
-    const symbol = getSymbolUsingCryptoIDAndCatWithUSDT(order.cryptocurrencyId);
+    const { id: orderId, userId, cryptocurrencyId, orderVariant, quantityRemaining } = order;
+
+    if (
+        !orderId ||
+        !userId ||
+        !cryptocurrencyId ||
+        !orderVariant ||
+        quantityRemaining === undefined
+    ) {
+        console.error(
+            '[MarketOrderEngine] Received order with missing essential properties:',
+            order
+        );
+        return;
+    }
+
+    const symbol = getSymbolUsingCryptoIDAndCatWithUSDT(cryptocurrencyId);
 
     const priceData = getBestPrice(symbol);
-    const executionPrice = orderVariant === ORDER_VARIANT.BUY ? priceData.asks : priceData.bids;
 
-    const trade = await executeTradeAgainstBinance(
-        orderId,
-        userId,
-        cryptocurrencyId,
-        orderVariant,
-        quantityRemaining,
-        status,
-        executionPrice
+    if (!priceData) {
+        console.error(
+            `[MarketOrderEngine] No price data found for symbol ${symbol}. Order ID: ${orderId}`
+        );
+        return;
+    }
+
+    const executionPrice = orderVariant === ORDER_VARIANT.BUY ? priceData.ask : priceData.bid;
+
+    if (!executionPrice || executionPrice === undefined || parseFloat(executionPrice) <= 0) {
+        console.error(
+            `[MarketOrderEngine] Invalid or zero execution price for symbol ${symbol} (ask: ${priceData.ask}, bid: ${priceData.bid}). Order ID: ${orderId}`
+        );
+        return;
+    }
+
+    console.log(
+        `[MarketOrderEngine] Preparing to execute trade. Order ID: ${orderId}, User ID: ${userId}, Crypto ID: ${cryptocurrencyId}, Symbol: ${symbol}, Variant: ${orderVariant}, Quantity: ${quantityRemaining}, Execution Price: ${executionPrice}`
     );
+
+    try {
+        await executeTradeAgainstBinance(
+            orderId,
+            userId,
+            cryptocurrencyId,
+            orderVariant,
+            quantityRemaining,
+            parseFloat(executionPrice)
+        );
+        console.log(
+            `[MarketOrderEngine] Successfully called executeTradeAgainstBinance for Order ID: ${orderId}`
+        );
+    } catch (error) {
+        console.error(
+            `[MarketOrderEngine] Error during executeTradeAgainstBinance for Order ID: ${orderId}:`,
+            error
+        );
+    }
 });
 
 // Needs to be able to account for both limit and market orders.

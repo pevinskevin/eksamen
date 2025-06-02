@@ -11,17 +11,6 @@ export default class OrderService {
         this.orderRepository = orderRepository;
     }
 
-    /**
-     * DELETE ORDER BY USER AND ORDER ID
-     *
-     * Deletes a specific open order for a user after validation.
-     * Only allows deletion of orders that are currently open (not cancelled or filled).
-     *
-     * @param {number} userId - The ID of the user who owns the order
-     * @param {number} orderId - The ID of the order to delete
-     * @returns {Promise} Result of the delete operation
-     * @throws {Error} If order doesn't exist or is not in a deletable state
-     */
     async deleteByUserAndOrderId(userId, orderId) {
         // Validate that the orderId is in correct format
         validateOrderId(orderId);
@@ -33,30 +22,10 @@ export default class OrderService {
         return await this.orderRepository.delete(userId, orderId);
     }
 
-    /**
-     * GET ALL ORDERS FOR USER
-     *
-     * Retrieves all orders (regardless of status) for a specific user,
-     * sorted in ascending order by creation time or ID.
-     *
-     * @param {number} userId - The ID of the user whose orders to retrieve
-     * @returns {Promise<Array>} Array of all user's orders
-     */
     async getAll(userId) {
         return await this.orderRepository.findAllAscending(userId);
     }
 
-    /**
-     * GET OPEN ORDER BY USER AND ORDER ID
-     *
-     * Retrieves a specific order for a user, but only if it's in an "open" state.
-     * Used for operations that should only work on active orders (updates, cancellations).
-     *
-     * @param {number} userId - The ID of the user who owns the order
-     * @param {number} orderId - The ID of the order to retrieve
-     * @returns {Promise<Object>} The order object if found and open
-     * @throws {Error} If order doesn't exist, is cancelled, or fully filled
-     */
     async getOpenOrderByUserAndOrderId(userId, orderId) {
         // Validate order ID format
         validateOrderId(orderId);
@@ -79,30 +48,14 @@ export default class OrderService {
     async save(order, userId) {
         // --- NOTE: THIS NEEDS MAJOR REFACTORING - WILL BE PUT OFF FOR LATER DUE TO TIME CONSTRAINT ----
 
-        // ==========================================
-        // STEP 1: VALIDATION & SETUP
-        // ==========================================
-
         // Validate order format and verify cryptocurrency exists
         validateCreateOrder(order);
-        const cryptocurrency = await cryptoService.getCryptocurrencyById(order.cryptocurrencyId);
-
-        // ==========================================
-        // STEP 2: ROUTE BY ORDER TYPE & VARIANT
-        // ==========================================
+        await cryptoService.getCryptocurrencyById(order.cryptocurrencyId);
 
         if (order.orderType === ORDER_TYPE.LIMIT && order.orderVariant === ORDER_VARIANT.BUY) {
-            // ========================================
-            // BUY ORDER PROCESSING
-            // ========================================
-
             // Get user's current fiat account balance (returned as string from service)
             const stringBalance = (await accountService.getFiatAccountByUserID(userId)).balance;
             const balance = Number(stringBalance);
-
-            // ----------------------------------------
-            // Calculate USD value tied up in existing open buy orders
-            // ----------------------------------------
 
             // We need to calculate how much USD is already committed to open buy orders
             // to determine available balance for this new order
@@ -116,10 +69,6 @@ export default class OrderService {
                 const orderValue = quantityRemaining * price; // USD value of this open order
                 sumOrderValues += orderValue;
             });
-
-            // ----------------------------------------
-            // Balance validation for new buy order
-            // ----------------------------------------
 
             const availableBalance = balance - sumOrderValues; // Available USD after existing orders
 
@@ -138,10 +87,6 @@ export default class OrderService {
             order.orderType === ORDER_TYPE.LIMIT &&
             order.orderVariant === ORDER_VARIANT.SELL
         ) {
-            // ========================================
-            // SELL ORDER PROCESSING
-            // ========================================
-
             // Get the cryptocurrency symbol and user's holding balance
             const symbol = (await cryptoService.getCryptocurrencyById(order.cryptocurrencyId))
                 .symbol;
@@ -150,9 +95,7 @@ export default class OrderService {
             ).balance;
             const balance = Number(stringBalance);
 
-            // ----------------------------------------
             // Calculate crypto quantity tied up in existing open sell orders
-            // ----------------------------------------
 
             // PostgreSQL SUM function returns result as string in sum property
             const stringSumQuantityRemainingOpenOrders = (
@@ -160,9 +103,7 @@ export default class OrderService {
             ).sum;
             const sumQuantityRemainingOpenOrders = Number(stringSumQuantityRemainingOpenOrders);
 
-            // ----------------------------------------
             // Balance validation for new sell order
-            // ----------------------------------------
 
             const availableBalance = balance - sumQuantityRemainingOpenOrders; // Available crypto after existing orders
             const orderQuantity = Number(order.quantityTotal);
@@ -179,25 +120,12 @@ export default class OrderService {
             // ========================================
 
             // For non-limit orders or other variants, proceed without balance checks
+            console.log("market order placed");
+            
             return this.saveOrder(order, userId);
         }
     }
 
-    /**
-     * UPDATE ORDER (INTERNAL HELPER)
-     *
-     * Internal helper method that performs the actual database update operation.
-     * This method assumes all validation has already been performed by the calling method.
-     *
-     * @param {number} userId - The ID of the user who owns the order
-     * @param {number} orderId - The ID of the order to update
-     * @param {Object} order - The order update data
-     * @param {number} order.cryptocurrencyId - ID of the cryptocurrency
-     * @param {string} order.quantityTotal - Total quantity as string
-     * @param {string} order.price - Price as string
-     * @param {string} order.status - New order status
-     * @returns {Promise<Object>} Updated order object
-     */
     async update(userId, orderId, order) {
         const { cryptocurrencyId, quantityTotal, price, status } = order;
         return await this.orderRepository.update(
@@ -311,22 +239,6 @@ export default class OrderService {
         }
     }
 
-    /**
-     * SAVE ORDER (INTERNAL HELPER)
-     *
-     * Internal helper method that performs the actual database save operation.
-     * This method assumes all validation and balance checks have been completed.
-     * Handles the final step of persisting a validated order to the database.
-     *
-     * @param {Object} order - The validated order data to save
-     * @param {number} order.cryptocurrencyId - ID of the cryptocurrency
-     * @param {string} order.orderType - Type of order (LIMIT, MARKET)
-     * @param {string} order.orderVariant - Variant of order (BUY, SELL)
-     * @param {string} order.quantityTotal - Total quantity as string
-     * @param {string} order.price - Price as string (optional for market orders)
-     * @param {number} userId - The ID of the user placing the order
-     * @returns {Promise<Object>} The saved order object with formatted price
-     */
     async saveOrder(order, userId) {
         const { cryptocurrencyId, orderType, orderVariant, quantityTotal, price } = order;
 
