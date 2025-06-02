@@ -1,6 +1,8 @@
 import { Router } from 'express';
 const router = Router();
 import isAuthenticated from '../../shared/middleware/authorisation.js';
+import { ORDER_TYPE } from '../../shared/validators/validators.js';
+import { marketOrderEmitter } from '../../shared/events/marketOrderEmitter.js';
 
 import { orderService } from '../../shared/factory/factory.js';
 import {
@@ -42,6 +44,11 @@ router.get('/:id', isAuthenticated, async (req, res) => {
 router.post('/', isAuthenticated, async (req, res) => {
     try {
         const order = await orderService.save(req.body, req.user.id);
+        if (order.orderType === ORDER_TYPE.MARKET) {
+            marketOrderEmitter.emit('marketOrderCreated', {
+                order,
+            });
+        }
         return sendCreated(res, order);
     } catch (error) {
         // Insufficient balance errors (buy or sell)
