@@ -44,11 +44,9 @@ router.get('/:id', isAuthenticated, async (req, res) => {
 router.post('/', isAuthenticated, async (req, res) => {
     try {
         const order = await orderService.save(req.body, req.user.id);
-        if (order.orderType === ORDER_TYPE.MARKET) {
-            marketOrderEmitter.emit('marketOrderCreated', {
-                order,
-            });
-        }
+        marketOrderEmitter.emit('marketOrderCreated', {
+            order,
+        });
         return sendCreated(res, order);
     } catch (error) {
         // Insufficient balance errors (buy or sell)

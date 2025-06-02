@@ -93,11 +93,11 @@ export const CreateOrderSchema = v.pipe(
         if (data.orderType === 'limit' && (data.price === undefined || data.price === null)) {
             return false;
         }
-        if (data.orderType === 'market' && data.price !== undefined && data.price !== null) {
+        if (data.orderType === 'market' && data.price == undefined && data.price == null) {
             return false;
         }
         return true;
-    }, 'Limit orders must include a price. Market orders should not include a price.')
+    }, 'Limit and market orders must include a price.')
 );
 
 // Schema for updating an order

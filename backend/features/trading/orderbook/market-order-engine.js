@@ -11,6 +11,8 @@ function getSymbolUsingCryptoIDAndCatWithUSDT(cryptocurrencyId) {
 }
 
 marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
+    console.log('market emitter has received order');
+
     const { order } = eventData;
     if (!order) {
         console.error('[MarketOrderEngine] Event data did not contain an order object.');

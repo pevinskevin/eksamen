@@ -63,7 +63,8 @@ Content-Type: {{contentType}}
     "cryptocurrencyId": 1,
     "orderType": "market",
     "orderVariant": "buy",
-    "quantityTotal": "20.1"
+    "quantityTotal": "0.01",
+    "price": "50000"
 }
 
 ### 11. Create new limit sell order successfully (should return 201)

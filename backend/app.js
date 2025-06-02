@@ -150,6 +150,9 @@ marketDataEmitter.on('marketUpdate', (updatedDataObject) => {
     io.emit('orderBookUpdate', updatedDataObject);
 });
 
+// -- Market Order Engine Setup (to register its event listeners) --
+import './features/trading/orderbook/market-order-engine.js';
+
 // -- Listener --
 server.listen(PORT, () => {
     console.log('Server is running on', PORT);

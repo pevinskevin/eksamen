@@ -52,7 +52,7 @@ export default class OrderService {
         validateCreateOrder(order);
         await cryptoService.getCryptocurrencyById(order.cryptocurrencyId);
 
-        if (order.orderType === ORDER_TYPE.LIMIT && order.orderVariant === ORDER_VARIANT.BUY) {
+        if (order.orderVariant === ORDER_VARIANT.BUY) {
             // Get user's current fiat account balance (returned as string from service)
             const stringBalance = (await accountService.getFiatAccountByUserID(userId)).balance;
             const balance = Number(stringBalance);
@@ -83,10 +83,7 @@ export default class OrderService {
             } else {
                 return this.saveOrder(order, userId);
             }
-        } else if (
-            order.orderType === ORDER_TYPE.LIMIT &&
-            order.orderVariant === ORDER_VARIANT.SELL
-        ) {
+        } else if (order.orderVariant === ORDER_VARIANT.SELL) {
             // Get the cryptocurrency symbol and user's holding balance
             const symbol = (await cryptoService.getCryptocurrencyById(order.cryptocurrencyId))
                 .symbol;
@@ -114,15 +111,6 @@ export default class OrderService {
             } else {
                 return this.saveOrder(order, userId);
             }
-        } else {
-            // ========================================
-            // OTHER ORDER TYPES (Market orders, etc.)
-            // ========================================
-
-            // For non-limit orders or other variants, proceed without balance checks
-            console.log("market order placed");
-            
-            return this.saveOrder(order, userId);
         }
     }
 
@@ -256,6 +244,19 @@ export default class OrderService {
         // Market orders may not have a price, so default to '0.00'
         savedOrder.price = savedOrder.price?.toString() || '0.00';
 
-        return savedOrder;
+        // Return in camelCase for openAPI compliance.
+        return {
+            id: savedOrder.id,
+            userId: savedOrder.user_id,
+            cryptocurrencyId: savedOrder.cryptocurrency_id,
+            orderType: savedOrder.order_type,
+            orderVariant: savedOrder.order_variant,
+            quantityTotal: savedOrder.quantity_total,
+            quantityRemaining: savedOrder.quantity_remaining,
+            price: savedOrder.price,
+            status: savedOrder.status,
+            createdAt: savedOrder.created_at,
+            updatedAt: savedOrder.updated_at,
+        };
     }
 }
