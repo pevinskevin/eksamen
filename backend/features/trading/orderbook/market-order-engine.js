@@ -1,11 +1,11 @@
 import { marketOrderEmitter } from '../../../shared/events/marketOrderEmitter.js';
 import { getBestPrice } from './binance-ws.js';
-import { cryptoService } from '../../../shared/factory/factory.js';
+import { cryptoRepository } from '../../../shared/factory/factory.js';
 import { ORDER_VARIANT } from '../../../shared/validators/validators.js';
 import { executeTradeAgainstBinance } from './trade-executor.js';
 
-function getSymbolUsingCryptoIDAndCatWithUSDT(cryptocurrencyId) {
-    const symbol = cryptoService.getCryptocurrencyById(cryptocurrencyId).symbol;
+async function getSymbolUsingCryptoIDAndCatWithUSDT(cryptocurrencyId) {
+    const symbol = (await cryptoRepository.findById(cryptocurrencyId)).symbol;
     const symbolUSDT = symbol + 'USDT';
     return symbolUSDT;
 }
@@ -35,7 +35,7 @@ marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
         return;
     }
 
-    const symbol = getSymbolUsingCryptoIDAndCatWithUSDT(cryptocurrencyId);
+    const symbol = await getSymbolUsingCryptoIDAndCatWithUSDT(cryptocurrencyId);
 
     const priceData = getBestPrice(symbol);
 

@@ -22,6 +22,6 @@ export default class TradeRepository {
                 sellerUserId,
             ],
         };
-        return await this.db.query(query).rows.at(0);
+        return (await this.db.query(query)).rows.at(0);
     }
 }

@@ -21,7 +21,6 @@ export async function executeTradeAgainstBinance(
     try {
         await db.query('BEGIN');
         const BINANCE_USER_ID = 999;
-        const symbol = (await cryptoRepository.findById(cryptocurrencyId)).symbol;
 
         if (orderVariant === ORDER_VARIANT.BUY) {
             const totalCost = orderQuantity * executionPrice;
@@ -31,7 +30,7 @@ export async function executeTradeAgainstBinance(
             await accountRepository.incrementFiatAccount(userId, increment);
 
             // 2. Update user's crypto holding
-            await accountRepository.incrementCryptoHolding(userId, symbol, orderQuantity);
+            await accountRepository.incrementCryptoHolding(userId, cryptocurrencyId, orderQuantity);
 
             // 3. Record trade in db.
             const buyerUserId = userId;
@@ -48,7 +47,7 @@ export async function executeTradeAgainstBinance(
         } else if (orderVariant === ORDER_VARIANT.SELL) {
             // 1. Update user's crypto holding
             const increment = -orderQuantity;
-            await accountRepository.incrementCryptoHolding(userId, symbol, increment);
+            await accountRepository.incrementCryptoHolding(userId, cryptocurrencyId, increment);
 
             // 2. Update user's fiat balance
             const totalValueIncrement = orderQuantity * executionPrice;
@@ -67,7 +66,7 @@ export async function executeTradeAgainstBinance(
             );
         }
         // Update Order.
-        const orderQuantity = null;
+        orderQuantity = null;
         const quantityRemaining = 0;
         const status = ORDER_STATUS.FULLY_FILLED;
         await orderRepository.update(
@@ -85,5 +84,6 @@ export async function executeTradeAgainstBinance(
     } catch (error) {
         console.log('Error: ' + error.message);
         await db.query('ROLLBACK');
+        
     }
 }

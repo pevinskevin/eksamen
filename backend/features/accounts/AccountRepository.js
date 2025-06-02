@@ -26,10 +26,10 @@ export default class AccountRepository {
         return (await this.db.query(query)).rows.at(0);
     }
 
-    async incrementCryptoHolding(userId, symbol, increment) {
+    async incrementCryptoHolding(userId, cryptocurrencyId, increment) {
         const query = {
-            text: 'UPDATE crypto_holdings SET balance = balance + $1 WHERE user_id = $2 AND symbol = $3 RETURNING *',
-            values: [increment, userId, symbol],
+            text: 'UPDATE crypto_holdings_base SET balance = balance + $1 WHERE user_id = $2 AND cryptocurrency_id = $3 RETURNING *',
+            values: [increment, userId, cryptocurrencyId],
         };
         return (await this.db.query(query)).rows.at(0);
     }

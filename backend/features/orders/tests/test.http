@@ -62,8 +62,8 @@ Content-Type: {{contentType}}
 {
     "cryptocurrencyId": 1,
     "orderType": "market",
-    "orderVariant": "buy",
-    "quantityTotal": "0.01",
+    "orderVariant": "sell",
+    "quantityTotal": "0.0001",
     "price": "50000"
 }
 
