@@ -20,7 +20,7 @@ export async function createTables() {
 
         await client.query(`
       -- User roles
-      CREATE TYPE user_role AS ENUM ('user', 'admin');
+      CREATE TYPE user_role AS ENUM ('user', 'admin', 'system');
       
       -- Order types
       CREATE TYPE order_type AS ENUM ('limit', 'market');
@@ -138,8 +138,7 @@ export async function createTables() {
         await client.query(`
       CREATE TABLE IF NOT EXISTS trades (
         id SERIAL PRIMARY KEY,
-        buy_order_id INTEGER REFERENCES orders(id),
-        sell_order_id INTEGER REFERENCES orders(id),
+        order_id INTEGER REFERENCES orders(id),
         cryptocurrency_id INTEGER REFERENCES cryptocurrencies(id),
         quantity DECIMAL(20, 8) NOT NULL,
         price DECIMAL(20, 8) NOT NULL,
@@ -189,6 +188,14 @@ export async function createTables() {
             [testPasswordHash]
         );
         console.log('✓ Added test admin user (admin@test.com / password: test)');
+
+        // Create Binance system user with ID 999 to represent Binance as counterparty
+        await client.query(`
+      INSERT INTO users (id, email, password_hash, first_name, last_name, role)
+      VALUES (999, 'system@binance.local', 'SYSTEM_ACCOUNT', 'Binance', 'System', 'system')
+      ON CONFLICT (id) DO NOTHING
+    `);
+        console.log('✓ Added Binance system user (ID: 999)');
 
         // Create crypto holdings for admin user for BTC, ETH, and BNB
         await client.query(`

@@ -3,9 +3,66 @@
 # Status: pending
 # Dependencies: 8, 15, 19
 # Priority: high
-# Description: Create a Svelte component to visualize the live order book (bids and asks). This component should subscribe to WebSocket updates for the selected cryptocurrency pair and efficiently re-render the display when new data arrives.
+# Description: Create a Svelte component to visualize the live Binance order book (bids and asks). This component will subscribe to Binance order book WebSocket updates via the backend for the selected cryptocurrency pair, efficiently re-render the display when new data arrives, and provide visual feedback when user trades consume Binance liquidity. The goal is a clean, real-time visualization of market depth from Binance.
 # Details:
-Create `OrderBook.svelte` component. Props: `selectedPair`. On component mount or when `selectedPair` changes: send a WebSocket message to subscribe to that pair's order book updates (if backend requires explicit subscription). Listen for `ORDER_BOOK_UPDATE` messages. When data arrives, update local Svelte stores or component state for bids and asks. Render two lists (bids in green, asks in red), sorted by price, showing price, quantity, and cumulative quantity. Use Svelte's reactivity for efficient DOM updates (`{#each ... key=...}`).
+Create `OrderBook.svelte` component. Props: `selectedPair`.
+1. On component mount or when `selectedPair` changes: send a WebSocket message to the backend to subscribe to Binance order book updates for that pair.
+2. Listen for messages from the backend (e.g., `BINANCE_ORDER_BOOK_UPDATE`) containing Binance order book data.
+3. When data arrives, update local Svelte stores or component state for Binance bids and asks.
+4. Render two lists (bids in green, asks in red), sorted by price, showing price, quantity, and cumulative quantity, representing Binance market depth.
+5. Implement visual feedback (e.g., highlighting, animations) on the order book display when a user's trade consumes liquidity from the Binance order book. This requires identifying which orders were affected by the user's trade.
+6. Ensure efficient DOM updates using Svelte's reactivity (`{#each ... key=...}`) for high-frequency Binance data.
+7. Focus on a clean and clear visualization of market depth from Binance. Remove any logic related to user-to-user order book display or matching.
 
 # Test Strategy:
-Order book display updates in near real-time when orders are placed or matched on the backend. Bids and asks are displayed correctly, sorted, and styled. Performance should be acceptable.
+1. Verify that the component correctly displays real-time Binance order book bids and asks for the selected pair.
+2. Confirm that the display updates efficiently in near real-time when new data arrives from the Binance WebSocket stream (via backend).
+3. Test that bids are displayed in green and asks in red, correctly sorted by price, and show price, quantity, and cumulative quantity.
+4. Validate the visual feedback mechanism: when a user's trade is executed against Binance liquidity, the corresponding levels in the order book should visually indicate consumption.
+5. Ensure the visualization of Binance market depth is clean, easy to understand, and accurately reflects data from Binance.
+6. Performance should be acceptable under high-frequency updates from Binance.
+7. Verify that subscription and unsubscription to Binance order book data via the backend works correctly when `selectedPair` changes or component unmounts.
+
+# Subtasks:
+## 20.1. Setup `OrderBook.svelte` component with `selectedPair` prop. [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 20.2. Implement WebSocket communication with the backend to subscribe/unsubscribe to live Binance order book data for the `selectedPair`. [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 20.3. Develop logic to process and store incoming Binance order book updates (bids and asks) efficiently. [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 20.4. Render the Binance bids and asks lists, displaying price, quantity, and cumulative quantity. Style bids in green and asks in red, sorted by price. [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 20.5. Design and implement visual feedback on the order book display when a user's trade consumes Binance liquidity (e.g., highlighting affected orders). [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 20.6. Optimize component rendering for high-frequency Binance data updates using Svelte's reactivity and best practices. [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 20.7. Ensure the overall visualization of Binance market depth is clean, intuitive, and updates in near real-time. [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+

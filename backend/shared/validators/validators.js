@@ -2,7 +2,8 @@ import { object, number, string, enum_ } from 'valibot';
 
 export const USER_ROLES = Object.freeze({
     USER: 'user',
-    ADMIN: 'admin'
+    ADMIN: 'admin',
+    SYSTEM: 'system',
 });
 
 export const ORDER_TYPE = Object.freeze({

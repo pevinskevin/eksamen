@@ -3,83 +3,100 @@
 # Status: pending
 # Dependencies: 9, 11, 17
 # Priority: high
-# Description: Implement the backend logic for simplified trade execution. When a match is provided by the matching engine (Task 17), this system will process the trade as a user execution against Binance, which acts as the price oracle and liquidity provider. There are no user-to-user settlements. The system must atomically update the user's balances (debiting the source currency, crediting the target currency), create a `Trade` record reflecting Binance as the counterparty, and update the status of the user's `Order` record in the database and in-memory order book. Atomicity of database operations is critical.
+# Description: Implement the backend logic for trade execution. All trades are user executions against Binance, which acts as the sole counterparty, price oracle, and liquidity provider. This system processes matched limit orders (from Task 17) and market orders directly against Binance. There are no user-to-user settlements. The system must atomically update only the user's balances, create a `Trade` record with Binance (via a system account) as the counterparty, and update the user's `Order` record (status, quantity) in the database and in-memory order book. Market orders require execution at simulated Binance prices with pre-trade balance validation. Atomicity of database operations is critical.
 # Details:
-The core responsibility is to process matched trades from the simplified matching engine. All trades are user executions against Binance liquidity. This involves atomic database updates for the user's balances, trade record creation, and order status management in both the database and the in-memory order book.
+The core responsibility is to process user trades exclusively against Binance liquidity. This involves atomic database updates for the user's balances, trade record creation (with Binance as counterparty), and order status management. Market order execution at simulated Binance prices with balance validation is a key feature.
 
 **Key Requirements:**
-1.  **Single Trade Execution Path:** All trades are processed as user orders filled against Binance liquidity.
-2.  **Atomicity:** All database operations for a single trade (balance updates, trade creation, order updates) must be performed within a single transaction to ensure data consistency.
-3.  **Trade Record:** A `Trade` record must be created for every execution, clearly identifying the user and Binance (as a designated system account) as counterparties. It should include a `trade_type` like 'EXTERNAL_LIQUIDITY_TRADE'.
-4.  **Order Updates:** The user's `Order` record must be updated (status, quantity remaining) in the database and reflected in the in-memory order book.
+1.  **Binance as Sole Counterparty:** All trades are user orders filled against Binance liquidity. No user-to-user settlements.
+2.  **User-Only Balance Updates:** The system updates only the participating user's currency and asset balances. Binance's side is represented by a system account in trade records.
+3.  **Trade Record:** A `Trade` record is created for every execution, with `buyer_id` or `seller_id` being the user, and the other being a designated system account ID for Binance. Include `trade_type`='EXTERNAL_LIQUIDITY_TRADE'.
+4.  **Atomic Database Operations:** All database changes for a trade (user balance updates, trade creation, order updates) must be within a single transaction.
+5.  **Order Status Management:** User's `Order` records (status, quantity remaining) are updated in the database and reflected in the in-memory order book.
+6.  **Market Order Execution:** Support market orders executed at simulated Binance prices. This includes:
+    *   Fetching/determining the current execution price (simulated).
+    *   Pre-execution validation of user's available balance (quote currency for buy, base asset for sell).
 
 **Detailed Process:**
 
-**I. Pre-Execution:**
-    1.  Upon receiving a match from the matching engine, identify the participating user and trade details.
-    2.  Start a database transaction.
+**I. Pre-Execution & Validation:**
+    1.  Receive trade execution request:
+        *   For limit orders: From matching engine (Task 17) with matched price and quantity.
+        *   For market orders: Direct request with asset and quantity (or total quote value for buy).
+    2.  For market orders:
+        *   Fetch current simulated execution price from a Binance price feed/oracle.
+        *   Perform balance validation:
+            *   Buy: Ensure user has sufficient quote currency (`price * quantity`).
+            *   Sell: Ensure user has sufficient base asset (`quantity`).
+        *   If validation fails, reject the order and notify the user.
+    3.  Start a database transaction.
 
-**II. Trade Execution Logic:**
-    1.  **Identify User:** The user whose order is matched.
-    2.  **Balance Updates (User only):**
-        *   **If user is BUYING the base asset:**
-            *   Debit user's quote currency account (e.g., USD).
-            *   Credit user's base currency holdings (e.g., BTC).
-        *   **If user is SELLING the base asset:**
-            *   Credit user's quote currency account (e.g., USD).
-            *   Debit user's base currency holdings (e.g., BTC).
-    3.  **Database Updates:** Persist changes to the user's `Accounts` (for fiat/quote currency) and `CryptoHoldings` (for crypto/base currency) tables.
-    4.  **Trade Record Creation:** Create a new record in the `Trades` table.
-        *   Fields:
-            *   If user buys base asset: `buyer_id` (user's ID), `seller_id` (a designated system account ID for Binance).
-            *   If user sells base asset: `seller_id` (user's ID), `buyer_id` (a designated system account ID for Binance).
-            *   Common fields: `crypto_id` (or `base_asset_id`), `quantity` (of base asset), `price` (in quote asset), `timestamp`, `trade_type` (e.g., 'EXTERNAL_LIQUIDITY_TRADE').
-    5.  **Order Updates (Database):** For the user's order:
-        *   Update status (e.g., 'PARTIALLY_FILLED', 'FILLED').
-        *   Decrease `quantity_remaining`.
-    6.  **Order Updates (In-Memory):** Update or remove the user's order from the in-memory order book.
+**II. Trade Execution Logic (User vs. Binance):**
+    1.  **Identify User and Trade Details:** User ID, asset, quantity, price (fixed for limit, fetched for market).
+    2.  **Update User Balances (Atomically):**
+        *   **If user is BUYING base asset:**
+            *   Debit user's quote currency account by `price * quantity`.
+            *   Credit user's base currency holdings by `quantity`.
+        *   **If user is SELLING base asset:**
+            *   Credit user's quote currency account by `price * quantity`.
+            *   Debit user's base currency holdings by `quantity`.
+    3.  **Persist Balance Changes:** Save updates to user's `Accounts` and `CryptoHoldings` tables.
+    4.  **Create Trade Record:** Insert a new record into the `Trades` table:
+        *   `buyer_id`: User's ID if buying, Binance system account ID if user is selling.
+        *   `seller_id`: User's ID if selling, Binance system account ID if user is buying.
+        *   `crypto_id`, `quantity`, `price`, `timestamp`, `trade_type` ('EXTERNAL_LIQUIDITY_TRADE').
+    5.  **Update Order Record (Database & In-Memory):**
+        *   For limit orders: Update status (e.g., 'PARTIALLY_FILLED', 'FILLED'), decrease `quantity_remaining`.
+        *   For market orders: Mark the corresponding (transient or persisted) order as 'FILLED'.
+        *   Reflect changes in the in-memory order book if applicable (for limit orders).
 
 **III. Post-Execution:**
-    1.  **Commit Transaction:** If all operations succeed, commit the database transaction.
-    2.  **Rollback on Failure:** If any operation fails, roll back the entire transaction.
-    3.  **Event Emission:** Emit events (e.g., `TradeExecuted`, `BalanceUpdated`) to notify other services or for auditing.
+    1.  **Commit Transaction:** If all operations succeed.
+    2.  **Rollback on Failure:** If any operation fails (including balance validation if part of the transaction).
+    3.  **Event Emission:** Emit events like `TradeExecuted`, `BalanceUpdated`, `OrderUpdated`.
 
 # Test Strategy:
-The test strategy must cover the simplified trade execution scenario against Binance liquidity.
+The test strategy must cover trade execution against Binance as the sole counterparty, including market order specifics.
 
-1.  **Trade Execution Verification:**
-    *   **User Buys Base Asset:**
-        *   Verify user's quote currency is debited, and base currency is credited correctly in the database.
-        *   Verify `Trade` record is created with user as `buyer_id`, Binance system account as `seller_id`, `trade_type`='EXTERNAL_LIQUIDITY_TRADE', and other trade details.
-    *   **User Sells Base Asset:**
-        *   Verify user's quote currency is credited, and base currency is debited correctly in the database.
-        *   Verify `Trade` record is created with user as `seller_id`, Binance system account as `buyer_id`, `trade_type`='EXTERNAL_LIQUIDITY_TRADE', and other trade details.
-    *   For both scenarios:
-        *   Verify the user's `Order` status and `quantity_remaining` are correctly updated in the database.
-        *   Verify the user's order is correctly updated/removed from the in-memory order book.
-2.  **Atomicity Tests:**
-    *   Simulate failures at various points during the trade execution process (e.g., after debiting user but before crediting, or before creating the trade record).
-    *   Verify that the entire transaction is rolled back, and the system state remains consistent (no partial updates to balances or orders).
-3.  **Concurrency Tests:**
-    *   Test concurrent trade executions to ensure data integrity and absence of race conditions.
-4.  **Edge Cases:**
-    *   Partial fills.
-    *   Trades involving very small or very large quantities/prices.
+1.  **Trade Execution Verification (User vs. Binance):**
+    *   **User Buys Base Asset (Limit/Market):**
+        *   Verify user's quote currency debited, base currency credited.
+        *   Verify `Trade` record: user as `buyer_id`, Binance system account as `seller_id`, `trade_type`='EXTERNAL_LIQUIDITY_TRADE', correct details.
+    *   **User Sells Base Asset (Limit/Market):**
+        *   Verify user's quote currency credited, base currency debited.
+        *   Verify `Trade` record: user as `seller_id`, Binance system account as `buyer_id`, `trade_type`='EXTERNAL_LIQUIDITY_TRADE', correct details.
+    *   For both:
+        *   Verify `Order` status and `quantity_remaining` updated in DB and in-memory (for limit orders).
+        *   Verify market orders are marked 'FILLED'.
+2.  **Market Order Specific Tests:**
+    *   **Balance Validation:**
+        *   Market Buy: Test execution with sufficient quote currency; test rejection if insufficient.
+        *   Market Sell: Test execution with sufficient base currency; test rejection if insufficient.
+    *   **Price Simulation:** Verify trades use the simulated Binance price for market orders.
+3.  **Atomicity Tests:**
+    *   Simulate failures during trade execution (e.g., post-debit, pre-credit; pre-trade record).
+    *   Verify transaction rollback and consistent system state.
+4.  **Concurrency Tests:**
+    *   Test concurrent limit and market order executions for data integrity (balances, order states).
+5.  **Edge Cases:**
+    *   Partial fills (limit orders).
+    *   Trades with very small/large quantities/prices.
+    *   Market orders consuming exactly available balance.
 
 # Subtasks:
-## 18_S1. Define/Update `Trades` table schema to establish a method for representing Binance as the counterparty (e.g., using a designated system account ID in `buyer_id`/`seller_id` fields) and include a simplified `trade_type` (e.g., 'EXTERNAL_LIQUIDITY_TRADE'). [pending]
+## 18_S1. Define/Update `Trades` table schema to represent Binance as the sole counterparty (e.g., using a designated system account ID) and include `trade_type` (e.g., 'EXTERNAL_LIQUIDITY_TRADE'). [pending]
 ### Dependencies: None
 ### Description: 
 ### Details:
 
 
-## 18_S2. Implement the trade execution service entry point that receives matched orders from the simplified matching engine (Task 17). [pending]
+## 18_S2. Implement the trade execution service entry point to handle matched limit orders (from Task 17) and incoming market order requests. [pending]
 ### Dependencies: None
 ### Description: 
 ### Details:
 
 
-## 18_S3. Implement the core trade execution logic: atomically update user balances (debit source currency, credit target currency), create a `Trade` record with the user and Binance as counterparties, and update the user's `Order` record (status and quantity in DB and in-memory order book). [pending]
+## 18_S3. Implement core trade execution logic: atomically update only the user's balances, create `Trade` record (user vs. Binance system account), update user's `Order` record (DB & in-memory, if applicable). [pending]
 ### Dependencies: None
 ### Description: 
 ### Details:
@@ -91,7 +108,13 @@ The test strategy must cover the simplified trade execution scenario against Bin
 ### Details:
 
 
-## 18_S5. Implement event emission (e.g., `TradeExecuted`, `BalanceUpdated`) upon successful trade execution. [pending]
+## 18_S5. Implement event emission (e.g., `TradeExecuted`, `BalanceUpdated`, `OrderUpdated`) upon successful trade execution. [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 18_S6. Implement market order processing: fetch simulated Binance prices, perform pre-execution user balance validation, and integrate with trade execution logic. [pending]
 ### Dependencies: None
 ### Description: 
 ### Details:

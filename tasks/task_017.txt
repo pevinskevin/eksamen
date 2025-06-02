@@ -3,112 +3,144 @@
 # Status: pending
 # Dependencies: 16
 # Priority: high
-# Description: Develop the core order matching engine logic. This engine will execute user orders directly against Binance liquidity. The implementation will follow a phased approach: Phase 1 involves simple execution against cached Binance best bid/ask prices. Phase 2 introduces depth-aware execution, 'walking the book' using Binance order book levels. Phase 3 will support enhanced visual feedback of liquidity consumption. The engine will handle market and limit orders, managing partial/full fills against Binance. Refer to `binance-ws.js` for Binance integration.
+# Description: Develop the backend logic for a simplified order execution engine, as outlined in the task titled 'BE: Order Matching Engine Development'. This engine will **not** perform traditional user-to-user order matching. Instead, it will focus on executing user orders directly against Binance, using Binance as the price oracle and sole counterparty.
+
+Key functionalities include:
+1.  Executing user market orders immediately against cached Binance best bid/ask prices.
+2.  Handling user limit orders: monitoring against Binance prices and executing against Binance when triggered.
+3.  Implementing robust order validation (e.g., valid parameters, minimums) and user balance checks prior to execution.
+4.  Processing all trades with Binance as the designated counterparty.
+5.  Managing comprehensive order status updates (e.g., pending, active, partially_filled, filled, cancelled) and detailed trade recording.
+6.  Providing backend support for visual feedback on the consumption of Binance liquidity levels during order execution.
+
+The implementation will follow a phased approach:
+*   **Phase 1:** Simple execution against cached Binance best bid/ask prices.
+*   **Phase 2:** Depth-aware execution, 'walking the book' using Binance order book levels if an order's size exceeds top-of-book liquidity.
+*   **Phase 3:** Enhanced support for visual feedback of liquidity consumption.
+
+Integration with `binance-ws.js` is crucial for accessing real-time Binance market data. This system is fundamentally a Binance execution simulator/interface, not an independent matching venue.
 # Details:
-To be implemented in `OrderBookService.js` or a dedicated `MatchingEngine.js`.
-The matching engine will execute user orders directly against Binance liquidity.
+To be implemented in `OrderBookService.js` or a dedicated `BinanceExecutionEngine.js` (or similar, reflecting its role as an execution interface with Binance rather than a traditional matching engine).
+The execution logic will process user orders directly against Binance liquidity, with Binance acting as the sole counterparty.
 
-**Order Types Handled:**
-*   **Market Orders:** Executed immediately against the current Binance order book.
-*   **Limit Orders:** Placed and monitored; executed when the market price reaches the order's limit price.
+**Core Requirements:**
+*   **Order Validation & Balance Checks:** Before attempting execution, validate order parameters (e.g., symbol, side, type, quantity, price for limit orders) and confirm sufficient user balance.
+*   **Binance as Counterparty:** All trades are executed against Binance. No internal order book or user-to-user matching occurs.
+*   **Order Status Management & Trade Recording:** Maintain accurate order statuses throughout their lifecycle and record all trade executions.
 
-**Matching Process (Phased Implementation):**
+**Order Types Handled (Executed against Binance):**
+*   **Market Orders:** Executed immediately against the current Binance order book prices.
+*   **Limit Orders:** Placed and monitored; executed against Binance when the market price on Binance reaches the order's limit price.
 
-1.  **Phase 1: Simple Execution (Top-of-Book)**
-    *   For market orders: Match against the best available bid (for sells) or ask (for buys) from the cached Binance order book.
-    *   For limit orders: Monitor against the best bid/ask. Trigger if the limit price is marketable.
-    *   Execution is based on the single best price level.
+**Execution Process (Phased Implementation against Binance):**
 
-2.  **Phase 2: Depth-Aware Execution ("Walking the Book")**
-    *   For market orders and triggered limit orders: If the order quantity exceeds liquidity at the best price level, the engine will "walk the book," consuming liquidity from subsequent price levels on Binance until the order is filled or available depth is exhausted.
-    *   Calculates an average fill price if multiple levels are consumed.
+1.  **Phase 1: Simple Execution (Top-of-Book against Binance)**
+    *   For market orders: Execute against the best available bid (for sells) or ask (for buys) from the cached Binance order book.
+    *   For limit orders: Monitor against Binance best bid/ask. Trigger for execution if the limit price is marketable against Binance prices.
+    *   Execution is based on the single best price level from Binance.
 
-**Fill Logic:**
+2.  **Phase 2: Depth-Aware Execution ("Walking the Binance Book")**
+    *   For market orders and triggered limit orders: If the order quantity exceeds liquidity at the best Binance price level, the engine will simulate "walking the Binance book," consuming liquidity from subsequent price levels on Binance until the order is filled or available Binance depth is exhausted.
+    *   Calculates an average fill price if multiple Binance levels are consumed.
+
+**Fill Logic (against Binance):**
 *   Determine fill quantity based on available Binance liquidity at the matched price level(s).
-*   Handle partial fills: Update the remaining quantity of the user order. If a market order is partially filled due to insufficient depth, the remainder might be cancelled or handled based on policy. If a limit order, the remaining part stays active.
+*   Handle partial fills: Update the remaining quantity of the user order. If a market order is partially filled due to insufficient Binance depth, the remainder might be cancelled or handled based on policy. If a limit order, the remaining part stays active against Binance.
 *   Handle full fills: Mark the user order as completed.
-*   Generate trade execution records for each fill.
+*   Generate trade execution records for each fill (with Binance as counterparty).
 
 **Binance Integration:**
 *   Utilize real-time Binance order book data (best bid/ask and depth) provided by `binance-ws.js`.
-*   All executions are against Binance liquidity at Binance prices.
+*   All executions are simulated against Binance liquidity at Binance prices.
 
 **Phase 3 Support:**
-*   The engine will be designed to provide necessary data points to support visual feedback of liquidity consumption during the matching process.
+*   The engine will be designed to provide necessary data points to support visual feedback of **Binance liquidity consumption** during the execution process.
 
 # Test Strategy:
-Test various scenarios:
-1.  **Market Order Execution (Phase 1 - Top of Book):**
+Test various scenarios, ensuring all executions are simulated against Binance as the counterparty:
+1.  **Order Validation & Balance Checks:**
+    *   Test orders with invalid parameters (e.g., incorrect symbol, negative quantity).
+    *   Test orders where user balance is insufficient.
+    *   Verify orders are rejected appropriately before attempting execution.
+2.  **Market Order Execution (Phase 1 - Top of Book against Binance):**
     *   New buy market order matching Binance best ask.
     *   New sell market order matching Binance best bid.
-    *   Verify execution at Binance prices and correct fill quantity for orders smaller than or equal to liquidity at best price.
-2.  **Limit Order Management & Execution:**
+    *   Verify execution at Binance prices and correct fill quantity for orders smaller than or equal to liquidity at Binance's best price.
+3.  **Limit Order Management & Execution (against Binance):**
     *   Limit buy order triggers when Binance ask price drops to or below limit price.
     *   Limit sell order triggers when Binance bid price rises to or above limit price.
-    *   Test orders that don't match immediately and are correctly monitored.
-    *   Verify execution at limit price or better (price improvement).
-    *   Test limit orders partially filling and remaining active.
-3.  **Market Order Execution (Phase 2 - Depth-Aware "Walking the Book")**:
-    *   Market order larger than best price level liquidity, correctly consuming multiple depth levels.
-    *   Verify correct calculation of average fill price when multiple levels are hit.
-    *   Test scenarios where order quantity exceeds total available depth.
-4.  **Triggered Limit Order Execution (Phase 2 - Depth-Aware):**
-    *   Triggered limit order larger than best price level liquidity, correctly consuming multiple depth levels up to its limit price.
+    *   Test orders that don't match immediately and are correctly monitored against Binance prices.
+    *   Verify execution at limit price or better (simulating price improvement from Binance).
+    *   Test limit orders partially filling against Binance and remaining active.
+4.  **Market Order Execution (Phase 2 - Depth-Aware "Walking the Binance Book")**:
+    *   Market order larger than Binance's best price level liquidity, correctly consuming multiple depth levels from Binance.
+    *   Verify correct calculation of average fill price when multiple Binance levels are hit.
+    *   Test scenarios where order quantity exceeds total available Binance depth.
+5.  **Triggered Limit Order Execution (Phase 2 - Depth-Aware against Binance):**
+    *   Triggered limit order larger than Binance's best price level liquidity, correctly consuming multiple depth levels from Binance up to its limit price.
     *   Verify correct fill quantities and average price if applicable.
-5.  **Fill Logic & Order State Management:**
+6.  **Fill Logic & Order State Management (with Binance as Counterparty):**
     *   Test partial fills for both market and limit orders, ensuring remaining quantity is correct.
     *   Test full fills, ensuring order status is updated to completed.
-    *   Verify correct generation of trade execution records.
-6.  **Integration & Data Integrity:**
-    *   Verify correct interaction with `binance-ws.js` for fetching and using Binance order book data (top of book and depth).
+    *   Verify correct generation of trade execution records (with Binance as counterparty).
+7.  **Integration & Data Integrity:**
+    *   Verify correct interaction with `binance-ws.js` for fetching and using Binance order book data.
     *   Ensure order states (e.g., pending, active, partially_filled, filled, cancelled) are correctly managed and updated throughout the lifecycle.
+8.  **Visual Feedback Support:**
+    *   Verify backend provides necessary data points for visualizing Binance liquidity consumption.
 
 # Subtasks:
-## subtask_17_1. Design overall architecture for the simplified matching engine [pending]
+## subtask_17_1. Design overall architecture for the simplified Binance execution engine [pending]
 ### Dependencies: None
-### Description: Define the high-level design, data flow, components (e.g., `MatchingEngine.js`), and interaction with `binance-ws.js` for Binance-only execution.
+### Description: Define the high-level design, data flow, components (e.g., `BinanceExecutionEngine.js` or similar), and interaction with `binance-ws.js` for simulating order execution against Binance.
 ### Details:
 
 
-## subtask_17_2. Implement core data structures for managing user orders and cached Binance order book data [pending]
+## subtask_17_2. Implement core data structures for user orders and cached Binance market data [pending]
 ### Dependencies: None
-### Description: Develop structures for storing active user limit orders, tracking market orders, and representing cached Binance best bid/ask and order book depth levels.
+### Description: Develop structures for storing active user limit orders, tracking market orders, and representing cached Binance best bid/ask and order book depth levels for execution simulation.
 ### Details:
 
 
-## subtask_17_3. Enhance `binance-ws.js` integration for robust fetching and caching of Binance market data [pending]
+## subtask_17_3. Enhance `binance-ws.js` integration for robust Binance market data acquisition [pending]
 ### Dependencies: None
-### Description: Ensure the matching engine has reliable access to real-time best bid/ask prices and order book depth from Binance, with appropriate caching mechanisms.
+### Description: Ensure the execution engine has reliable access to real-time best bid/ask prices and order book depth from Binance, with appropriate caching mechanisms, for accurate execution simulation.
 ### Details:
 
 
 ## subtask_17_4. Implement Phase 1: Simple market order execution against cached Binance best bid/ask [pending]
 ### Dependencies: None
-### Description: Develop the matching logic for market orders using only the top-of-the-book data from Binance. Handle immediate fills based on available liquidity at the best price.
+### Description: Develop the logic for executing user market orders using only the top-of-the-book data from Binance. Handle immediate fills based on available Binance liquidity at the best price.
 ### Details:
 
 
-## subtask_17_5. Implement limit order management: placement, monitoring against Binance prices, and triggering [pending]
+## subtask_17_5. Implement limit order management: placement, monitoring against Binance prices, and triggering for execution against Binance [pending]
 ### Dependencies: None
-### Description: Develop logic for accepting user limit orders, storing them, continuously monitoring Binance market prices, and triggering them for execution when conditions are met.
+### Description: Develop logic for accepting user limit orders, storing them, continuously monitoring Binance market prices, and triggering them for execution against Binance liquidity when conditions are met.
 ### Details:
 
 
-## subtask_17_6. Implement Phase 2: Depth-aware execution ("walking the book") for market and triggered limit orders [pending]
+## subtask_17_6. Implement Phase 2: Depth-aware execution ("walking the Binance book") [pending]
 ### Dependencies: None
-### Description: Enhance matching logic to consume multiple levels of the Binance order book depth if an order cannot be fully filled at the best price or a triggered limit order can fill across levels up to its limit price.
+### Description: Enhance execution logic to consume multiple levels of the Binance order book depth if an order cannot be fully filled at the best price or a triggered limit order can fill across levels up to its limit price, simulating interaction with Binance's full depth.
 ### Details:
 
 
-## subtask_17_7. Implement fill processing logic: partial/full fills, order status updates, and trade event generation [pending]
+## subtask_17_7. Implement fill processing: partial/full fills, status updates, trade recording (Binance as counterparty) [pending]
 ### Dependencies: None
-### Description: Develop robust logic to handle the results of matching attempts, including calculating fill amounts, updating order statuses (e.g., active, partially_filled, filled), and generating events/records for confirmed trades.
+### Description: Develop robust logic to handle the results of execution attempts against Binance, including calculating fill amounts, updating order statuses (e.g., active, partially_filled, filled), and generating events/records for confirmed trades with Binance as the counterparty.
 ### Details:
 
 
-## subtask_17_8. Define and implement BE support for Phase 3: Visual feedback of liquidity consumption [pending]
+## subtask_17_8. Implement BE support for Phase 3: Visual feedback of Binance liquidity consumption [pending]
 ### Dependencies: None
-### Description: Specify and implement mechanisms for the backend to provide data points (e.g., consumed depth levels, fill progression) that can be used by a UI to visualize how an order interacts with market liquidity.
+### Description: Specify and implement mechanisms for the backend to provide data points (e.g., consumed Binance depth levels, fill progression) that can be used by a UI to visualize how an order interacts with Binance market liquidity.
+### Details:
+
+
+## subtask_17_9. Implement pre-execution order validation and balance checks [pending]
+### Dependencies: None
+### Description: Develop logic to perform order validation (e.g., symbol, side, type, quantity, price constraints) and user balance verification before any execution attempt against Binance is made. Ensure appropriate error handling for invalid orders or insufficient funds.
 ### Details:
 
 

@@ -75,7 +75,7 @@ The project is divided into three phases:
 5.  Confirm that one user's simulated consumption does not alter the execution prices for other users (who still trade against the live Binance book).
 
 # Subtasks:
-## 1. Phase 1: Setup Binance Price Oracle (`binance-ws.js` extension) [in-progress]
+## 1. Phase 1: Setup Binance Price Oracle (`binance-ws.js` extension) [done]
 ### Dependencies: None
 ### Description: Extend `binance-ws.js` to subscribe to Binance's ticker or best bid/ask streams (e.g., `symbol@bookTicker`) and maintain a real-time local cache of current best bid/ask prices.
 ### Details:
@@ -91,7 +91,7 @@ CURRENT UNDERSTANDING (from Task 16):
 QUESTION FOR USER: Confirm this Binance-simulation approach vs traditional order matching before continuing implementation.
 </info added on 2025-06-01T17:05:45.354Z>
 
-## 2. Phase 1: Implement Basic Market Order Execution [pending]
+## 2. Phase 1: Implement Basic Market Order Execution [in-progress]
 ### Dependencies: 16.1
 ### Description: Implement logic for user market orders (buy/sell) to execute immediately at the cached Binance best bid/ask. Assume sufficient liquidity at this price level for Phase 1.
 ### Details:

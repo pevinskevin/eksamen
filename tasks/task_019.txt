@@ -3,84 +3,88 @@
 # Status: pending
 # Dependencies: 14, 16, 18
 # Priority: high
-# Description: Implement a simplified real-time broadcasting system via WebSockets. This system will be developed in phases:
-Phase 1: Broadcast basic trade notifications and user balance updates.
-Phase 2: Broadcast live Binance order book data directly to clients.
-Phase 3: Enhance the system with visual consumption feedback, showing how user trades impact the displayed Binance order book.
-This approach focuses on clean WebSocket messaging, direct streaming of Binance data, and providing users with clear feedback on their trading activity, ensuring a simple and maintainable architecture.
+# Description: Implement a simplified real-time broadcasting system via WebSockets, focusing exclusively on Binance market data and individual user trading activity against the Binance order book. This system replaces any previous plans for user-to-user trade broadcasting. The system will:
+1. Broadcast live Binance order book data to all subscribed clients for visualization.
+2. Send user-specific trade notifications for trades executed against the Binance order book.
+3. Broadcast balance updates to individual users resulting from their trading activity or account changes.
+4. Provide visual feedback messages for user trades, indicating consumed liquidity from the Binance order book.
+This approach emphasizes clean WebSocket messaging, direct streaming of Binance data, and providing users with clear feedback on their interactions with the Binance market, ensuring a simple and maintainable architecture.
 # Details:
-1.  **Phase 1: Trade Notifications & Balance Updates:**
-    *   Develop logic to capture trade execution events from `MatchingEngine.js`.
-    *   Broadcast trade details (pair, price, quantity, direction, timestamp) to involved users.
-    *   Broadcast user balance updates resulting from trades or other relevant actions (e.g., deposits, withdrawals, fee deductions if applicable).
-    *   Utilize WebSocket infrastructure (Task 14: BE: WebSocket Setup).
+The system will provide the following functionalities through WebSockets:
 
-2.  **Phase 2: Binance Order Book Broadcasting:**
-    *   Integrate with the Binance order book data stream (Task 18: BE: Binance Order Book Integration).
-    *   Stream the live Binance order book (bids and asks) for subscribed trading pairs directly to clients. This involves broadcasting snapshots or deltas of the Binance order book.
+1.  **Live Binance Order Book Broadcasting:**
+    *   Integrate with the Binance order book data stream (from Task 18: BE: Binance Order Book Integration).
+    *   Stream the live Binance order book (bids and asks) for subscribed trading pairs to all connected clients. This involves broadcasting snapshots or deltas of the Binance order book. This data is crucial for real-time order book visualization.
 
-3.  **Phase 3: Visual Consumption Feedback:**
-    *   When a user's market order executes against the Binance order book, identify the consumed liquidity.
-    *   Broadcast information to the client to visually indicate this consumption on the displayed Binance order book (e.g., highlighting affected price levels or quantities).
+2.  **User-Specific Trade Notifications (User vs. Binance):**
+    *   Capture user trade execution events when their orders are filled against the Binance order book (e.g., via `MatchingEngine.js`).
+    *   Broadcast trade details (pair, price, quantity, direction, timestamp, fee) specifically to the user involved in the trade.
 
-4.  **WebSocket Messaging:**
+3.  **User Balance Updates:**
+    *   Broadcast updates to a user's asset balances resulting from their trades against Binance, deposits, withdrawals, or fee deductions. These updates are sent only to the specific user.
+
+4.  **Visual Consumption Feedback for User Trades:**
+    *   When a user's market order executes against the Binance order book, identify the specific liquidity (price levels and quantities) consumed.
+    *   Broadcast this consumption information to the user's client to enable visual feedback on their displayed Binance order book (e.g., highlighting affected price levels).
+
+5.  **WebSocket Messaging Formats:**
     *   Define clear WebSocket message formats. Suggested formats:
-        *   Trade Notification: `{ type: 'TRADE_EXECUTED', pair: 'SIM_BTC/SIM_USD', data: { tradeId, orderId, price, quantity, side, timestamp, fee, feeCurrency } }`
+        *   User Trade Notification (vs. Binance): `{ type: 'TRADE_EXECUTED', pair: 'SIM_BTC/SIM_USD', data: { tradeId, orderId, price, quantity, side, timestamp, fee, feeCurrency } }`
         *   Balance Update: `{ type: 'BALANCE_UPDATE', data: { asset: 'SIM_USD', total: '1000.00', available: '950.00' } }` (per asset)
         *   Binance Order Book: `{ type: 'BINANCE_ORDER_BOOK_UPDATE', pair: 'SIM_BTC/SIM_USD', data: { bids: [[price, qty], ...], asks: [[price, qty], ...], lastUpdateId: 12345678 } }`
         *   Visual Consumption Feedback: `{ type: 'TRADE_IMPACT_ON_BOOK', pair: 'SIM_BTC/SIM_USD', data: { tradeId, consumedBids: [[price, qtyConsumed], ...], consumedAsks: [[price, qtyConsumed], ...] } }`
 
-5.  **Integration Points:**
-    *   `MatchingEngine.js`: Source for trade execution events.
-    *   `UserOrderService.js` / `AccountService.js`: For events leading to balance changes.
+6.  **Integration Points:**
+    *   `MatchingEngine.js`: Source for user trade execution events against Binance.
+    *   `UserOrderService.js` / `AccountService.js`: For events leading to user balance changes.
     *   `BinanceStreamService.js` (from Task 18): Source for live Binance order book data.
-    *   WebSocket infrastructure (Task 14): For broadcasting messages to subscribed clients.
+    *   WebSocket infrastructure (Task 14): For broadcasting messages.
 
 # Test Strategy:
-1.  Verify that clients receive WebSocket messages for trade notifications when their orders are executed, containing accurate trade details.
-2.  Confirm that user balance updates are broadcast correctly and promptly after trades or other relevant account activities.
-3.  Ensure that live Binance order book data (snapshots or diffs) is streamed accurately and efficiently to subscribed clients for relevant pairs.
+1.  Verify that individual users receive WebSocket messages for trade notifications when their orders are executed against the Binance order book, containing accurate trade details.
+2.  Confirm that individual users receive balance updates correctly and promptly after their trades against Binance or other relevant account activities.
+3.  Ensure that live Binance order book data (snapshots or diffs) is streamed accurately and efficiently to all subscribed clients for relevant pairs.
 4.  Test the visual consumption feedback mechanism:
-    *   Verify that messages indicating consumed liquidity from the Binance book are sent after user market orders execute.
+    *   Verify that messages indicating consumed liquidity from the Binance book are sent to the user after their market orders execute against Binance.
     *   Ensure the data provided is sufficient for the frontend to correctly visualize the impact on the displayed order book.
 5.  Validate the structure, content, and correctness of all defined WebSocket message types.
-6.  Test system performance and reliability with multiple connected clients, various trading pairs, and high-frequency updates.
-7.  Ensure proper subscription management for different message types and trading pairs.
+6.  Test system performance and reliability with multiple connected clients, various trading pairs, and high-frequency updates from Binance.
+7.  Ensure proper subscription management for different message types (e.g., user-specific vs. broadcast-to-all) and trading pairs.
 
 # Subtasks:
-## 19_1. Design WebSocket message formats for simplified broadcasting [pending]
+## 19_1. Design WebSocket message formats for broadcasting Binance data and user activity [pending]
 ### Dependencies: None
-### Description: Define clear and efficient JSON formats for all WebSocket messages: trade notifications (e.g., `TRADE_EXECUTED`), user balance updates (e.g., `BALANCE_UPDATE`), live Binance order book data (e.g., `BINANCE_ORDER_BOOK_UPDATE` for snapshots/diffs), and visual consumption feedback (e.g., `TRADE_IMPACT_ON_BOOK`). Specify the exact payload for each message type.
+### Description: Define clear and efficient JSON formats for all WebSocket messages: user-specific trade notifications for trades against Binance (e.g., `TRADE_EXECUTED`), user balance updates (e.g., `BALANCE_UPDATE`), live Binance order book data (e.g., `BINANCE_ORDER_BOOK_UPDATE`), and visual consumption feedback (e.g., `TRADE_IMPACT_ON_BOOK`). Specify the exact payload for each message type.
 ### Details:
 
 
-## 19_2. Implement broadcasting of trade notifications and balance updates (Phase 1) [pending]
+## 19_2. Implement broadcasting of user trade notifications (vs. Binance) and balance updates [pending]
 ### Dependencies: None
-### Description: Develop server-side logic (e.g., in a `NotificationService.js`) to capture trade execution events and balance change events. Broadcast these events as formatted WebSocket messages to the relevant subscribed clients.
+### Description: Develop server-side logic (e.g., in a `NotificationService.js`) to capture user trade execution events against the Binance order book and associated balance change events. Broadcast these events as formatted WebSocket messages (using formats from `19_1`) to the specific user involved.
 ### Details:
 
 
-## 19_3. Integrate user trade and account events for notifications [pending]
+## 19_3. Integrate user trade (vs. Binance) and account events for notifications [pending]
 ### Dependencies: None
-### Description: Ensure that events from `MatchingEngine.js` (for trade executions) and services managing user accounts/orders (e.g., `UserOrderService.js`, `AccountService.js`) correctly trigger the broadcasting of trade notifications and balance updates through the notification system.
+### Description: Ensure that events from `MatchingEngine.js` (for user trade executions against Binance) and services managing user accounts/orders (e.g., `UserOrderService.js`, `AccountService.js`) correctly trigger the broadcasting of user-specific trade notifications and balance updates via the system developed in `19_2`.
 ### Details:
 
 
-## 19_4. Implement broadcasting of live Binance order book data (Phase 2) [pending]
+## 19_4. Implement broadcasting of live Binance order book data to all clients [pending]
 ### Dependencies: None
-### Description: Integrate the Binance data feed from `BinanceStreamService.js` (Task 18) with the WebSocket broadcasting module. Implement logic to stream live Binance order book data (bids, asks, and potentially update identifiers) for subscribed trading pairs to clients, using the format defined in `19_1`.
+### Description: Integrate the Binance data feed from `BinanceStreamService.js` (Task 18) with the WebSocket broadcasting module. Implement logic to stream live Binance order book data (bids, asks, and potentially update identifiers) for subscribed trading pairs to all connected clients, using the format defined in `19_1`.
 ### Details:
 
 
-## 19_5. Implement visual consumption feedback on displayed order book (Phase 3) [pending]
+## 19_5. Implement visual consumption feedback for user trades on Binance order book [pending]
 ### Dependencies: None
-### Description: Develop the server-side mechanism to identify liquidity consumed from the Binance order book by user market orders. Broadcast this information (e.g., via a `TRADE_IMPACT_ON_BOOK` message) to the client, enabling visual feedback on the displayed order book.
+### Description: Develop the server-side mechanism to identify liquidity consumed from the Binance order book by user market orders. Broadcast this information (e.g., via a `TRADE_IMPACT_ON_BOOK` message, as defined in `19_1`) to the user's client, enabling visual feedback on the displayed order book.
 ### Details:
 
 
-## 19_6. Develop tests for simplified real-time broadcasting [pending]
+## 19_6. Develop tests for real-time broadcasting of Binance data and user activity [pending]
 ### Dependencies: None
-### Description: Write comprehensive unit and integration tests covering: broadcasting of trade notifications, balance updates, live Binance order book data, and visual consumption feedback. Verify WebSocket message formats, data integrity, subscription logic, and timely delivery of messages.
+### Description: Write comprehensive unit and integration tests covering: broadcasting of user-specific trade notifications (for trades against Binance), user balance updates, live Binance order book data to all clients, and visual consumption feedback. Verify WebSocket message formats (from `19_1`), data integrity, subscription logic (e.g., user-specific vs. broadcast-to-all), and timely delivery of messages.
 ### Details:
 
 
