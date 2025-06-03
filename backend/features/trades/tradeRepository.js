@@ -12,7 +12,7 @@ export default class TradeRepository {
         sellerUserId
     ) {
         const query = {
-            text: 'INSERT INTO trades (order_id, cryptocurrency_id, quantity, price, buyer_user_id, seller_user_id, trade_timestamp) VALUES ($1, $2, $3, $4, $5, $6, NOW())',
+            text: 'INSERT INTO trades (order_id, cryptocurrency_id, quantity, price, buyer_user_id, seller_user_id, trade_timestamp) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *',
             values: [
                 orderId,
                 cryptocurrencyId,

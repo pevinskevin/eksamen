@@ -1,6 +1,6 @@
 /**
  * Business logic validation for cryptocurrencies
- * Only contains rules that OpenAPI cannot enforce
+ * Only contains rules that OpenAPI cannot enforce - Claude 4 Sonnet generated.
  */
 import * as v from 'valibot';
 

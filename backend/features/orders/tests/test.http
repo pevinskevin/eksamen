@@ -75,7 +75,7 @@ Content-Type: {{contentType}}
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "sell",
-    "quantityTotal": "0.9",
+    "quantityTotal": "0.009",
     "price": "60000"
 }
 
@@ -215,7 +215,7 @@ PUT {{baseUrl}}/order/{{orderId}}
 Content-Type: {{contentType}}
 
 {
-    "quantityTotal": "0.075",
+    "quantityTotal": "0.0075",
     "price": "55000"
 }
 

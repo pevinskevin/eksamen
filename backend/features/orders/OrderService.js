@@ -4,7 +4,8 @@ import {
     validateUpdateOrder,
 } from '../../shared/validators/orderValidators.js';
 import { cryptoService, accountService } from '../../shared/factory/factory.js';
-import { ORDER_TYPE, ORDER_VARIANT, ORDER_STATUS } from '../../shared/validators/validators.js';
+import { ORDER_VARIANT, ORDER_STATUS } from '../../shared/validators/validators.js';
+import camelcaseKeys from 'camelcase-keys';
 
 export default class OrderService {
     constructor(orderRepository) {
@@ -116,7 +117,8 @@ export default class OrderService {
 
     async update(userId, orderId, order) {
         const { cryptocurrencyId, quantityTotal, price, status } = order;
-        return await this.orderRepository.update(
+
+        const updatedOrder = await this.orderRepository.update(
             userId,
             orderId,
             cryptocurrencyId,
@@ -124,6 +126,8 @@ export default class OrderService {
             price,
             status
         );
+
+        return camelcaseKeys(updatedOrder);
     }
 
     async updateByUserAndOrderId(userId, orderId, order) {
@@ -245,18 +249,6 @@ export default class OrderService {
         savedOrder.price = savedOrder.price?.toString() || '0.00';
 
         // Return in camelCase for openAPI compliance.
-        return {
-            id: savedOrder.id,
-            userId: savedOrder.user_id,
-            cryptocurrencyId: savedOrder.cryptocurrency_id,
-            orderType: savedOrder.order_type,
-            orderVariant: savedOrder.order_variant,
-            quantityTotal: savedOrder.quantity_total,
-            quantityRemaining: savedOrder.quantity_remaining,
-            price: savedOrder.price,
-            status: savedOrder.status,
-            createdAt: savedOrder.created_at,
-            updatedAt: savedOrder.updated_at,
-        };
+        return camelcaseKeys(savedOrder);
     }
 }

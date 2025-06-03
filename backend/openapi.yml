@@ -994,6 +994,7 @@ components:
 
     UserRegistration:
       type: object
+      additionalProperties: false
       required:
         - firstName
         - lastName
@@ -1020,6 +1021,7 @@ components:
 
     LoginCredentials:
       type: object
+      additionalProperties: false
       required:
         - email
         - password
@@ -1031,6 +1033,7 @@ components:
 
     LoginResponse:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: integer
@@ -1046,6 +1049,7 @@ components:
 
     User:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: integer
@@ -1067,9 +1071,11 @@ components:
 
     AccountBalances:
       type: object
+      additionalProperties: false
       properties:
         fiatAccount:
           type: object
+          additionalProperties: false
           properties:
             id:
               type: integer
@@ -1093,6 +1099,7 @@ components:
 
     CryptoHolding:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: integer
@@ -1121,6 +1128,7 @@ components:
 
     Cryptocurrency:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: integer
@@ -1141,6 +1149,7 @@ components:
 
     CreateCryptocurrency:
       type: object
+      additionalProperties: false
       required:
         - symbol
         - name
@@ -1195,6 +1204,7 @@ components:
 
     Order:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: integer
@@ -1233,6 +1243,7 @@ components:
 
     CreateOrder:
       type: object
+      additionalProperties: false
       required:
         - cryptocurrencyId
         - orderType
@@ -1272,6 +1283,7 @@ components:
 
     Trade:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: integer
@@ -1298,6 +1310,7 @@ components:
 
     Transaction:
       type: object
+      additionalProperties: false
       properties:
         id:
           type: integer
@@ -1326,6 +1339,7 @@ components:
 
     Error:
       type: object
+      additionalProperties: false
       required:
         - error
         - message

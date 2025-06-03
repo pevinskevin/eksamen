@@ -1,9 +1,8 @@
 import db from '../../../database/connection.js';
+import { tradeNotificationEmitter } from '../../../shared/events/tradeNotificationEmitter.js';
 
 import {
     accountRepository,
-    cryptoRepository,
-    cryptoService,
     orderRepository,
     tradeRepository,
 } from '../../../shared/factory/factory.js';
@@ -69,7 +68,7 @@ export async function executeTradeAgainstBinance(
         orderQuantity = null;
         const quantityRemaining = 0;
         const status = ORDER_STATUS.FULLY_FILLED;
-        await orderRepository.update(
+        const updatedOrder = await orderRepository.update(
             userId,
             orderId,
             cryptocurrencyId,
@@ -78,12 +77,10 @@ export async function executeTradeAgainstBinance(
             executionPrice,
             status
         );
-        console.log('Trade executed. Gj Kevin.');
-
         await db.query('COMMIT');
+        tradeNotificationEmitter.emit('tradeExecuted', updatedOrder);
     } catch (error) {
         console.log('Error: ' + error.message);
-        await db.query('ROLLBACK');
-        
+        return await db.query('ROLLBACK');
     }
 }
