@@ -4,7 +4,7 @@ import {
     UpdateCryptocurrencySchema,
 } from '../../shared/validators/cryptoValidators.js';
 import { parse } from 'valibot';
-import camelcaseKeys from 'camelcase-keys';
+import normaliseForOpenAPI from '../../shared/utils/normaliseResponse.js';
 
 export default class CryptoService {
     constructor(cryptoRepository) {
@@ -14,11 +14,7 @@ export default class CryptoService {
     async getAllCryptocurrencies() {
         const resultArray = await this.cryptoRepository.findAll();
 
-        resultArray.forEach((element) => {
-            element.icon_url = element.icon_url || '';
-        });
-
-        return camelcaseKeys(resultArray);
+        return normaliseForOpenAPI(resultArray);
     }
 
     async getCryptocurrencyById(id) {
@@ -26,14 +22,13 @@ export default class CryptoService {
 
         const cryptocurrency = await this.cryptoRepository.findById(id);
         if (!cryptocurrency) throw new Error('Cryptocurrency with id ' + id);
-        cryptocurrency.icon_url = cryptocurrency.icon_url || '';
 
-        return camelcaseKeys(cryptocurrency);
+        return normaliseForOpenAPI(cryptocurrency);
     }
 
     async getCryptocurrencyBySymbol(symbol) {
         const result = await this.cryptoRepository.findBySymbol(symbol);
-        return camelcaseKeys(result);
+        return normaliseForOpenAPI(result);
     }
 
     async createCryptocurrency(cryptocurrency) {
@@ -48,15 +43,8 @@ export default class CryptoService {
             description,
             iconUrl
         );
-        return {
-            id: createdCryptocurrency.id,
-            symbol: createdCryptocurrency.symbol,
-            name: createdCryptocurrency.name,
-            description: createdCryptocurrency.description || '', // Convert null to empty string for API
-            iconUrl: createdCryptocurrency.icon_url || '', // Convert null to empty string for API
-            createdAt: createdCryptocurrency.created_at,
-            updatedAt: createdCryptocurrency.updated_at,
-        };
+
+        return normaliseForOpenAPI(createdCryptocurrency);
     }
 
     async updateCryptocurrency(id, cryptocurrency) {
@@ -82,15 +70,7 @@ export default class CryptoService {
             description,
             iconUrl
         );
-        return {
-            id: updatedCryptocurrency.id,
-            symbol: updatedCryptocurrency.symbol,
-            name: updatedCryptocurrency.name,
-            description: updatedCryptocurrency.description || '', // Convert null to empty string for API
-            iconUrl: updatedCryptocurrency.icon_url || '', // Convert null to empty string for API
-            createdAt: updatedCryptocurrency.created_at,
-            updatedAt: updatedCryptocurrency.updated_at,
-        };
+        return normaliseForOpenAPI(updatedCryptocurrency);
     }
 
     async deleteCryptocurrency(id) {
@@ -98,6 +78,9 @@ export default class CryptoService {
         // Verify cryptocurrency exists before deletion
         const exists = await this.cryptoRepository.findById(id);
         if (!exists) throw new Error('Cryptocurrency ID ' + id);
-        return await this.cryptoRepository.deleteById(id);
+
+        const deletedCryptocurrency = await this.cryptoRepository.deleteById(id);
+
+        return normaliseForOpenAPI(deletedCryptocurrency);
     }
 }

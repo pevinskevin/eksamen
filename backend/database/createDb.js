@@ -110,7 +110,7 @@ export async function createTables() {
         c.symbol,
         c.name,
         c.description,
-        c.icon_url as iconUrl
+        c.icon_url
       FROM crypto_holdings_base chb
       JOIN cryptocurrencies c ON chb.cryptocurrency_id = c.id
     `);

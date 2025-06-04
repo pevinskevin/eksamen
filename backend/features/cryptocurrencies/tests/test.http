@@ -233,7 +233,7 @@ DELETE {{baseUrl}}/cryptocurrencies/{{cryptoId}}
 Cookie: 
 
 ### 32. Try to delete cryptocurrency with dependent data (should return 403)
-DELETE {{baseUrl}}/cryptocurrencies/1
+DELETE {{baseUrl}}/cryptocurrencies/6
 
 ### 33. Delete cryptocurrency with non-existent ID (should return 404)
 DELETE {{baseUrl}}/cryptocurrencies/99999

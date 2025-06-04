@@ -2,6 +2,7 @@ import { comparePassword, hashPassword } from '../../shared/utils/hashing.js';
 import { welcomeNewUser } from '../../shared/email/nodemailer.js';
 import { userDataAndPasswordMatchValidation, loginBusinessRules } from './authValidation.js';
 import { parse } from 'valibot';
+import normaliseForOpenAPI from '../../shared/utils/normaliseResponse.js';
 
 export default class AuthService {
     constructor(authRepository) {
@@ -36,15 +37,7 @@ export default class AuthService {
 
         // Transform database snake_case to API camelCase format
         // Matches OpenAPI User schema for consistent API responses
-        return {
-            id: newUser.id,
-            email: newUser.email,
-            firstName: newUser.first_name,
-            lastName: newUser.last_name,
-            role: newUser.role,
-            createdAt: newUser.created_at,
-            updatedAt: newUser.updated_at,
-        };
+        return normaliseForOpenAPI(newUser);
     }
 
     async login(email, password) {
@@ -60,15 +53,7 @@ export default class AuthService {
         if (!isPasswordValid) {
             throw new Error('Invalid credentials');
         }
-
-        // Transform database snake_case to API camelCase format
-        // Matches OpenAPI LoginResponse schema (excludes sensitive fields)
-        return {
-            id: user.id,
-            email: user.email,
-            firstName: user.first_name,
-            lastName: user.last_name,
-            role: user.role,
-        };
+        delete user.password_hash;
+        return normaliseForOpenAPI(user);
     }
 }

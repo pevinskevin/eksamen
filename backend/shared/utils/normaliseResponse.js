@@ -1,0 +1,39 @@
+import camelcaseKeys from 'camelcase-keys';
+
+// This function:
+// 1. Converts nullish values to a empty strings
+// 2. Converts keys from snake_case to camelCase.
+// 3. Both are required to comply with openAPI.yml specification.
+
+// Selects for arrays and objects.
+export default function normaliseForOpenAPI(object) {
+    // Handle arrays by normalising each object within
+    if (Array.isArray(object)) {
+        const map = object.map((element) => {
+            nullishConverter(element);
+            normaliseEmptyBalance(element);
+            element = camelcaseKeys(element);
+        });
+    }
+    if (!object || typeof object !== 'object') return;
+
+    // Handles single objects.
+    nullishConverter(object);
+    normaliseEmptyBalance(object);
+    return camelcaseKeys(object);
+}
+
+// Converts nullish values in an object to empty strings
+function nullishConverter(object) {
+    for (let key in object) {
+        if (!Object.prototype.hasOwnProperty.call(object, key)) continue;
+        let value = object[key];
+        if (!value) {
+            object[key] = '';
+        }
+    }
+}
+
+function normaliseEmptyBalance(object) {
+    if (object.balance === '') return (object.balance = '0');
+}

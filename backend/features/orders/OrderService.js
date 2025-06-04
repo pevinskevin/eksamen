@@ -5,7 +5,7 @@ import {
 } from '../../shared/validators/orderValidators.js';
 import { cryptoService, accountService } from '../../shared/factory/factory.js';
 import { ORDER_VARIANT, ORDER_STATUS } from '../../shared/validators/validators.js';
-import camelcaseKeys from 'camelcase-keys';
+import normaliseForOpenAPI from '../../shared/utils/normaliseResponse.js';
 
 export default class OrderService {
     constructor(orderRepository) {
@@ -21,17 +21,12 @@ export default class OrderService {
 
         // Proceed with deletion if validation passes
         const deletedOrder = await this.orderRepository.delete(userId, orderId);
-        return camelcaseKeys(deletedOrder);
+        return normaliseForOpenAPI(deletedOrder);
     }
 
     async getAll(userId) {
         const orderArray = await this.orderRepository.findAllAscending(userId);
-        const caseConvertedArray = [];
-        orderArray.forEach((element) => {
-            const caseConvertedObject = camelcaseKeys(element);
-            caseConvertedArray.push(caseConvertedObject);
-        });
-        return caseConvertedArray;
+        return normaliseForOpenAPI(orderArray);
     }
 
     async getOpenOrderByUserAndOrderId(userId, orderId) {
@@ -49,7 +44,7 @@ export default class OrderService {
         ) {
             throw new Error('Order with ID ' + orderId);
         } else {
-            return camelcaseKeys(order);
+            return normaliseForOpenAPI(order);
         }
     }
 
@@ -124,7 +119,7 @@ export default class OrderService {
 
     async update(userId, orderId, order) {
         const { cryptocurrencyId, quantityTotal, price, status } = order;
-        
+
         // If quantity_total is being updated, reset quantity_remaining to match
         // This assumes order modifications reset any partial fills
         let quantityRemaining = undefined;
@@ -140,14 +135,13 @@ export default class OrderService {
             status
         );
 
-        return camelcaseKeys(updatedOrder);
+        return normaliseForOpenAPI(updatedOrder);
     }
 
     async updateByUserAndOrderId(userId, orderId, order) {
         // ==========================================
         // STEP 1: VALIDATION & SETUP
         // ==========================================
-        
 
         // Validate update order format
         validateUpdateOrder(order);
@@ -258,11 +252,7 @@ export default class OrderService {
             userId
         );
 
-        // Format price for consistent API response
-        // Market orders may not have a price, so default to '0.00'
-        savedOrder.price = savedOrder.price?.toString() || '0.00';
-
         // Return in camelCase for openAPI compliance.
-        return camelcaseKeys(savedOrder);
+        return normaliseForOpenAPI(savedOrder);
     }
 }
