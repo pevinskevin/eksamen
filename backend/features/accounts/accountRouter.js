@@ -1,6 +1,5 @@
 import { Router } from 'express';
 const router = Router();
-
 import { accountService } from '../../shared/factory/factory.js';
 import isAuthenticated from '../../shared/middleware/authorisation.js';
 import {

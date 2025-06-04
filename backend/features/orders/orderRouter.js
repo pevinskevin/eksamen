@@ -3,7 +3,6 @@ const router = Router();
 import isAuthenticated from '../../shared/middleware/authorisation.js';
 import { marketOrderEmitter } from '../../shared/events/marketOrderEmitter.js';
 import { ORDER_TYPE } from '../../shared/validators/validators.js';
-
 import { orderService } from '../../shared/factory/factory.js';
 import {
     sendCreated,

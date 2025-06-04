@@ -1,4 +1,3 @@
-// Create a simple test file: test-price-oracle.js
 import {
     getBestPrice,
     getAllPrices,

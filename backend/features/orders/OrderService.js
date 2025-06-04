@@ -21,6 +21,7 @@ export default class OrderService {
 
         // Proceed with deletion if validation passes
         const deletedOrder = await this.orderRepository.delete(userId, orderId);
+
         return normaliseForOpenAPI(deletedOrder);
     }
 
@@ -252,7 +253,6 @@ export default class OrderService {
             userId
         );
 
-        // Return in camelCase for openAPI compliance.
         return normaliseForOpenAPI(savedOrder);
     }
 }

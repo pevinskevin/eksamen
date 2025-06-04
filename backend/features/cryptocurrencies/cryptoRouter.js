@@ -1,6 +1,5 @@
 import { Router } from 'express';
 const router = Router();
-
 import { cryptoService } from '../../shared/factory/factory.js';
 import isAuthenticated from '../../shared/middleware/authorisation.js';
 import {
@@ -18,6 +17,7 @@ import {
 router.get('/cryptocurrencies', async (req, res) => {
     try {
         const cryptocurrencies = await cryptoService.getAllCryptocurrencies();
+
         return sendSuccess(res, cryptocurrencies);
     } catch (error) {
         return sendError(res, error.message);

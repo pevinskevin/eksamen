@@ -1,7 +1,5 @@
-import camelcaseKeys from 'camelcase-keys';
 import { cryptoService } from '../../shared/factory/factory.js';
 import {
-    transformBalanceToString,
     transformFinancialFields,
 } from '../../shared/utils/balanceTransformer.js';
 import validateCryptoSymbol from '../../shared/validators/cryptoValidators.js';

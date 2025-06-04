@@ -1,10 +1,8 @@
 import { Router } from 'express';
 const router = Router();
-
 import { authService } from '../../shared/factory/factory.js';
 import {
     sendSuccess,
-    sendError,
     sendCreated,
     sendBadRequest,
     sendUnauthorized,
