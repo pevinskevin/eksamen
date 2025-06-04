@@ -200,11 +200,11 @@ const gracefulShutdown = (signal) => {
         });
     });
 
-    // Force shutdown after 5 seconds (reduced from 10)
+    // Force shutdown after 2 seconds (optimized for faster restarts)
     setTimeout(() => {
         console.error('Could not close connections in time, forcefully shutting down');
         process.exit(1);
-    }, 5000);
+    }, 2000);
 };
 
 // Handle different termination signals
