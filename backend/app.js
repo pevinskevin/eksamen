@@ -134,7 +134,7 @@ app.use((err, req, res, next) => {
 });
 
 // -- Market Update Emitter Setup --
-import { marketDataEmitter } from './features/trading/orderbook/binance-ws.js';
+import { marketDataEmitter, cleanup as cleanupBinanceWS } from './features/trading/orderbook/binance-ws.js';
 marketDataEmitter.on('marketUpdate', (updatedDataObject) => {
     io.emit('orderBookUpdate', updatedDataObject);
 });
@@ -170,7 +170,10 @@ server.listen(PORT, () => {
 const gracefulShutdown = (signal) => {
     console.log(`\n${signal} received. Starting graceful shutdown...`);
 
-    // Close HTTP server
+    // 1. Clean up external WebSocket connections first
+    cleanupBinanceWS();
+
+    // 2. Close HTTP server (stops accepting new connections)
     server.close((err) => {
         if (err) {
             console.error('Error during server shutdown:', err);
@@ -179,19 +182,29 @@ const gracefulShutdown = (signal) => {
 
         console.log('HTTP server closed');
 
-        // Close Socket.IO server
+        // 3. Close Socket.IO server
         io.close(() => {
             console.log('Socket.IO server closed');
-            console.log('Graceful shutdown complete');
-            process.exit(0);
+            
+            // 4. Close database connections last
+            import('./database/connection.js').then(({ default: db }) => {
+                db.end(() => {
+                    console.log('Database connections closed');
+                    console.log('Graceful shutdown complete');
+                    process.exit(0);
+                });
+            }).catch(() => {
+                console.log('Database already closed or error occurred');
+                process.exit(0);
+            });
         });
     });
 
-    // Force shutdown after 10 seconds
+    // Force shutdown after 5 seconds (reduced from 10)
     setTimeout(() => {
         console.error('Could not close connections in time, forcefully shutting down');
         process.exit(1);
-    }, 10000);
+    }, 5000);
 };
 
 // Handle different termination signals

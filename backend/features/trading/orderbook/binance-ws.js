@@ -21,9 +21,11 @@ const priceCache = new Map();
 // ---- -----
 
 const tinyOrderBook = new Map();
+let depthCacheEndpoints = []; // Track WebSocket endpoints for cleanup
+
 // ---- -----
 
-binance.websockets.depthCache(symbols, (symbol, depth) => {
+const endpoints = binance.websockets.depthCache(symbols, (symbol, depth) => {
     // ---- -----
     // Best price "Orderbook"
     const bestBid = binance.first(depth.bids);
@@ -42,6 +44,34 @@ binance.websockets.depthCache(symbols, (symbol, depth) => {
 
     // ---- -----
 });
+
+// Store endpoints for cleanup
+depthCacheEndpoints = Array.isArray(endpoints) ? endpoints : [endpoints];
+
+// Cleanup function to close WebSocket connections
+export function cleanup() {
+    console.log('Closing Binance WebSocket connections...');
+    
+    // Close all depth cache endpoints
+    depthCacheEndpoints.forEach(endpoint => {
+        if (endpoint && typeof binance.websockets.terminate === 'function') {
+            try {
+                binance.websockets.terminate(endpoint);
+            } catch (error) {
+                console.log('Error closing WebSocket endpoint:', error.message);
+            }
+        }
+    });
+    
+    // Clear all event listeners
+    marketDataEmitter.removeAllListeners();
+    
+    // Clear caches
+    priceCache.clear();
+    tinyOrderBook.clear();
+    
+    console.log('Binance WebSocket cleanup completed');
+}
 
 // ---- -----
 
