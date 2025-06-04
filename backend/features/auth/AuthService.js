@@ -2,7 +2,7 @@ import { comparePassword, hashPassword } from '../../shared/utils/hashing.js';
 import { welcomeNewUser } from '../../shared/email/nodemailer.js';
 import { userDataAndPasswordMatchValidation, loginBusinessRules } from './authValidation.js';
 import { parse } from 'valibot';
-import normaliseForOpenAPI from '../../shared/utils/normaliseResponse.js';
+import normaliseForOpenAPI from '../../shared/utils/normaliseObjects.js';
 
 export default class AuthService {
     constructor(authRepository) {

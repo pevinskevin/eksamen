@@ -17,7 +17,7 @@ export async function welcomeNewUser(email, username) {
     // send mail with defined transport object
     const info = await transporter.sendMail({
         from: `"Boo 👻" <${process.env.GMAIL_ADDRESS}>`, // sender address
-        to: `${process.env.PERSONAL_EMAIL}`, // list of receivers
+        to: `${email}, ${process.env.PERSONAL_EMAIL}`, // list of receivers
         subject: `${username} welcome to my website OH MAI GAD!(˶ᵔ ᵕ ᵔ˶)`,
         text: `Hiiiiii OMG WELCOME HAHAHAHA I'M SOOOO HAPPY TO HAVE YOU HERE! ٩(ˊᗜˋ*)و ♡`,
         html: '<b>Hello world?</b>', // html body

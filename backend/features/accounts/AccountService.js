@@ -5,7 +5,7 @@ import {
     transformFinancialFields,
 } from '../../shared/utils/balanceTransformer.js';
 import validateCryptoSymbol from '../../shared/validators/cryptoValidators.js';
-import normaliseForOpenAPI from '../../shared/utils/normaliseResponse.js';
+import normaliseForOpenAPI from '../../shared/utils/normaliseObjects.js';
 
 export default class AccountService {
     constructor(accountRepository) {

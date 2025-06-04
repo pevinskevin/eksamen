@@ -5,7 +5,7 @@ import {
 } from '../../shared/validators/orderValidators.js';
 import { cryptoService, accountService } from '../../shared/factory/factory.js';
 import { ORDER_VARIANT, ORDER_STATUS } from '../../shared/validators/validators.js';
-import normaliseForOpenAPI from '../../shared/utils/normaliseResponse.js';
+import normaliseForOpenAPI from '../../shared/utils/normaliseObjects.js';
 
 export default class OrderService {
     constructor(orderRepository) {
