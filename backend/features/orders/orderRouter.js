@@ -1,7 +1,6 @@
 import { Router } from 'express';
 const router = Router();
 import isAuthenticated from '../../shared/middleware/authorisation.js';
-import { ORDER_TYPE } from '../../shared/validators/validators.js';
 import { marketOrderEmitter } from '../../shared/events/marketOrderEmitter.js';
 
 import { orderService } from '../../shared/factory/factory.js';

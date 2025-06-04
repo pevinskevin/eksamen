@@ -1279,7 +1279,7 @@ components:
           format: decimal
         status:
           type: string
-          enum: [open, partially_filled, fully_filled, cancelled]
+          enum: [open, partially_filled]
 
     Trade:
       type: object

@@ -2,7 +2,7 @@
  * Standardized response helpers for OpenAPI compliance -- Claude-4-Sonnet Generated
  */
 
-export const sendSuccess = (res, data, message = 'Success', statusCode = 200) => {
+export const sendSuccess = (res, data, statusCode = 200) => {
     return res.status(statusCode).json(data);
 };
 
@@ -17,8 +17,8 @@ export const sendError = (res, error, statusCode = 500) => {
     return res.status(statusCode).json(errorResponse);
 };
 
-export const sendCreated = (res, data, message = 'Created successfully') => {
-    return sendSuccess(res, data, message, 201);
+export const sendCreated = (res, data,) => {
+    return sendSuccess(res, data, 201);
 };
 
 export const sendNotFound = (res, resource = 'Resource') => {

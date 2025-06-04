@@ -20,11 +20,18 @@ export default class OrderService {
         await this.getOpenOrderByUserAndOrderId(userId, orderId);
 
         // Proceed with deletion if validation passes
-        return await this.orderRepository.delete(userId, orderId);
+        const deletedOrder = await this.orderRepository.delete(userId, orderId);
+        return camelcaseKeys(deletedOrder);
     }
 
     async getAll(userId) {
-        return await this.orderRepository.findAllAscending(userId);
+        const orderArray = await this.orderRepository.findAllAscending(userId);
+        const caseConvertedArray = [];
+        orderArray.forEach((element) => {
+            const caseConvertedObject = camelcaseKeys(element);
+            caseConvertedArray.push(caseConvertedObject);
+        });
+        return caseConvertedArray;
     }
 
     async getOpenOrderByUserAndOrderId(userId, orderId) {
@@ -42,7 +49,7 @@ export default class OrderService {
         ) {
             throw new Error('Order with ID ' + orderId);
         } else {
-            return order;
+            return camelcaseKeys(order);
         }
     }
 
@@ -117,12 +124,18 @@ export default class OrderService {
 
     async update(userId, orderId, order) {
         const { cryptocurrencyId, quantityTotal, price, status } = order;
+        
+        // If quantity_total is being updated, reset quantity_remaining to match
+        // This assumes order modifications reset any partial fills
+        let quantityRemaining = undefined;
+        if (quantityTotal !== undefined) quantityRemaining = quantityTotal;
 
         const updatedOrder = await this.orderRepository.update(
             userId,
             orderId,
             cryptocurrencyId,
             quantityTotal,
+            quantityRemaining,
             price,
             status
         );
@@ -134,17 +147,18 @@ export default class OrderService {
         // ==========================================
         // STEP 1: VALIDATION & SETUP
         // ==========================================
+        
 
         // Validate update order format
         validateUpdateOrder(order);
 
         // Get the original order to determine its variant and cryptocurrency
         const originalOrder = await this.getOpenOrderByUserAndOrderId(userId, orderId);
-        const originalOrderVariant = originalOrder.order_variant; // Not included in request body
+        const originalOrderVariant = originalOrder.orderVariant; // Not included in request body
 
         // Get cryptocurrency symbol for sell order balance checks
         const originalOrderSymbol = (
-            await cryptoService.getCryptocurrencyById(originalOrder.cryptocurrency_id)
+            await cryptoService.getCryptocurrencyById(originalOrder.cryptocurrencyId)
         ).symbol; // Not included in request body
 
         // ==========================================

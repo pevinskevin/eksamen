@@ -4,7 +4,6 @@ export default class OrderRepository {
         this.db = db;
     }
 
-   
     async delete(userId, orderId) {
         const query = {
             text: 'DELETE FROM orders WHERE user_id = $1 AND id = $2 RETURNING *',
@@ -21,7 +20,6 @@ export default class OrderRepository {
         return (await this.db.query(query)).rows.at(0);
     }
 
-   
     async findAllAscending(userId) {
         const query = {
             text: 'SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at ASC',
@@ -30,7 +28,6 @@ export default class OrderRepository {
         return (await this.db.query(query)).rows;
     }
 
-    
     async findAllOpenBuyOrders(userId) {
         const query = {
             text: `SELECT quantity_remaining, price FROM orders WHERE user_id = $1 AND order_variant = $2 AND (status = $3 OR status = $4)`,
@@ -39,7 +36,6 @@ export default class OrderRepository {
         return (await this.db.query(query)).rows;
     }
 
-   
     async findAllOpenSellOrders(userId) {
         // Note: Not using ::float casting as it limits precision to 6 decimals
         // Financial calculations require higher precision, so we keep as string
@@ -50,7 +46,6 @@ export default class OrderRepository {
         return (await this.db.query(query)).rows.at(0);
     }
 
-    
     async save(cryptocurrencyId, orderType, orderVariant, quantityTotal, price, userId) {
         // Initially, no part of the order has been filled, so remaining = total
         const quantityRemaining = quantityTotal;
@@ -70,15 +65,19 @@ export default class OrderRepository {
         return (await this.db.query(query)).rows.at(0);
     }
 
-    
-    async update(userId, orderid, cryptocurrencyId, quantityTotal, quantityRemaining, price, status) {
-        // If quantity_total is being updated, reset quantity_remaining to match
-        // This assumes order modifications reset any partial fills
-        if (!quantityTotal) quantityRemaining = quantityTotal;
-
+    async update(
+        userId,
+        orderid,
+        cryptocurrencyId,
+        quantityTotal,
+        quantityRemaining,
+        price,
+        status
+    ) {
         // COALESCE ensures only non-null parameters update their respective columns
+
         const query = {
-            text: 'UPDATE orders SET cryptocurrency_id = COALESCE($1, cryptocurrency_id), quantity_total = COALESCE($2, quantity_total), quantity_remaining = COALESCE($3, quantity_remaining), price = COALESCE($4, price), status = COALESCE($5, status) WHERE user_id = $6 AND id = $7 RETURNING *',
+            text: 'UPDATE orders SET cryptocurrency_id = COALESCE($1, cryptocurrency_id), quantity_total = COALESCE($2, quantity_total), quantity_remaining = COALESCE($3, quantity_remaining), price = COALESCE($4, price), status = COALESCE($5, status), updated_at = CURRENT_TIMESTAMP WHERE user_id = $6 AND id = $7 RETURNING *',
             values: [
                 cryptocurrencyId,
                 quantityTotal,
@@ -89,6 +88,7 @@ export default class OrderRepository {
                 orderid,
             ],
         };
+
         return (await this.db.query(query)).rows.at(0);
     }
 }

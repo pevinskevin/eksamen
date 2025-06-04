@@ -51,7 +51,7 @@ Content-Type: {{contentType}}
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantityTotal": "0.05",
+    "quantityTotal": "0.005",
     "price": "50000"
 }
 
@@ -62,7 +62,7 @@ Content-Type: {{contentType}}
 {
     "cryptocurrencyId": 1,
     "orderType": "market",
-    "orderVariant": "sell",
+    "orderVariant": "buy",
     "quantityTotal": "0.0001",
     "price": "50000"
 }
@@ -109,7 +109,7 @@ Cookie:
     "cryptocurrencyId": 1,
     "orderType": "limit",
     "orderVariant": "buy",
-    "quantityTotal": "0.5",
+    "quantityTotal": "0.005",
     "price": "50000"
 }
 
@@ -137,7 +137,7 @@ Content-Type: {{contentType}}
     "price": "50000"
 }
 
-### 17. Create limit order without price (should return 422)
+### 17. Create limit order without price (should return 400)
 POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
@@ -148,7 +148,7 @@ Content-Type: {{contentType}}
     "quantityTotal": "0.5"
 }
 
-### 18. Create order with negative price (should return 422)
+### 18. Create order with negative price (should return 400)
 POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
@@ -172,7 +172,7 @@ Content-Type: {{contentType}}
     "price": "50000"
 }
 
-### 20. Create order with negative quantity (should return 422)
+### 20. Create order with negative quantity (should return 400)
 POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
@@ -184,7 +184,7 @@ Content-Type: {{contentType}}
     "price": "50000"
 }
 
-### 21. Create order with invalid order type (should return 422)
+### 21. Create order with invalid order type (should return 400)
 POST {{baseUrl}}/order
 Content-Type: {{contentType}}
 
