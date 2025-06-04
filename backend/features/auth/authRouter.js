@@ -39,7 +39,6 @@ router.post('/login', async (req, res) => {
         // Set session data
         req.session.userId = user.id;
         req.session.role = user.role;
-
         return sendSuccess(res, user);
     } catch (error) {
         if (error.message === 'Invalid credentials') {

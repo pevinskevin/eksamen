@@ -1,3 +1,4 @@
+import camelcaseKeys from 'camelcase-keys';
 import { cryptoService } from '../../shared/factory/factory.js';
 import {
     transformBalanceToString,
@@ -53,6 +54,7 @@ export default class AccountService {
 
     async getCryptoHoldingsByUserId(id) {
         const holdings = await this.accountRepository.findAllCryptoHoldings(id);
+
         // Convert each holding record to API format
         let finalArray = [];
         await holdings.forEach((element) => {
@@ -64,7 +66,7 @@ export default class AccountService {
                 symbol: transformedHoldings.symbol,
                 name: transformedHoldings.name,
                 description: transformedHoldings.description,
-                iconUrl: transformedHoldings.icon_url,
+                iconUrl: transformedHoldings.icon_url || '', // Default to empty string if no URL is registered.
                 balance: transformedHoldings.balance || '0', // Default to '0' if user has no holdings
                 createdAt: element.created_at, // Use original - transformer corrupts date format
                 updatedAt: element.updated_at, // Use original - transformer corrupts date format

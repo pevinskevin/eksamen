@@ -4,7 +4,7 @@ export default class AccountRepository {
     }
     async findFiatAccount(userId) {
         const accountQuery = {
-            text: 'SELECT * FROM accounts WHERE accounts.user_id = $1;',
+            text: 'SELECT id, currency_code, balance, created_at, updated_at FROM accounts WHERE accounts.user_id = $1;',
             values: [userId],
         };
         return (await this.db.query(accountQuery)).rows.at(0);

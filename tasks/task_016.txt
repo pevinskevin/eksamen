@@ -91,13 +91,13 @@ CURRENT UNDERSTANDING (from Task 16):
 QUESTION FOR USER: Confirm this Binance-simulation approach vs traditional order matching before continuing implementation.
 </info added on 2025-06-01T17:05:45.354Z>
 
-## 2. Phase 1: Implement Basic Market Order Execution [in-progress]
+## 2. Phase 1: Implement Basic Market Order Execution [done]
 ### Dependencies: 16.1
 ### Description: Implement logic for user market orders (buy/sell) to execute immediately at the cached Binance best bid/ask. Assume sufficient liquidity at this price level for Phase 1.
 ### Details:
 Handle order requests, use cached prices from subtask 1 for execution. Calculate execution price and filled quantity. This is a simplified execution model.
 
-## 3. Phase 1: Implement Trade Recording & Basic Notifications [pending]
+## 3. Phase 1: Implement Trade Recording & Basic Notifications [done]
 ### Dependencies: 16.2
 ### Description: Store executed trades from subtask 2 in a database. Implement basic WebSocket notifications to users upon trade execution.
 ### Details:

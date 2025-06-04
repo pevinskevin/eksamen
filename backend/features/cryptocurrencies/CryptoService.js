@@ -4,6 +4,7 @@ import {
     UpdateCryptocurrencySchema,
 } from '../../shared/validators/cryptoValidators.js';
 import { parse } from 'valibot';
+import camelcaseKeys from 'camelcase-keys';
 
 export default class CryptoService {
     constructor(cryptoRepository) {
@@ -11,7 +12,13 @@ export default class CryptoService {
     }
 
     async getAllCryptocurrencies() {
-        return await this.cryptoRepository.findAll();
+        const resultArray = await this.cryptoRepository.findAll();
+
+        resultArray.forEach((element) => {
+            element.icon_url = element.icon_url || '';
+        });
+
+        return camelcaseKeys(resultArray);
     }
 
     async getCryptocurrencyById(id) {
@@ -19,12 +26,14 @@ export default class CryptoService {
 
         const cryptocurrency = await this.cryptoRepository.findById(id);
         if (!cryptocurrency) throw new Error('Cryptocurrency with id ' + id);
+        cryptocurrency.icon_url = cryptocurrency.icon_url || '';
 
-        return cryptocurrency;
+        return camelcaseKeys(cryptocurrency);
     }
 
     async getCryptocurrencyBySymbol(symbol) {
-        return await this.cryptoRepository.findBySymbol(symbol);
+        const result = await this.cryptoRepository.findBySymbol(symbol);
+        return camelcaseKeys(result);
     }
 
     async createCryptocurrency(cryptocurrency) {
@@ -32,7 +41,13 @@ export default class CryptoService {
         parse(CreateCryptocurrencySchema, cryptocurrency);
         // Normalize symbol to uppercase for consistency
         cryptocurrency.symbol = cryptocurrency.symbol.toUpperCase();
-        const createdCryptocurrency = await this.cryptoRepository.create(cryptocurrency);
+        const { symbol, name, description, iconUrl } = cryptocurrency;
+        const createdCryptocurrency = await this.cryptoRepository.create(
+            symbol,
+            name,
+            description,
+            iconUrl
+        );
         return {
             id: createdCryptocurrency.id,
             symbol: createdCryptocurrency.symbol,

@@ -23,6 +23,8 @@
         } catch (error) {
             console.log(error);
         }
+
+        authStore.login;
     }
 
     onMount(() => {

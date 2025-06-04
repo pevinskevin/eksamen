@@ -498,7 +498,7 @@
           "dependencies": [
             1
           ],
-          "status": "in-progress"
+          "status": "done"
         },
         {
           "id": 3,
@@ -508,7 +508,7 @@
           "dependencies": [
             2
           ],
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
@@ -1162,6 +1162,20 @@
       "dependencies": [
         12,
         18
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 42,
+      "title": "BE: Correct Market Order Execution to Use Actual Market Price",
+      "description": "Fix a critical bug in market order processing where user-provided prices are incorrectly used. This task ensures all market orders execute at the prevailing market price at the time of order placement, and all balance and trade calculations accurately reflect this.",
+      "details": "The core issue is that market orders are currently processed using a price that might be provided by the user, instead of the actual live market price. This can lead to incorrect valuation of trades and potential discrepancies in user balances.\n\nImplementation Steps:\n1.  **Identify Target Modules:** Locate the code sections responsible for handling market order ingestion, validation, and execution. This may include services like `OrderService`, `OrderMatchingEngine` (related to Task 17), or `TradeExecutionService` (related to Task 18).\n2.  **Ignore User-Provided Price for Market Orders:** Modify the logic to ensure that any 'price' field submitted with a market order is disregarded for execution purposes. The `price` field in the request for market orders is optional as per Task 12; this fix ensures it's not used even if present.\n3.  **Fetch Current Market Price:** Integrate with the designated price oracle (e.g., functionality developed in Task 16, using `binance-ws.js` or similar) to fetch the real-time market price (best ask for buys, best bid for sells) when a market order is being processed.\n4.  **Pre-Execution Balance Validation:** Crucially, all pre-execution balance checks must use the fetched *actual market price*.\n    *   For a **buy** order: `required_fiat = quantity * current_market_ask_price`. Check if user's fiat balance >= `required_fiat`.\n    *   For a **sell** order: Check if user's crypto balance >= `quantity`. The proceeds will be calculated using the `current_market_bid_price`.\n5.  **Execution at Market Price:** Ensure the order execution logic uses the fetched market price to determine the terms of the trade. The `executed_price` for the order and any resulting trades must be this market price.\n6.  **Update Balances and Record Trades:** All subsequent balance updates (debiting/crediting fiat and crypto) and the creation of `Trade` records must use the actual market price at which the order was executed. The `Trade` record should accurately reflect the quantity and the market-determined execution price.\n7.  **Atomicity and Error Handling:** Ensure that fetching the price, validating balances, executing the order, and updating records are performed atomically to maintain data consistency. Implement robust error handling for scenarios such as failure to fetch market price (in which case the order should likely be rejected or queued with caution) or insufficient balances based on the true market price.",
+      "testStrategy": "Verify the fix through a combination of unit, integration, and scenario-based testing:\n\n1.  **Unit Tests:**\n    *   Test the specific function/method responsible for determining the execution price for market orders. Mock the price oracle.\n    *   Verify that if a user provides a price with a market order, it is ignored.\n    *   Verify that the correct market price (ask for buy, bid for sell) is fetched and used.\n    *   Test balance calculation logic with mocked market prices.\n\n2.  **Integration Tests (Order Placement to Execution):**\n    *   **Scenario 1: Market Buy Order - User price lower than market**\n        *   Setup: User fiat balance: 100 USD. Actual market price for ASSET_X: 10 USD/ASSET_X. User places market buy for 5 ASSET_X, erroneously providing price = 8 USD.\n        *   Expected: Order executes at 10 USD/ASSET_X. Cost = 50 USD. User fiat balance becomes 50 USD. User ASSET_X balance increases by 5. Trade record shows execution price of 10 USD.\n    *   **Scenario 2: Market Buy Order - Insufficient funds at actual market price**\n        *   Setup: User fiat balance: 40 USD. Actual market price for ASSET_X: 10 USD/ASSET_X. User places market buy for 5 ASSET_X (cost at market = 50 USD), may or may not provide a price.\n        *   Expected: Order is rejected due to insufficient funds when validated against the actual market price.\n    *   **Scenario 3: Market Sell Order - User price higher than market**\n        *   Setup: User ASSET_X balance: 10. Actual market price for ASSET_X: 10 USD/ASSET_X. User places market sell for 5 ASSET_X, erroneously providing price = 12 USD.\n        *   Expected: Order executes at 10 USD/ASSET_X. Proceeds = 50 USD. User ASSET_X balance becomes 5. User fiat balance increases by 50 USD. Trade record shows execution price of 10 USD.\n    *   **Scenario 4: Market Orders - No user-provided price**\n        *   Test both buy and sell market orders where no price is provided by the user.\n        *   Expected: Orders execute at the prevailing market price, and balances/trades are updated correctly.\n\n3.  **Database Verification:**\n    *   After test trades, inspect the `Orders` table to ensure `executed_price` (if applicable) and status are correct.\n    *   Inspect the `Trades` table to confirm `price`, `quantity`, and `total_value` are based on the actual market price.\n    *   Verify `Accounts` and `CryptoHoldings` tables reflect correct balance changes.\n\n4.  **Error Handling Tests:**\n    *   Simulate failure to fetch market price from the oracle.\n    *   Expected: The market order should be rejected with a clear error message, and no partial state changes should occur.",
+      "status": "pending",
+      "dependencies": [
+        12,
+        16
       ],
       "priority": "medium",
       "subtasks": []

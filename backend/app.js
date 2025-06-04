@@ -19,7 +19,7 @@ import http from 'http';
 const server = http.createServer(app);
 
 // -- Websocket Server Setup
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 const io = new Server(server, {
     cors: {
         origin: 'http://localhost:5173',
@@ -133,17 +133,6 @@ app.use((err, req, res, next) => {
     next(err);
 });
 
-// ------------------
-
-// -- socket.io Setup  --
-io.on('connection', (socket) => {
-    console.log('A user successfuly connected via WebSocket:', socket.id);
-
-    socket.on('disconnect', () => {
-        console.log('User disconnected', socket.id);
-    });
-});
-
 // -- Market Update Emitter Setup --
 import { marketDataEmitter } from './features/trading/orderbook/binance-ws.js';
 marketDataEmitter.on('marketUpdate', (updatedDataObject) => {
@@ -152,6 +141,25 @@ marketDataEmitter.on('marketUpdate', (updatedDataObject) => {
 
 // -- Market Order Engine Setup (to register its event listeners) --
 import './features/trading/orderbook/market-order-engine.js';
+import { initializeTradeNotifier } from './shared/notifications/tradeNotifier.js';
+
+// ------------------
+
+// -- socket.io Setup  --
+io.on('connection', (socket) => {
+    console.log('A user successfuly connected via WebSocket:', socket.id);
+
+    initializeTradeNotifier(io);
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected', socket.id);
+    });
+
+    socket.on('joinRoom', (roomName) => {
+        socket.join(roomName);
+        socket.emit('joined', `You've joined room ${roomName}`);
+    });
+});
 
 // -- Listener --
 server.listen(PORT, () => {

@@ -45,4 +45,8 @@ export default {
     // You could add a function to initialize the store from sessionStorage/localStorage
     // if you were persisting parts of the auth state there for page reloads.
     // For now, we'll keep it simple.
+
+    accessUserId: () => {
+        return initialAuthState.user.id;
+    },
 };

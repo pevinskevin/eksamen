@@ -25,18 +25,17 @@ export default class CryptoRepository {
         return (await this.db.query(query)).rows.at(0);
     }
 
-    async create(cryptoData) {
-        const { symbol, name, description, icon_url } = cryptoData;
+    async create(symbol, name, description, iconUrl) {
         const query = {
             text: 'INSERT INTO cryptocurrencies (symbol, name, description, icon_url) VALUES ($1, $2, $3, $4) RETURNING *',
-            values: [symbol, name, description || null, icon_url || null],
+            values: [symbol, name, description || null, iconUrl || null],
         };
         return (await this.db.query(query)).rows.at(0);
     }
 
     async update(id, symbol, name, description, iconUrl) {
         const query = {
-            text: 'UPDATE cryptocurrencies SET symbol = COALESCE($2, symbol), name = COALESCE($3, name), description = COALESCE($4, description), icon_url = COALESCE($5, icon_url) WHERE id = $1 RETURNING *',
+            text: 'UPDATE cryptocurrencies SET symbol = COALESCE($2, symbol), name = COALESCE($3, name), description = COALESCE($4, description), icon_url = COALESCE($5, icon_url), updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *',
             values: [id, symbol, name, description, iconUrl],
         };
         return (await this.db.query(query)).rows.at(0);
