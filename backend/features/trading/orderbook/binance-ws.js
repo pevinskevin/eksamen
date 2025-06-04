@@ -20,6 +20,9 @@ const priceCache = new Map();
 
 // ---- -----
 
+const tinyOrderBook = new Map();
+// ---- -----
+
 binance.websockets.depthCache(symbols, (symbol, depth) => {
     // ---- -----
     // Best price "Orderbook"
@@ -31,8 +34,12 @@ binance.websockets.depthCache(symbols, (symbol, depth) => {
     // ---- -----
 
     // ---- -----
-    const bids = binance.sortBids(depth.bids);
-    
+    const bids = Object.entries(binance.sortBids(depth.bids, 10, 'cumulative'));
+    const asks = Object.entries(binance.sortAsks(depth.asks, 10, 'cumulative'));
+    console.log(Object.entries(bids));
+
+    tinyOrderBook.set(symbol, combined);
+
     // ---- -----
 });
 
