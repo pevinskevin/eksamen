@@ -4,7 +4,7 @@ import {
     UpdateCryptocurrencySchema,
 } from '../../shared/validators/cryptoValidators.js';
 import { parse } from 'valibot';
-import normaliseForOpenAPI from '../../shared/utils/normaliseResponse.js';
+import normaliseForOpenAPI from '../../shared/utils/normaliseObjects.js';
 
 export default class CryptoService {
     constructor(cryptoRepository) {
