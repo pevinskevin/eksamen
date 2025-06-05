@@ -9,7 +9,7 @@ socket.on('connect', () => {
     console.log('Connected to server.');
     socketConnection.set(socket);
     isConnected.set(true);
-    const userId = `user_${authStore.accessUserId}`;
+    const userId = `user_${authStore.accessUserId()}`;
     socket.emit('joinRoom', userId);
 });
 
