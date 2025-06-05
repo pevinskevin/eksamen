@@ -9,8 +9,13 @@ socket.on('connect', () => {
     console.log('Connected to server.');
     socketConnection.set(socket);
     isConnected.set(true);
-    const userId = `user_${authStore.accessUserId}`;
-    socket.emit('joinRoom', userId);
+    const rawId = authStore.accessUserId();
+    if (rawId != null) {
+      const userId = `user_${rawId}`;
+      socket.emit('joinRoom', userId);
+    } else {
+      console.warn('Skipping joinRoom: no authenticated user');
+    }
 });
 
 socket.on('disconnect', () => {

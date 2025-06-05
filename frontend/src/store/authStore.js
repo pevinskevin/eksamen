@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 
 // Initial state for the store
 const initialAuthState = {
@@ -47,6 +47,7 @@ export default {
     // For now, we'll keep it simple.
 
     accessUserId: () => {
-        return initialAuthState.user.id;
+        const state = get(authStore);
+        return state.user ? state.user.id : null;
     },
 };
