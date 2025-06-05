@@ -33,6 +33,7 @@ const endpoints = binance.websockets.depthCache(symbols, (symbol, depth) => {
     const bestPrice = { bid: bestBid, ask: bestAsk };
     priceCache.set(symbol, bestPrice);
 
+    
     marketDataEmitter.emit('bestPriceUpdate', { symbol, ...bestPrice });
     // ---- -----
 
