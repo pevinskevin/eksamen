@@ -12,17 +12,9 @@ async function getSymbolUsingCryptoIDAndCatWithUSDT(cryptocurrencyId) {
 
 marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
     console.log('market emitter has received order');
-
     const { order } = eventData;
-    if (!order) {
-        console.error('[MarketOrderEngine] Event data did not contain an order object.');
-        return;
-    }
-
     const { id: orderId, userId, cryptocurrencyId, orderVariant, quantityRemaining } = order;
-
     const symbol = await getSymbolUsingCryptoIDAndCatWithUSDT(cryptocurrencyId);
-
     const priceData = getBestPrice(symbol);
 
     if (!priceData) {
@@ -33,17 +25,11 @@ marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
     }
 
     const executionPrice = orderVariant === ORDER_VARIANT.BUY ? priceData.ask : priceData.bid;
+    console.log('Price data: ' + priceData.ask);
 
-    if (!executionPrice || executionPrice === undefined || parseFloat(executionPrice) <= 0) {
-        console.error(
-            `[MarketOrderEngine] Invalid or zero execution price for symbol ${symbol} (ask: ${priceData.ask}, bid: ${priceData.bid}). Order ID: ${orderId}`
-        );
-        return;
-    }
+    console.log('Execution price: ' + executionPrice);
 
-    console.log(
-        `[MarketOrderEngine] Preparing to execute trade. Order ID: ${orderId}, User ID: ${userId}, Crypto ID: ${cryptocurrencyId}, Symbol: ${symbol}, Variant: ${orderVariant}, Quantity: ${quantityRemaining}, Execution Price: ${executionPrice}`
-    );
+    console.log(`[MarketOrderEngine] Preparing to execute trade. Order ID: ${orderId}`);
 
     try {
         await executeTradeAgainstBinance(
@@ -64,3 +50,46 @@ marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
         );
     }
 });
+
+
+
+// marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
+//     console.log('market emitter has received order');
+//     const { order } = eventData;
+//     const { id: orderId, userId, cryptocurrencyId, orderVariant, quantityRemaining } = order;
+//     const symbol = await getSymbolUsingCryptoIDAndCatWithUSDT(cryptocurrencyId);
+//     const priceData = getBestPrice(symbol);
+
+//     if (!priceData) {
+//         console.error(
+//             `[MarketOrderEngine] No price data found for symbol ${symbol}. Order ID: ${orderId}`
+//         );
+//         return;
+//     }
+
+//     const executionPrice = orderVariant === ORDER_VARIANT.BUY ? priceData.ask : priceData.bid;
+//     console.log('Price data: ' + priceData.ask);
+
+//     console.log('Execution price: ' + executionPrice);
+
+//     console.log(`[MarketOrderEngine] Preparing to execute trade. Order ID: ${orderId}`);
+
+//     try {
+//         await executeTradeAgainstBinance(
+//             orderId,
+//             userId,
+//             cryptocurrencyId,
+//             orderVariant,
+//             quantityRemaining,
+//             parseFloat(executionPrice)
+//         );
+//         console.log(
+//             `[MarketOrderEngine] Successfully called executeTradeAgainstBinance for Order ID: ${orderId}`
+//         );
+//     } catch (error) {
+//         console.error(
+//             `[MarketOrderEngine] Error during executeTradeAgainstBinance for Order ID: ${orderId}:`,
+//             error
+//         );
+//     }
+// });

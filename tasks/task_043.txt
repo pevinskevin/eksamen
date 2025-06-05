@@ -1,0 +1,76 @@
+# Task ID: 43
+# Title: BE: Implement Generic REST API Connector
+# Status: pending
+# Dependencies: 1, 32
+# Priority: medium
+# Description: Develop a reusable backend module to interact with external REST APIs, supporting common HTTP methods, configurable authentication, and standardized error handling.
+# Details:
+**Objective**: Create a robust and flexible connector to simplify integrations with various third-party or internal RESTful services.
+
+**Core Features**:
+*   **Configurability**:
+    *   Base URL for the target API.
+    *   Default headers (e.g., `Content-Type: application/json`).
+    *   Timeout settings (connection, response).
+*   **Authentication**:
+    *   Support for common authentication mechanisms (e.g., API Key in header/query, Bearer Token).
+    *   Mechanism to securely manage and inject credentials (future integration with a secrets management system should be considered; for now, configuration-based).
+*   **HTTP Methods**: Implement wrappers for GET, POST, PUT, DELETE, PATCH.
+*   **Request Handling**:
+    *   Ability to send query parameters.
+    *   Ability to send JSON request bodies.
+    *   Proper serialization of request data.
+*   **Response Handling**:
+    *   Automatic parsing of JSON responses.
+    *   Access to raw response (status code, headers, body) if needed.
+*   **Error Handling**:
+    *   Convert HTTP error statuses (4xx, 5xx) into structured errors, integrating with the project's error handling architecture (ref. Task 32).
+    *   Handle network errors, timeouts, and other connection issues.
+    *   Provide clear error messages and context for debugging.
+*   **Logging**: Integrate with the project's logging solution to log requests (metadata, not sensitive data) and errors.
+
+**Implementation Guidance**:
+1.  **Choose HTTP Client Library**: Select a suitable HTTP client library for the backend environment (e.g., `axios` or `node-fetch` for Node.js).
+2.  **Design Connector Interface**: Define a class or a set of functions. Example concept:
+    ```javascript
+    // class ApiConnector {
+    //   constructor(config: { baseUrl: string, apiKey?: string, authToken?: string, defaultHeaders?: object, timeout?: number });
+    //   async get(endpoint: string, params?: object, headers?: object): Promise<any>;
+    //   async post(endpoint: string, body: object, params?: object, headers?: object): Promise<any>;
+    //   // ... other methods for PUT, DELETE, PATCH
+    // }
+    ```
+3.  **Implement Core Request Logic**: Develop a centralized function to handle actual HTTP calls, incorporating authentication, headers, request body, and comprehensive error handling.
+4.  **Implement Public Methods**: Expose clear and easy-to-use methods for each supported HTTP verb (GET, POST, PUT, DELETE, PATCH).
+5.  **Error Handling Integration**: Ensure that errors originating from the connector (e.g., network issues, HTTP error responses) are processed and thrown in a way that is compatible with or utilizes the error structures and mechanisms defined in Task 32.
+6.  **Configuration Management**: Determine how API base URLs and credentials will be supplied to the connector instances (e.g., through environment variables, dedicated configuration files, or dependency injection). Prioritize security for sensitive credentials.
+
+**Security Considerations**:
+*   Avoid logging sensitive information such as API keys, full request/response bodies if they might contain Personally Identifiable Information (PII) or other confidential data.
+*   Ensure credentials are not hardcoded within the connector; they should be passed via configuration.
+
+# Test Strategy:
+**Unit Tests**:
+*   Mock the chosen HTTP client library (e.g., `axios`, `node-fetch`) extensively to isolate the connector logic.
+*   For each public method (GET, POST, PUT, DELETE, PATCH):
+    *   Verify correct URL construction (concatenation of base URL, endpoint, and query parameters).
+    *   Verify correct request headers are set (including default headers, custom headers, and authentication headers like API keys or Bearer tokens).
+    *   Verify correct serialization and sending of request bodies (for POST, PUT, PATCH).
+    *   Verify successful parsing of JSON responses.
+    *   Test different authentication mechanism configurations.
+*   Test handling of various HTTP success statuses (e.g., 200 OK, 201 Created, 204 No Content).
+*   Test error handling capabilities:
+    *   Simulate and verify handling of HTTP error codes (e.g., 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error, 503 Service Unavailable). Ensure errors are transformed or handled according to the project's error architecture (Task 32).
+    *   Simulate and verify handling of network errors (e.g., host not found, connection refused, DNS issues).
+    *   Simulate and verify handling of timeout errors (connection timeout, read timeout).
+    *   Test behavior with invalid or unexpected response formats (e.g., receiving non-JSON content when JSON is expected).
+
+**Integration Tests (Recommended)**:
+*   If feasible, set up a simple mock REST API service (e.g., using tools like `msw` (Mock Service Worker) if applicable, or a lightweight Express.js server with predefined endpoints).
+*   Perform actual HTTP requests from the connector to this mock API.
+*   Verify the end-to-end flow for common use cases, including successful requests and various error scenarios.
+
+**Code Review**:
+*   Thoroughly review the implementation for security best practices, especially around credential handling and data logging.
+*   Ensure robust error handling and adherence to the connector's defined interface and project conventions (including error handling from Task 32).
+*   Check for clarity, maintainability, and efficiency of the code.

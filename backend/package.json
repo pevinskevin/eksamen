@@ -3,11 +3,8 @@
   "version": "0.0.0",
   "main": "app.js",
   "scripts": {
-    "test-auth": "node features/auth/tests/test-auth-endpoints.js",
-    "dev": "node scripts/kill-port.js && node database/createDb.js --reset && nodemon app.js",
-    "dev-safe": "node scripts/kill-port.js && nodemon app.js",
-    "kill-port": "node scripts/kill-port.js",
-    "cookie": "node scripts/get-session-cookie.js"
+    "dev": "nodemon app.js",
+    "dev-safe": "node scripts/kill-port.js && nodemon app.js"
   },
   "keywords": [],
   "author": "",

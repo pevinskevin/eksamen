@@ -103,7 +103,7 @@ Handle order requests, use cached prices from subtask 1 for execution. Calculate
 ### Details:
 Database schema for trades (pair, side, quantity, price, timestamp, user_id). Simple WebSocket message for 'order filled' status.
 
-## 4. Phase 2: Binance Order Book Depth Integration (`binance-ws.js` enhancement) [pending]
+## 4. Phase 2: Binance Order Book Depth Integration (`binance-ws.js` enhancement) [done]
 ### Dependencies: 16.1
 ### Description: Enhance `binance-ws.js` to subscribe to Binance's depth WebSocket streams (e.g., `symbol@depth5` or `symbol@depth@100ms`) and maintain a local, synchronized copy of Binance order book levels.
 ### Details:

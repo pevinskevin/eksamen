@@ -216,12 +216,12 @@ export async function createTables() {
         // Also create a fiat account for the admin user
         await client.query(`
       INSERT INTO accounts (user_id, currency_code, balance)
-      SELECT id, 'SIM_USD', 10000.00
+      SELECT id, 'SIM_USD', 1000000.00
       FROM users 
       WHERE email = 'admin@test.com'
       ON CONFLICT (user_id, currency_code) DO NOTHING
     `);
-        console.log('✓ Added $10,000 SIM_USD balance for admin');
+        console.log('✓ Added $1,000,000 SIM_USD balance for admin');
 
         // Create a sample order for the admin user
         await client.query(`
