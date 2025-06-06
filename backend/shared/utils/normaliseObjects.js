@@ -37,7 +37,7 @@ function nullishConverter(object) {
         const value = object[key];
 
         // Special case: icon_url must be an empty string
-        if (key === 'icon_url') {
+        if (key === 'icon_url' && !object['icon_url']) {
             object[key] = '';
             continue;
         }
