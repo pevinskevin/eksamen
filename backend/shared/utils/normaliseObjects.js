@@ -6,11 +6,6 @@ import camelcaseKeys from 'camelcase-keys';
 //    - All other nullish fields become '0' (representing decimal values as strings)
 // 2. Converts object keys from snake_case to camelCase
 
- /*
- * @param {Object|Array} data - The data to normalise
- * @returns {Object|Array} Normalised data with camelCase keys and default values
- * @throws {Error} If no data is provided
- */
 export default function normaliseForOpenAPI(data) {
     if (!data) throw new Error('normaliseForOpenAPI(): No data provided for normalisation.');
 
@@ -37,7 +32,8 @@ function nullishConverter(object) {
         const value = object[key];
 
         // Special case: icon_url must be an empty string
-        if (key === 'icon_url' && !object['icon_url']) {
+        const keyIsIconUrlAndValueIsFalsy = key === 'icon_url' && !object['icon_url'];
+        if (keyIsIconUrlAndValueIsFalsy) {
             object[key] = '';
             continue;
         }
