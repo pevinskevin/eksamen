@@ -4,7 +4,7 @@ export default class OrderRepository {
         this.db = db;
     }
 
-    async delete(userId, orderId) {
+    async setStatusToCancelled(userId, orderId) {
         const query = {
             text: 'UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2 AND id = $3 RETURNING *',
             values: [ORDER_STATUS.CANCELLED, userId, orderId],

@@ -15,7 +15,7 @@ export default class OrderService {
         this.orderRepository = orderRepository;
     }
 
-    async deleteByUserAndOrderId(userId, orderId) {
+    async setStatusToCancelledByUserAndOrderId(userId, orderId) {
         // Validate that the orderId is in correct format
         validateOrderId(orderId);
 
@@ -23,7 +23,7 @@ export default class OrderService {
         await this.getOpenOrderByUserAndOrderId(userId, orderId);
 
         // Proceed with deletion if validation passes
-        const deletedOrder = await this.orderRepository.delete(userId, orderId);
+        const deletedOrder = await this.orderRepository.setStatusToCancelled(userId, orderId);
 
         return normaliseForOpenAPI(deletedOrder);
     }
@@ -73,7 +73,7 @@ export default class OrderService {
         return normaliseForOpenAPI(updatedOrder);
     }
 
-    async updateByUserAndOrderId(userId, orderId, order) {
+    async validateAndUpdateByUserAndOrderId(userId, orderId, order) {
         // ==========================================
         // STEP 1: VALIDATION & SETUP
         // ==========================================

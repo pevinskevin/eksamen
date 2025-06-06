@@ -101,7 +101,11 @@ router.put('/limit/:id', isAuthenticated, async (req, res) => {
     try {
         // Convert string parameter to number for service layer
         const orderId = Number(req.params.id);
-        const order = await orderService.updateByUserAndOrderId(req.user.id, orderId, req.body);
+        const order = await orderService.validateAndUpdateByUserAndOrderId(
+            req.user.id,
+            orderId,
+            req.body
+        );
         return sendSuccess(res, order);
     } catch (error) {
         // Insufficient balance for updated order values
@@ -132,7 +136,7 @@ router.put('/limit/:id', isAuthenticated, async (req, res) => {
 router.delete('/limit/:id', isAuthenticated, async (req, res) => {
     try {
         const orderId = req.params.id;
-        const order = await orderService.deleteByUserAndOrderId(req.user.id, orderId);
+        const order = await orderService.setStatusToCancelledByUserAndOrderId(req.user.id, orderId);
         return sendSuccess(res, order);
     } catch (error) {
         // Validation error (invalid order ID format)
@@ -140,7 +144,7 @@ router.delete('/limit/:id', isAuthenticated, async (req, res) => {
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');
             return sendUnprocessableEntity(res, validationMessage);
         }
-        // Order not found or not in deletable state
+        // Order not found or not in cancelable state
         if (error.message.includes('Order with ID ')) {
             return sendNotFound(res, error.message);
         }
