@@ -6,21 +6,21 @@ import camelcaseKeys from 'camelcase-keys';
 // 3. Both are required to comply with openAPI.yml specification.
 
 // Selects for arrays and objects.
-export default function normaliseForOpenAPI(object) {
+export default function normaliseForOpenAPI(data) {
     // Handle arrays by normalising each object within
-    if (Array.isArray(object)) {
-        const map = object.map((element) => {
+    if (Array.isArray(data)) {
+        const map = data.map((element) => {
             nullishConverter(element);
             normaliseEmptyBalance(element);
             element = camelcaseKeys(element);
         });
     }
-    if (!object || typeof object !== 'object') return;
+    if (!data || typeof data !== 'object') return;
 
     // Handles single objects.
-    nullishConverter(object);
-    normaliseEmptyBalance(object);
-    return camelcaseKeys(object);
+    nullishConverter(data);
+    normaliseEmptyBalance(data);
+    return camelcaseKeys(data);
 }
 
 // Converts nullish values in an object to empty strings
