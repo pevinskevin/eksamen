@@ -6,8 +6,8 @@ export default class OrderRepository {
 
     async delete(userId, orderId) {
         const query = {
-            text: 'DELETE FROM orders WHERE user_id = $1 AND id = $2 RETURNING *',
-            values: [userId, orderId],
+            text: 'UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2 AND id = $3 RETURNING *',
+            values: [ORDER_STATUS.CANCELLED, userId, orderId],
         };
         return (await this.db.query(query)).rows.at(0);
     }
@@ -17,6 +17,8 @@ export default class OrderRepository {
             text: 'SELECT * FROM orders WHERE user_id = $1 AND id = $2',
             values: [userId, orderId],
         };
+        console.log((await this.db.query(query)).rows.at(0));
+
         return (await this.db.query(query)).rows.at(0);
     }
 

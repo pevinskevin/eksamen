@@ -3,8 +3,10 @@
  * Only contains rules that OpenAPI cannot enforce -- Claude Sonnet 4 generated.
  */
 import * as v from 'valibot';
-import { ORDER_TYPE, ORDER_VARIANT, ORDER_STATUS } from './validators.js';
-import { CryptocurrencyIdSchema } from './cryptoValidators.js';
+import { ORDER_TYPE, ORDER_VARIANT, ORDER_STATUS } from '../../shared/validators/validators.js';
+import { CryptocurrencyIdSchema } from '../cryptocurrencies/cryptoValidators.js';
+
+// console.log('--- DEBUG: TYPE OF IMPORTED DECIMAL ---', typeof Decimal, Decimal);
 
 // Business rule: Positive integer IDs only
 const OrderIdSchema = v.pipe(
@@ -94,7 +96,7 @@ const OrderStatusSchema = v.pipe(
 );
 
 // Schema for creating a limit order - requires quantity and price, no notional value
-export const CreateLimitOrderSchema = v.object({
+const CreateLimitOrderSchema = v.object({
     cryptocurrencyId: CryptocurrencyIdSchema,
     orderVariant: OrderVariantSchema,
     initialQuantity: QuantitySchema,
@@ -102,7 +104,7 @@ export const CreateLimitOrderSchema = v.object({
 });
 
 // Schema for creating a market order - requires both quantity and notional value
-export const CreateMarketOrderSchema = v.object({
+const CreateMarketOrderSchema = v.object({
     cryptocurrencyId: CryptocurrencyIdSchema,
     orderVariant: OrderVariantSchema,
     initialQuantity: QuantitySchema,
@@ -110,7 +112,7 @@ export const CreateMarketOrderSchema = v.object({
 });
 
 // Legacy schema for creating a new order with business logic validation (kept for backward compatibility)
-export const CreateOrderSchema = v.pipe(
+const CreateOrderSchema = v.pipe(
     v.object({
         cryptocurrencyId: CryptocurrencyIdSchema,
         orderType: OrderTypeSchema,
@@ -131,17 +133,14 @@ export const CreateOrderSchema = v.pipe(
 );
 
 // Schema for updating an order (only limit orders can be updated)
-export const UpdateLimitOrderSchema = v.object({
+const UpdateLimitOrderSchema = v.object({
     initialQuantity: v.optional(QuantitySchema),
     price: v.optional(PriceSchema),
     status: v.optional(OrderStatusSchema),
 });
 
-// Schema for validating order ID in routes
-export const OrderIdParameterSchema = OrderIdSchema;
-
 // Schema for validating order status transitions
-export const OrderStatusTransitionSchema = v.pipe(
+const OrderStatusTransitionSchema = v.pipe(
     v.object({
         currentStatus: OrderStatusSchema,
         newStatus: OrderStatusSchema,
@@ -160,6 +159,89 @@ export const OrderStatusTransitionSchema = v.pipe(
 
         return validTransitions[currentStatus]?.includes(newStatus) || false;
     }, 'Invalid order status transition. Fully filled and cancelled orders cannot be modified.')
+);
+
+// Schema for validating minimum limit order value
+const MinimumLimitOrderValueSchema = v.pipe(
+    v.object({
+        initialQuantity: v.union([v.string(), v.number()]),
+        price: v.union([v.string(), v.number()]),
+    }),
+    v.check(
+        (input) => {
+            const numQuantity = parseFloat(input.initialQuantity);
+            const numPrice = parseFloat(input.price);
+
+            if (isNaN(numQuantity) || isNaN(numPrice)) {
+                return false;
+            }
+
+            const orderValue = numQuantity * numPrice;
+            const minimumValue = 1.0;
+            return orderValue >= minimumValue;
+        },
+        (input) => {
+            // The error callback receives a context object. The original data is in `input.input`.
+            const originalInput = input.input;
+            const numQuantity = parseFloat(originalInput.initialQuantity);
+            const numPrice = parseFloat(originalInput.price);
+            const orderValue = isNaN(numQuantity) || isNaN(numPrice) ? NaN : numQuantity * numPrice;
+
+            if (isNaN(orderValue)) {
+                return 'Invalid quantity or price values';
+            }
+
+            const minimumValue = 1.0;
+            return `Order value must be at least $${minimumValue}. Current value: $${orderValue.toFixed(
+                8
+            )}`;
+        }
+    )
+);
+
+// Schema for validating minimum market order value
+const MinimumMarketOrderValueSchema = v.pipe(
+    v.object({
+        orderVariant: OrderVariantSchema,
+        initialQuantity: QuantitySchema,
+        notionalValue: NotionalValueSchema,
+    }),
+    v.check(
+        (order) => {
+            const { orderVariant, initialQuantity, notionalValue } = order;
+            const minimumValue = 1.0;
+
+            if (orderVariant === ORDER_VARIANT.BUY) {
+                // For buy orders, validate notionalValue (initialQuantity should be 0)
+                return notionalValue >= minimumValue;
+            } else if (orderVariant === ORDER_VARIANT.SELL) {
+                // For sell orders, we can't validate value without current price
+                // Just ensure initialQuantity is positive (actual USD value validation happens elsewhere)
+                return initialQuantity > 0;
+            }
+            return false;
+        },
+        (order) => {
+            // Valibot passes error object, actual input is in order.input
+            const input = order.input || order;
+            const orderVariant = input.orderVariant;
+            const initialQuantity = input.initialQuantity || 0;
+            const notionalValue = input.notionalValue || 0;
+            const minimumValue = 1.0;
+
+            // Check for buy order
+            if (orderVariant === ORDER_VARIANT.BUY || orderVariant === 'buy') {
+                return `Market buy order notional value must be at least $${minimumValue}. Current value: $${Number(
+                    notionalValue
+                ).toFixed(2)}`;
+            } else if (orderVariant === ORDER_VARIANT.SELL || orderVariant === 'sell') {
+                return `Market sell order quantity must be greater than 0. Current quantity: ${Number(
+                    initialQuantity
+                ).toFixed(8)}`;
+            }
+            return 'Invalid market order variant';
+        }
+    )
 );
 
 // Validation functions
@@ -187,37 +269,22 @@ export const validateOrderStatusTransition = (currentStatus, newStatus) => {
     return v.parse(OrderStatusTransitionSchema, { currentStatus, newStatus });
 };
 
-// Business rule validation for minimum order value (updated for new schema)
-export const validateMinimumOrderValue = (order) => {
-    const { initialQuantity, price, orderType, notionalValue } = order;
-    if (orderType === 'limit') {
-        const orderValue = initialQuantity * price;
-        const minimumValue = 1.0; // $1 minimum order value
+export const validateMinimumLimitOrderValue = (order) => {
+    // Extract only the relevant fields to pass to the strict schema.
+    const dataToValidate = {
+        initialQuantity: order.initialQuantity,
+        price: order.price,
+    };
 
-        if (orderValue < minimumValue) {
-            throw new Error(
-                `Order value must be at least $${minimumValue}. Current value: $${orderValue.toFixed(
-                    2
-                )}`
-            );
-        }
-    } else if (orderType === 'market') {
-        const minimumValue = 1.0; // $1 minimum order value
+    // Pass the clean, minimal object to the parser.
+    v.parse(MinimumLimitOrderValueSchema, dataToValidate);
 
-        if (notionalValue < minimumValue) {
-            throw new Error(
-                `Market order notional value must be at least $${minimumValue}. Current value: $${notionalValue.toFixed(
-                    2
-                )}`
-            );
-        }
-    }
-    return true;
+    // If it passes, return nothing.
 };
 
-// Legacy exports for backward compatibility with existing service layer
-export const orderSchema = CreateOrderSchema;
-export const updateOrderSchema = UpdateLimitOrderSchema;
+export const validateMinimumMarketOrderValue = (order) => {
+    return v.parse(MinimumMarketOrderValueSchema, order);
+};
 
 export default {
     // Main validation functions
@@ -227,17 +294,6 @@ export default {
     validateCreateOrder,
     validateUpdateLimitOrder,
     validateOrderStatusTransition,
-    validateMinimumOrderValue,
-
-    // Schema exports
-    CreateLimitOrderSchema,
-    CreateMarketOrderSchema,
-    CreateOrderSchema,
-    UpdateLimitOrderSchema,
-    OrderIdParameterSchema,
-    OrderStatusTransitionSchema,
-
-    // Legacy exports
-    orderSchema,
-    updateOrderSchema,
+    validateMinimumLimitOrderValue,
+    validateMinimumMarketOrderValue,
 };

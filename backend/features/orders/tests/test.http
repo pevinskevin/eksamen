@@ -22,24 +22,24 @@ GET {{baseUrl}}/order
 GET {{baseUrl}}/order
 Cookie: 
 
-### 3. Get specific order by ID successfully (should return 200)
-GET {{baseUrl}}/order/{{orderId}}
+### 3. Get specific limit order by ID successfully (should return 200)
+GET {{baseUrl}}/order/limit/{{orderId}}
 
-### 4. Get order with invalid ID format (should return 400)
-GET {{baseUrl}}/order/invalid
+### 4. Get limit order with invalid ID format (should return 400)
+GET {{baseUrl}}/order/limit/invalid
 
-### 5. Get order with non-numeric ID (should return 400)
-GET {{baseUrl}}/order/abc
+### 5. Get limit order with non-numeric ID (should return 400)
+GET {{baseUrl}}/order/limit/abc
 
-### 6. Get order without authentication (should return 401)
-GET {{baseUrl}}/order/{{orderId}}
+### 6. Get limit order without authentication (should return 401)
+GET {{baseUrl}}/order/limit/{{orderId}}
 Cookie: 
 
-### 7. Get order that doesn't belong to user (should return 403)
+### 7. Get limit order that doesn't belong to user (should return 403)
 # Note: This would require testing with a different user's order ID
 
-### 8. Get order with non-existent ID (should return 404)
-GET {{baseUrl}}/order/99999
+### 8. Get limit order with non-existent ID (should return 404)
+GET {{baseUrl}}/order/limit/99999
 
 ### CREATE LIMIT ORDER TESTS ###
 
@@ -49,7 +49,6 @@ Content-Type: {{contentType}}
 
 {
     "cryptocurrencyId": 1,
-    "orderType": "limit",
     "orderVariant": "buy",
     "initialQuantity": "0.005",
     "price": "50000"
@@ -61,18 +60,16 @@ Content-Type: {{contentType}}
 
 {
     "cryptocurrencyId": 1,
-    "orderType": "limit",
     "orderVariant": "sell",
     "initialQuantity": "0.009",
     "price": "60000"
 }
 
-### 11. Create limit order with missing required fields (should return 422)
+### 11. Create limit order with missing required fields (should return 400)
 POST {{baseUrl}}/order/limit
 Content-Type: {{contentType}}
 
 {
-    "orderType": "limit",
     "orderVariant": "buy"
 }
 
@@ -83,7 +80,6 @@ Cookie:
 
 {
     "cryptocurrencyId": 1,
-    "orderType": "limit",
     "orderVariant": "buy",
     "initialQuantity": "0.005",
     "price": "50000"
@@ -95,7 +91,6 @@ Content-Type: {{contentType}}
 
 {
     "cryptocurrencyId": 1,
-    "orderType": "limit",
     "orderVariant": "buy",
     "initialQuantity": "10000",
     "price": "100000"
@@ -107,41 +102,37 @@ Content-Type: {{contentType}}
 
 {
     "cryptocurrencyId": 99999,
-    "orderType": "limit",
     "orderVariant": "buy",
     "initialQuantity": "0.5",
     "price": "50000"
 }
 
-### 15. Create limit order without price (should return 422)
+### 15. Create limit order without price (should return 400)
 POST {{baseUrl}}/order/limit
 Content-Type: {{contentType}}
 
 {
     "cryptocurrencyId": 1,
-    "orderType": "limit",
     "orderVariant": "buy",
     "initialQuantity": "0.5"
 }
 
-### 16. Create limit order without quantity (should return 422)
+### 16. Create limit order without quantity (should return 400)
 POST {{baseUrl}}/order/limit
 Content-Type: {{contentType}}
 
 {
     "cryptocurrencyId": 1,
-    "orderType": "limit",
     "orderVariant": "buy",
     "price": "50000"
 }
 
-### 17. Create limit order with negative price (should return 422)
+### 17. Create limit order with negative price (should return 400)
 POST {{baseUrl}}/order/limit
 Content-Type: {{contentType}}
 
 {
     "cryptocurrencyId": 1,
-    "orderType": "limit",
     "orderVariant": "buy",
     "initialQuantity": "0.5",
     "price": "-1000"
@@ -153,31 +144,28 @@ Content-Type: {{contentType}}
 
 {
     "cryptocurrencyId": 1,
-    "orderType": "limit",
     "orderVariant": "buy",
     "initialQuantity": "0",
     "price": "50000"
 }
 
-### 19. Create limit order with negative quantity (should return 422)
+### 19. Create limit order with negative quantity (should return 400)
 POST {{baseUrl}}/order/limit
 Content-Type: {{contentType}}
 
 {
     "cryptocurrencyId": 1,
-    "orderType": "limit",
     "orderVariant": "buy",
     "initialQuantity": "-0.5",
     "price": "50000"
 }
 
-### 20. Create limit order with invalid order variant (should return 422)
+### 20. Create limit order with invalid order variant (should return 400)
 POST {{baseUrl}}/order/limit
 Content-Type: {{contentType}}
 
 {
     "cryptocurrencyId": 1,
-    "orderType": "limit",
     "orderVariant": "invalid",
     "initialQuantity": "0.5",
     "price": "50000"
@@ -189,7 +177,6 @@ Content-Type: {{contentType}}
 
 {
     "cryptocurrencyId": 1,
-    "orderType": "limit",
     "orderVariant": "buy",
     "initialQuantity": "0.5",
     "price": "50000",
@@ -208,7 +195,7 @@ Content-Type: {{contentType}}
     "notionalValue": "5000.00"
 }
 
-### 23. Create market order with missing required fields (should return 422)
+### 23. Create market order with missing required fields (should return 400)
 POST {{baseUrl}}/order/market
 Content-Type: {{contentType}}
 
@@ -250,7 +237,7 @@ Content-Type: {{contentType}}
     "notionalValue": "5000.00"
 }
 
-### 27. Create market order without notional value (should return 422)
+### 27. Create market order without notional value (should return 400)
 POST {{baseUrl}}/order/market
 Content-Type: {{contentType}}
 
@@ -260,7 +247,7 @@ Content-Type: {{contentType}}
     "initialQuantity": "0.1"
 }
 
-### 28. Create market order with negative notional value (should return 422)
+### 28. Create market order with negative notional value (should return 400)
 POST {{baseUrl}}/order/market
 Content-Type: {{contentType}}
 
@@ -271,7 +258,7 @@ Content-Type: {{contentType}}
     "notionalValue": "-1000.00"
 }
 
-### 29. Create market order with zero notional value (should now return 201)
+### 29. Create market order with zero notional value (should return 422)
 POST {{baseUrl}}/order/market
 Content-Type: {{contentType}}
 
@@ -282,7 +269,7 @@ Content-Type: {{contentType}}
     "notionalValue": "0"
 }
 
-### 30. Create market order with missing quantity (should return 422)
+### 30. Create market order with missing quantity (should return 400)
 POST {{baseUrl}}/order/market
 Content-Type: {{contentType}}
 
@@ -292,7 +279,7 @@ Content-Type: {{contentType}}
     "notionalValue": "1000.00"
 }
 
-### 31. Create market sell order (should return 422 - not implemented)
+### 31. Create market sell order (should return 201)
 POST {{baseUrl}}/order/market
 Content-Type: {{contentType}}
 
@@ -303,7 +290,7 @@ Content-Type: {{contentType}}
     "notionalValue": "5000.00"
 }
 
-### 32. Create market order with invalid order variant (should return 422)
+### 32. Create market order with invalid order variant (should return 400)
 POST {{baseUrl}}/order/market
 Content-Type: {{contentType}}
 
@@ -325,7 +312,7 @@ Content-Type: {{contentType}}
     "notionalValue": "5000.00",
 }
 
-### 34. Create market order with price field (should ignore it)
+### 34. Create market order with price field (should return 400)
 POST {{baseUrl}}/order/market
 Content-Type: {{contentType}}
 
@@ -355,11 +342,10 @@ PUT {{baseUrl}}/order/limit/{{orderId}}
 Content-Type: {{contentType}}
 
 {
-    "initialQuantity": "0.0075",
     "price": "55000"
 }
 
-### 37. Update limit order with invalid data format (should return 422)
+### 37. Update limit order with invalid data format (should return 400)
 PUT {{baseUrl}}/order/limit/{{orderId}}
 Content-Type: {{contentType}}
 
@@ -388,9 +374,14 @@ Content-Type: {{contentType}}
 }
 
 ### 41. Update already executed limit order (should return 404)
-# Note: This requires an order that's already been filled
+PUT {{baseUrl}}/order/limit/29
+Content-Type: {{contentType}}
 
-### 42. Update limit order with invalid status transition (should return 422)
+{
+    "price": "55000"
+}
+
+### 42. Update limit order with invalid status transition (should return 400)
 PUT {{baseUrl}}/order/limit/{{orderId}}
 Content-Type: {{contentType}}
 
@@ -398,7 +389,7 @@ Content-Type: {{contentType}}
     "status": "invalid_status"
 }
 
-### 43. Update limit order with invalid ID format (should return 422)
+### 43. Update limit order with invalid ID format (should return 400)
 PUT {{baseUrl}}/order/limit/invalid
 Content-Type: {{contentType}}
 
@@ -411,7 +402,7 @@ Content-Type: {{contentType}}
 ### 44. Delete limit order successfully (should return 200)
 DELETE {{baseUrl}}/order/limit/{{orderId}}
 
-### 45. Delete limit order with invalid ID format (should return 422)
+### 45. Delete limit order with invalid ID format (should return 400)
 DELETE {{baseUrl}}/order/limit/invalid
 
 ### 46. Delete limit order without authentication (should return 401)
@@ -429,29 +420,6 @@ DELETE {{baseUrl}}/order/limit/99999
 
 ### EDGE CASE TESTS ###
 
-### 50. Test old endpoint /order POST (should return 404)
-POST {{baseUrl}}/order
-Content-Type: {{contentType}}
-
-{
-    "cryptocurrencyId": 1,
-    "orderVariant": "buy",
-    "initialQuantity": "0.005",
-    "price": "50000"
-}
-
-### 51. Test old endpoint /order/{id} PUT (should return 404)
-PUT {{baseUrl}}/order/{{orderId}}
-Content-Type: {{contentType}}
-
-{
-    "initialQuantity": "0.0075",
-    "price": "55000"
-}
-
-### 52. Test old endpoint /order/{id} DELETE (should return 404)
-DELETE {{baseUrl}}/order/{{orderId}}
-
 ### 53. Test market order endpoint with PUT (should return 404/405)
 PUT {{baseUrl}}/order/market/{{orderId}}
 Content-Type: {{contentType}}
@@ -463,7 +431,7 @@ Content-Type: {{contentType}}
 ### 54. Test market order endpoint with DELETE (should return 404/405)
 DELETE {{baseUrl}}/order/market/{{orderId}}
 
-### 55. Create limit order with notionalValue field (should ignore it)
+### 55. Create limit order with notionalValue field (should return 400)
 POST {{baseUrl}}/order/limit
 Content-Type: {{contentType}}
 
@@ -493,7 +461,7 @@ Content-Type: {{contentType}}
 {
     "cryptocurrencyId": 1,
     "orderVariant": "buy",
-    "initialQuantity": "0.00000001",
+    "initialQuantity": "0.00001",
     "price": "1"
 }
 

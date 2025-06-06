@@ -2,7 +2,6 @@ import { Router } from 'express';
 const router = Router();
 import isAuthenticated from '../../shared/middleware/authorisation.js';
 import { marketOrderEmitter } from '../../shared/events/marketOrderEmitter.js';
-import { ORDER_TYPE } from '../../shared/validators/validators.js';
 import { orderService } from '../../shared/factory/factory.js';
 import {
     sendCreated,
@@ -13,20 +12,18 @@ import {
     sendUnprocessableEntity,
 } from '../../shared/utils/responseHelpers.js';
 
-// Get all orders for the authenticated user
+// Get all open and partially filled orders for the authenticated user
 router.get('/', isAuthenticated, async (req, res) => {
     try {
         const orders = await orderService.getAll(req.user.id);
-        console.log(orders);
-        
         return sendSuccess(res, orders);
     } catch (error) {
         return sendInternalServerError(res, error.message);
     }
 });
 
-// Get specific order by ID
-router.get('/:id', isAuthenticated, async (req, res) => {
+// Get specific limit order by ID
+router.get('/limit/:id', isAuthenticated, async (req, res) => {
     try {
         const order = await orderService.getOpenOrderByUserAndOrderId(req.user.id, req.params.id);
         return sendSuccess(res, order);
@@ -47,7 +44,7 @@ router.get('/:id', isAuthenticated, async (req, res) => {
 // Create a new limit order
 router.post('/limit', isAuthenticated, async (req, res) => {
     try {
-        const order = await orderService.saveLimitOrder(req.body, req.user.id);
+        const order = await orderService.validateAndSaveLimitOrder(req.body, req.user.id);
         return sendCreated(res, order);
     } catch (error) {
         // Insufficient balance errors (buy or sell)
@@ -73,8 +70,7 @@ router.post('/limit', isAuthenticated, async (req, res) => {
 // Create a new market order
 router.post('/market', isAuthenticated, async (req, res) => {
     try {
-        const order = await orderService.saveMarketOrder(req.body, req.user.id);
-        // Emit market order event for processing
+        const order = await orderService.validateAndSaveMarketOrder(req.body, req.user.id);
         marketOrderEmitter.emit('marketOrderCreated', {
             order,
         });

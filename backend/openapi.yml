@@ -1375,40 +1375,13 @@ components:
         initialQuantity:
           type: string
           format: decimal
-          description: Quantity of cryptocurrency for the market order
-          example: "0.1"
+          description: "Quantity of cryptocurrency for the market order. Use '0' if buy order"
+          example: "0"
         notionalValue:
           type: string
           format: decimal
-          description: Total dollar amount for the market order
+          description: "Total dollar amount for the market order. Use '0' if sell order"
           example: "1000.00"
-
-    # Legacy schema for backward compatibility
-    CreateOrder:
-      type: object
-      additionalProperties: false
-      required:
-        - cryptocurrencyId
-        - orderType
-        - orderVariant
-        - quantityTotal
-        - price
-      properties:
-        cryptocurrencyId:
-          type: integer
-        orderType:
-          type: string
-          enum: [limit, market]
-        orderVariant:
-          type: string
-          enum: [buy, sell]
-        quantityTotal:
-          type: string
-          format: decimal
-        price:
-          type: string
-          format: decimal
-          description: Required for limit orders, ignored for market orders
 
     UpdateOrder:
       type: object

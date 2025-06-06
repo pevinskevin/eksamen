@@ -134,7 +134,10 @@ app.use((err, req, res, next) => {
 });
 
 // -- Market Update Emitter Setup --
-import { marketDataEmitter, cleanup as cleanupBinanceWS } from './features/trading/orderbook/binance-ws.js';
+import {
+    marketDataEmitter,
+    cleanup as cleanupBinanceWS,
+} from './features/trading/orderbook/binance-ws.js';
 marketDataEmitter.on('marketUpdate', (updatedDataObject) => {
     io.emit('orderBookUpdate', updatedDataObject);
 });
@@ -185,18 +188,20 @@ const gracefulShutdown = (signal) => {
         // 3. Close Socket.IO server
         io.close(() => {
             console.log('Socket.IO server closed');
-            
+
             // 4. Close database connections last
-            import('./database/connection.js').then(({ default: db }) => {
-                db.end(() => {
-                    console.log('Database connections closed');
-                    console.log('Graceful shutdown complete');
+            import('./database/connection.js')
+                .then(({ default: db }) => {
+                    db.end(() => {
+                        console.log('Database connections closed');
+                        console.log('Graceful shutdown complete');
+                        process.exit(0);
+                    });
+                })
+                .catch(() => {
+                    console.log('Database already closed or error occurred');
                     process.exit(0);
                 });
-            }).catch(() => {
-                console.log('Database already closed or error occurred');
-                process.exit(0);
-            });
         });
     });
 

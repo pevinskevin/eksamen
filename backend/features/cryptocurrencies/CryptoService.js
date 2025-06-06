@@ -2,7 +2,7 @@ import {
     validateCryptoId,
     CreateCryptocurrencySchema,
     UpdateCryptocurrencySchema,
-} from '../../shared/validators/cryptoValidators.js';
+} from './cryptoValidators.js';
 import { parse } from 'valibot';
 import normaliseForOpenAPI from '../../shared/utils/normaliseObjects.js';
 

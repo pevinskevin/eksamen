@@ -1,11 +1,11 @@
 import {
-    validateCreateOrder,
     validateCreateLimitOrder,
     validateCreateMarketOrder,
     validateOrderId,
     validateUpdateLimitOrder,
-    validateMinimumOrderValue,
-} from '../../shared/validators/orderValidators.js';
+    validateMinimumLimitOrderValue,
+    validateMinimumMarketOrderValue,
+} from './orderValidators.js';
 import { cryptoService, accountService } from '../../shared/factory/factory.js';
 import { ORDER_VARIANT, ORDER_STATUS } from '../../shared/validators/validators.js';
 import normaliseForOpenAPI from '../../shared/utils/normaliseObjects.js';
@@ -34,6 +34,7 @@ export default class OrderService {
     }
 
     async getOpenOrderByUserAndOrderId(userId, orderId) {
+        console.log(userId, orderId);
         // Validate order ID format
         validateOrderId(orderId);
 
@@ -43,8 +44,7 @@ export default class OrderService {
         // Check if order exists and is in a state that allows modification
         if (
             !order ||
-            order.status !== ORDER_STATUS.OPEN ||
-            order.status !== ORDER_STATUS.PARTIALLY_FILLED
+            (order.status !== ORDER_STATUS.OPEN && order.status !== ORDER_STATUS.PARTIALLY_FILLED)
         ) {
             throw new Error('Order with ID ' + orderId);
         } else {
@@ -80,11 +80,22 @@ export default class OrderService {
 
         // Validate update order format
         validateUpdateLimitOrder(order);
-        validateMinimumOrderValue(order);
 
         // Get the original order to determine its variant and cryptocurrency
         const originalOrder = await this.getOpenOrderByUserAndOrderId(userId, orderId);
         const originalOrderVariant = originalOrder.orderVariant; // Not included in request body
+
+        // Merge original order data with update data for complete validation
+        const mergedOrder = {
+            initialQuantity:
+                order.initialQuantity !== undefined
+                    ? order.initialQuantity
+                    : originalOrder.initialQuantity,
+            price: order.price !== undefined ? order.price : originalOrder.price,
+        };
+
+        // Validate minimum order value with complete data
+        validateMinimumLimitOrderValue(mergedOrder);
 
         // Get cryptocurrency symbol for sell order balance checks
         const originalOrderSymbol = (
@@ -127,9 +138,9 @@ export default class OrderService {
 
             const availableBalance = balance - sumOrderValues; // Available USD after existing orders
 
-            // Calculate USD value of the updated order
-            const orderInitialQuantity = Number(order.initialQuantity);
-            const orderPrice = Number(order.price);
+            // Calculate USD value of the updated order using merged data
+            const orderInitialQuantity = Number(mergedOrder.initialQuantity);
+            const orderPrice = Number(mergedOrder.price);
             const orderValue = orderInitialQuantity * orderPrice;
 
             // Check if user has sufficient available balance for the update
@@ -164,7 +175,7 @@ export default class OrderService {
             // ----------------------------------------
 
             const availableBalance = balance - sumQuantityRemainingOpenOrders; // Available crypto after existing orders
-            const orderQuantity = Number(order.initialQuantity);
+            const orderQuantity = Number(mergedOrder.initialQuantity); // Use merged data
 
             // Check if user has sufficient available crypto balance for the update
             if (orderQuantity > availableBalance) {
@@ -193,10 +204,10 @@ export default class OrderService {
         return normaliseForOpenAPI(savedOrder);
     }
 
-    async saveLimitOrder(order, userId) {
+    async validateAndSaveLimitOrder(order, userId) {
         // Validate limit order format and verify cryptocurrency exists
         validateCreateLimitOrder(order);
-        validateMinimumOrderValue(order);
+        validateMinimumLimitOrderValue(order);
         await cryptoService.getCryptocurrencyById(order.cryptocurrencyId);
 
         if (order.orderVariant === ORDER_VARIANT.BUY) {
@@ -228,7 +239,9 @@ export default class OrderService {
             if (orderValue > availableBalance) {
                 throw new Error('Order value exceeds available balance');
             } else {
-                return this.saveOrder(order, userId);
+                // Add orderType for limit orders before saving
+                const limitOrder = { ...order, orderType: 'limit' };
+                return this.saveOrder(limitOrder, userId);
             }
         } else if (order.orderVariant === ORDER_VARIANT.SELL) {
             // Get the cryptocurrency symbol and user's holding balance
@@ -256,15 +269,18 @@ export default class OrderService {
             if (orderQuantity > availableBalance) {
                 throw new Error('Order quantity exceeds available balance');
             } else {
-                return this.saveOrder(order, userId);
+                // Add orderType for limit orders before saving
+                const limitOrder = { ...order, orderType: 'limit' };
+                return this.saveOrder(limitOrder, userId);
             }
         }
     }
 
-    async saveMarketOrder(order, userId) {
+    async validateAndSaveMarketOrder(order, userId) {
         // Validate market order format and verify cryptocurrency exists
         validateCreateMarketOrder(order);
-        validateMinimumOrderValue(order);
+        validateMinimumMarketOrderValue(order); // can't validate quantity for
+
         await cryptoService.getCryptocurrencyById(order.cryptocurrencyId);
 
         if (order.orderVariant === ORDER_VARIANT.BUY) {
@@ -294,10 +310,10 @@ export default class OrderService {
             if (notionalValue > availableBalance) {
                 throw new Error('Order notional value exceeds available balance');
             } else {
-                // Save market order with both initialQuantity and notional_value
-
-                const savedOrder = await this.orderRepository.save(order, userId);
-                return normaliseForOpenAPI(savedOrder);
+                // Add orderType for market orders and set quantity to null before saving (we don't know the quantity until order has been executed)
+                order.initialQuantity = null;
+                const marketOrder = { ...order, orderType: 'market' };
+                return this.saveOrder(marketOrder, userId);
             }
         } else if (order.orderVariant === ORDER_VARIANT.SELL) {
             // Get the cryptocurrency symbol and user's holding balance
@@ -324,7 +340,10 @@ export default class OrderService {
             if (orderQuantity > availableBalance) {
                 throw new Error('Order quantity exceeds available balance');
             } else {
-                return this.saveOrder(order, userId);
+                // Add orderType for market orders and set notional value to null before saving. (we don't know the value until order has been executed))
+                order.notionalValue = null;
+                const marketOrder = { ...order, orderType: 'market' };
+                return this.saveOrder(marketOrder, userId);
             }
         }
     }

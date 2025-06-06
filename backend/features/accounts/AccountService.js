@@ -1,8 +1,6 @@
 import { cryptoService } from '../../shared/factory/factory.js';
-import {
-    transformFinancialFields,
-} from '../../shared/utils/balanceTransformer.js';
-import validateCryptoSymbol from '../../shared/validators/cryptoValidators.js';
+import { transformFinancialFields } from '../../shared/utils/balanceTransformer.js';
+import validateCryptoSymbol from '../cryptocurrencies/cryptoValidators.js';
 import normaliseForOpenAPI from '../../shared/utils/normaliseObjects.js';
 
 export default class AccountService {
