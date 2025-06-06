@@ -42,7 +42,18 @@ export function transformBalanceToString(obj) {
  * @param {string[]} fields - Array of field names to transform to strings
  * @returns {Object} Object with specified fields converted to strings
  */
-export function transformFinancialFields(obj, fields = ['balance', 'price', 'amount', 'quantity']) {
+export function transformFinancialFields(
+    obj,
+    fields = [
+        'balance',
+        'price',
+        'amount',
+        'quantity',
+        'initialQuantity',
+        'remainingQuantity',
+        'notionalValue',
+    ]
+) {
     if (!obj || typeof obj !== 'object') return obj;
 
     const transformed = { ...obj };

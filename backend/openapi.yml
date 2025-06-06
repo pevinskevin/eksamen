@@ -625,8 +625,9 @@ paths:
                 error: "InternalServerError"
                 message: "Failed to retrieve orders"
 
+  /order/limit:
     post:
-      summary: Create new order
+      summary: Create new limit order
       tags:
         - Orders
       # security:
@@ -636,10 +637,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateOrder"
+              $ref: "#/components/schemas/CreateLimitOrder"
       responses:
         "201":
-          description: Order created
+          description: Limit order created
           content:
             application/json:
               schema:
@@ -652,7 +653,7 @@ paths:
                 $ref: "#/components/schemas/Error"
               example:
                 error: "ValidationError"
-                message: "Missing required order fields"
+                message: "Missing required limit order fields"
         "401":
           description: Unauthorized
           content:
@@ -697,11 +698,86 @@ paths:
                 $ref: "#/components/schemas/Error"
               example:
                 error: "InternalServerError"
-                message: "Failed to create order"
+                message: "Failed to create limit order"
 
-  /order/{id}:
+  /order/market:
+    post:
+      summary: Create new market order
+      tags:
+        - Orders
+      # security:
+      # - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMarketOrder"
+      responses:
+        "201":
+          description: Market order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Invalid order data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Missing required market order fields"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
+        "402":
+          description: Payment Required (insufficient balance)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "InsufficientFundsError"
+                message: "Insufficient balance to place order"
+        "404":
+          description: Not Found (cryptocurrency not found)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "NotFoundError"
+                message: "Cryptocurrency not found"
+        "422":
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Notional value must be positive for market orders"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to create market order"
+
+  /order/limit/{id}:
     get:
-      summary: Get specific order by ID
+      summary: Get specific limit order by ID
       tags:
         - Orders
       # security:
@@ -714,7 +790,7 @@ paths:
             type: integer
       responses:
         "200":
-          description: Order details
+          description: Limit order details
           content:
             application/json:
               schema:
@@ -738,23 +814,23 @@ paths:
                 error: "AuthenticationError"
                 message: "Authentication required"
         "403":
-          description: Forbidden (not user's order)
+          description: Forbidden (not user's order or not a limit order)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
                 error: "ForbiddenError"
-                message: "Access denied - not your order"
+                message: "Access denied - not your limit order"
         "404":
-          description: Order not found
+          description: Limit order not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
                 error: "NotFoundError"
-                message: "Order not found"
+                message: "Limit order not found"
         "422":
           description: Unprocessable Entity (ID validation errors)
           content:
@@ -772,10 +848,10 @@ paths:
                 $ref: "#/components/schemas/Error"
               example:
                 error: "InternalServerError"
-                message: "Failed to retrieve order"
+                message: "Failed to retrieve limit order"
 
     put:
-      summary: Update order
+      summary: Update limit order
       tags:
         - Orders
       # security:
@@ -794,7 +870,7 @@ paths:
               $ref: "#/components/schemas/UpdateOrder"
       responses:
         "200":
-          description: Order updated
+          description: Limit order updated
           content:
             application/json:
               schema:
@@ -827,23 +903,23 @@ paths:
                 error: "InsufficientFundsError"
                 message: "Updated order value exceeds available balance"
         "403":
-          description: Forbidden (not user's order)
+          description: Forbidden (not user's order or not a limit order)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
                 error: "ForbiddenError"
-                message: "Access denied - not your order"
+                message: "Access denied - not your limit order"
         "404":
-          description: Order not found
+          description: Limit order not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
                 error: "NotFoundError"
-                message: "Order not found"
+                message: "Limit order not found"
         "409":
           description: Conflict (order already executed)
           content:
@@ -852,7 +928,7 @@ paths:
                 $ref: "#/components/schemas/Error"
               example:
                 error: "ConflictError"
-                message: "Cannot modify executed order"
+                message: "Cannot modify executed limit order"
         "422":
           description: Unprocessable Entity
           content:
@@ -870,10 +946,10 @@ paths:
                 $ref: "#/components/schemas/Error"
               example:
                 error: "InternalServerError"
-                message: "Failed to update order"
+                message: "Failed to update limit order"
 
     delete:
-      summary: Delete order
+      summary: Delete limit order
       tags:
         - Orders
       # security:
@@ -886,7 +962,7 @@ paths:
             type: integer
       responses:
         "200":
-          description: Order deleted
+          description: Limit order deleted
           content:
             application/json:
               schema:
@@ -913,23 +989,23 @@ paths:
                 error: "AuthenticationError"
                 message: "Authentication required"
         "403":
-          description: Forbidden (not user's order)
+          description: Forbidden (not user's order or not a limit order)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
                 error: "ForbiddenError"
-                message: "Access denied - not your order"
+                message: "Access denied - not your limit order"
         "404":
-          description: Order not found
+          description: Limit order not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
                 error: "NotFoundError"
-                message: "Order not found"
+                message: "Limit order not found"
         "409":
           description: Conflict (order already executed/partially filled)
           content:
@@ -938,7 +1014,7 @@ paths:
                 $ref: "#/components/schemas/Error"
               example:
                 error: "ConflictError"
-                message: "Cannot delete partially filled or executed order"
+                message: "Cannot delete partially filled or executed limit order"
         "422":
           description: Unprocessable Entity (ID validation errors)
           content:
@@ -956,7 +1032,7 @@ paths:
                 $ref: "#/components/schemas/Error"
               example:
                 error: "InternalServerError"
-                message: "Failed to delete order"
+                message: "Failed to delete limit order"
 
 components:
   securitySchemes:
@@ -1219,18 +1295,26 @@ components:
         orderVariant:
           type: string
           enum: [buy, sell]
-        quantityTotal:
+        initialQuantity:
           type: string
           format: decimal
-          description: Total quantity of the order
-        quantityRemaining:
+          description: Initial quantity of the order (null for market orders)
+          nullable: true
+        remainingQuantity:
           type: string
           format: decimal
-          description: Remaining unfilled quantity
+          description: Remaining unfilled quantity (null for market orders until filled)
+          nullable: true
         price:
           type: string
           format: decimal
           description: Price per unit (null for market orders)
+          nullable: true
+        notionalValue:
+          type: string
+          format: decimal
+          description: Notional value for market orders (null for limit orders)
+          nullable: true
         status:
           type: string
           enum: [open, partially_filled, fully_filled, cancelled]
@@ -1241,6 +1325,65 @@ components:
           type: string
           format: date-time
 
+    CreateLimitOrder:
+      type: object
+      additionalProperties: false
+      required:
+        - cryptocurrencyId
+        - orderVariant
+        - initialQuantity
+        - price
+      properties:
+        cryptocurrencyId:
+          type: integer
+          description: ID of the cryptocurrency to trade
+          example: 1
+        orderVariant:
+          type: string
+          enum: [buy, sell]
+          description: Whether this is a buy or sell order
+          example: "buy"
+        initialQuantity:
+          type: string
+          format: decimal
+          description: Quantity of cryptocurrency to trade
+          example: "0.5"
+        price:
+          type: string
+          format: decimal
+          description: Price per unit for the limit order
+          example: "50000.00"
+
+    CreateMarketOrder:
+      type: object
+      additionalProperties: false
+      required:
+        - cryptocurrencyId
+        - orderVariant
+        - initialQuantity
+        - notionalValue
+      properties:
+        cryptocurrencyId:
+          type: integer
+          description: ID of the cryptocurrency to trade
+          example: 1
+        orderVariant:
+          type: string
+          enum: [buy, sell]
+          description: Whether this is a buy or sell order
+          example: "buy"
+        initialQuantity:
+          type: string
+          format: decimal
+          description: Quantity of cryptocurrency for the market order
+          example: "0.1"
+        notionalValue:
+          type: string
+          format: decimal
+          description: Total dollar amount for the market order
+          example: "1000.00"
+
+    # Legacy schema for backward compatibility
     CreateOrder:
       type: object
       additionalProperties: false
@@ -1271,15 +1414,18 @@ components:
       type: object
       additionalProperties: false
       properties:
-        quantityTotal:
+        initialQuantity:
           type: string
           format: decimal
+          description: Updated quantity for the limit order
         price:
           type: string
           format: decimal
+          description: Updated price for the limit order
         status:
           type: string
           enum: [open, partially_filled]
+          description: Updated status for the order
 
     Trade:
       type: object

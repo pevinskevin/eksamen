@@ -37,7 +37,7 @@ const OrderVariantSchema = v.pipe(
     v.picklist(Object.values(ORDER_VARIANT), 'Order variant must be either "buy" or "sell"')
 );
 
-// Business rule: Quantity validation (minimum trading amount)
+// Business rule: Quantity validation (0 or greater)
 const QuantitySchema = v.pipe(
     v.union([v.string(), v.number()]),
     v.transform((input) => {
@@ -48,7 +48,7 @@ const QuantitySchema = v.pipe(
         return num;
     }),
     v.number(),
-    v.minValue(0.00000001, 'Quantity must be at least 0.00000001 (minimum trading unit)')
+    v.minValue(0, 'Quantity must be 0 or greater')
 );
 
 // Business rule: Price validation (for limit orders)
@@ -65,6 +65,20 @@ const PriceSchema = v.pipe(
     v.minValue(0.01, 'Price must be at least 0.01')
 );
 
+// Business rule: Notional value validation (0 or greater)
+const NotionalValueSchema = v.pipe(
+    v.union([v.string(), v.number()]),
+    v.transform((input) => {
+        const num = typeof input === 'string' ? parseFloat(input) : input;
+        if (isNaN(num)) {
+            throw new Error('Notional value must be a valid number');
+        }
+        return num;
+    }),
+    v.number(),
+    v.minValue(0, 'Notional value must be 0 or greater')
+);
+
 // Business rule: Optional price for market orders, required for limit orders
 const OptionalPriceSchema = v.optional(PriceSchema);
 
@@ -79,7 +93,23 @@ const OrderStatusSchema = v.pipe(
     )
 );
 
-// Schema for creating a new order with business logic validation
+// Schema for creating a limit order - requires quantity and price, no notional value
+export const CreateLimitOrderSchema = v.object({
+    cryptocurrencyId: CryptocurrencyIdSchema,
+    orderVariant: OrderVariantSchema,
+    initialQuantity: QuantitySchema,
+    price: PriceSchema,
+});
+
+// Schema for creating a market order - requires both quantity and notional value
+export const CreateMarketOrderSchema = v.object({
+    cryptocurrencyId: CryptocurrencyIdSchema,
+    orderVariant: OrderVariantSchema,
+    initialQuantity: QuantitySchema,
+    notionalValue: NotionalValueSchema,
+});
+
+// Legacy schema for creating a new order with business logic validation (kept for backward compatibility)
 export const CreateOrderSchema = v.pipe(
     v.object({
         cryptocurrencyId: CryptocurrencyIdSchema,
@@ -88,7 +118,7 @@ export const CreateOrderSchema = v.pipe(
         quantityTotal: QuantitySchema,
         price: OptionalPriceSchema,
     }),
-    // Business rule: Limit orders must have a price, market orders should not
+    // Business rule: Limit and market orders must have a price, 0 is OK.
     v.check((data) => {
         if (data.orderType === 'limit' && (data.price === undefined || data.price === null)) {
             return false;
@@ -100,9 +130,9 @@ export const CreateOrderSchema = v.pipe(
     }, 'Limit and market orders must include a price.')
 );
 
-// Schema for updating an order
-export const UpdateOrderSchema = v.object({
-    quantityTotal: v.optional(QuantitySchema),
+// Schema for updating an order (only limit orders can be updated)
+export const UpdateLimitOrderSchema = v.object({
+    initialQuantity: v.optional(QuantitySchema),
     price: v.optional(PriceSchema),
     status: v.optional(OrderStatusSchema),
 });
@@ -137,27 +167,46 @@ export const validateOrderId = (id) => {
     return v.parse(OrderIdSchema, id);
 };
 
+export const validateCreateLimitOrder = (orderData) => {
+    return v.parse(CreateLimitOrderSchema, orderData);
+};
+
+export const validateCreateMarketOrder = (orderData) => {
+    return v.parse(CreateMarketOrderSchema, orderData);
+};
+
 export const validateCreateOrder = (orderData) => {
     return v.parse(CreateOrderSchema, orderData);
 };
 
-export const validateUpdateOrder = (orderData) => {
-    return v.parse(UpdateOrderSchema, orderData);
+export const validateUpdateLimitOrder = (orderData) => {
+    return v.parse(UpdateLimitOrderSchema, orderData);
 };
 
 export const validateOrderStatusTransition = (currentStatus, newStatus) => {
     return v.parse(OrderStatusTransitionSchema, { currentStatus, newStatus });
 };
 
-// Business rule validation for minimum order value (example business rule)
-export const validateMinimumOrderValue = (quantity, price, orderType) => {
+// Business rule validation for minimum order value (updated for new schema)
+export const validateMinimumOrderValue = (order) => {
+    const { initialQuantity, price, orderType, notionalValue } = order;
     if (orderType === 'limit') {
-        const orderValue = quantity * price;
+        const orderValue = initialQuantity * price;
         const minimumValue = 1.0; // $1 minimum order value
 
         if (orderValue < minimumValue) {
             throw new Error(
                 `Order value must be at least $${minimumValue}. Current value: $${orderValue.toFixed(
+                    2
+                )}`
+            );
+        }
+    } else if (orderType === 'market') {
+        const minimumValue = 1.0; // $1 minimum order value
+
+        if (notionalValue < minimumValue) {
+            throw new Error(
+                `Market order notional value must be at least $${minimumValue}. Current value: $${notionalValue.toFixed(
                     2
                 )}`
             );
@@ -168,19 +217,23 @@ export const validateMinimumOrderValue = (quantity, price, orderType) => {
 
 // Legacy exports for backward compatibility with existing service layer
 export const orderSchema = CreateOrderSchema;
-export const updateOrderSchema = UpdateOrderSchema;
+export const updateOrderSchema = UpdateLimitOrderSchema;
 
 export default {
     // Main validation functions
     validateOrderId,
+    validateCreateLimitOrder,
+    validateCreateMarketOrder,
     validateCreateOrder,
-    validateUpdateOrder,
+    validateUpdateLimitOrder,
     validateOrderStatusTransition,
     validateMinimumOrderValue,
 
     // Schema exports
+    CreateLimitOrderSchema,
+    CreateMarketOrderSchema,
     CreateOrderSchema,
-    UpdateOrderSchema,
+    UpdateLimitOrderSchema,
     OrderIdParameterSchema,
     OrderStatusTransitionSchema,
 

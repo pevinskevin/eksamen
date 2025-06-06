@@ -13,7 +13,7 @@ async function getSymbolUsingCryptoIDAndCatWithUSDT(cryptocurrencyId) {
 marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
     console.log('market emitter has received order');
     const { order } = eventData;
-    const { id: orderId, userId, cryptocurrencyId, orderVariant, quantityRemaining } = order;
+    const { id: orderId, userId, cryptocurrencyId, orderVariant, remainingQuantity } = order;
     const symbol = await getSymbolUsingCryptoIDAndCatWithUSDT(cryptocurrencyId);
     const priceData = getBestPrice(symbol);
 
@@ -37,7 +37,7 @@ marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
             userId,
             cryptocurrencyId,
             orderVariant,
-            quantityRemaining,
+            remainingQuantity,
             parseFloat(executionPrice)
         );
         console.log(
@@ -50,8 +50,6 @@ marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
         );
     }
 });
-
-
 
 // marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
 //     console.log('market emitter has received order');

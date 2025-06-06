@@ -13,15 +13,19 @@ import {
     sendUnprocessableEntity,
 } from '../../shared/utils/responseHelpers.js';
 
+// Get all orders for the authenticated user
 router.get('/', isAuthenticated, async (req, res) => {
     try {
         const orders = await orderService.getAll(req.user.id);
+        console.log(orders);
+        
         return sendSuccess(res, orders);
     } catch (error) {
         return sendInternalServerError(res, error.message);
     }
 });
 
+// Get specific order by ID
 router.get('/:id', isAuthenticated, async (req, res) => {
     try {
         const order = await orderService.getOpenOrderByUserAndOrderId(req.user.id, req.params.id);
@@ -40,14 +44,10 @@ router.get('/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-router.post('/', isAuthenticated, async (req, res) => {
+// Create a new limit order
+router.post('/limit', isAuthenticated, async (req, res) => {
     try {
-        const order = await orderService.save(req.body, req.user.id);
-        if (order.orderType === ORDER_TYPE.MARKET) {
-            marketOrderEmitter.emit('marketOrderCreated', {
-                order,
-            });
-        }
+        const order = await orderService.saveLimitOrder(req.body, req.user.id);
         return sendCreated(res, order);
     } catch (error) {
         // Insufficient balance errors (buy or sell)
@@ -70,7 +70,38 @@ router.post('/', isAuthenticated, async (req, res) => {
     }
 });
 
-router.put('/:id', isAuthenticated, async (req, res) => {
+// Create a new market order
+router.post('/market', isAuthenticated, async (req, res) => {
+    try {
+        const order = await orderService.saveMarketOrder(req.body, req.user.id);
+        // Emit market order event for processing
+        marketOrderEmitter.emit('marketOrderCreated', {
+            order,
+        });
+        return sendCreated(res, order);
+    } catch (error) {
+        // Insufficient balance errors
+        if (
+            error.message.includes('Order notional value exceeds available balance') ||
+            error.message.includes('Order value exceeds available balance')
+        ) {
+            return sendPaymentRequired(res, error.message);
+        }
+        // Cryptocurrency not found
+        if (error.message.includes('Cryptocurrency with id')) {
+            return sendNotFound(res, error.message);
+        }
+        // Request validation errors
+        if (error.name === 'ValiError') {
+            const validationMessage = error.issues.map((issue) => issue.message).join(', ');
+            return sendUnprocessableEntity(res, validationMessage);
+        }
+        return sendInternalServerError(res, error.message);
+    }
+});
+
+// Update a limit order (only limit orders can be modified)
+router.put('/limit/:id', isAuthenticated, async (req, res) => {
     try {
         // Convert string parameter to number for service layer
         const orderId = Number(req.params.id);
@@ -101,7 +132,8 @@ router.put('/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-router.delete('/:id', isAuthenticated, async (req, res) => {
+// Delete a limit order (only limit orders can be deleted)
+router.delete('/limit/:id', isAuthenticated, async (req, res) => {
     try {
         const orderId = req.params.id;
         const order = await orderService.deleteByUserAndOrderId(req.user.id, orderId);

@@ -1,7 +1,10 @@
 import {
     validateCreateOrder,
+    validateCreateLimitOrder,
+    validateCreateMarketOrder,
     validateOrderId,
-    validateUpdateOrder,
+    validateUpdateLimitOrder,
+    validateMinimumOrderValue,
 } from '../../shared/validators/orderValidators.js';
 import { cryptoService, accountService } from '../../shared/factory/factory.js';
 import { ORDER_VARIANT, ORDER_STATUS } from '../../shared/validators/validators.js';
@@ -40,8 +43,8 @@ export default class OrderService {
         // Check if order exists and is in a state that allows modification
         if (
             !order ||
-            order.status === ORDER_STATUS.CANCELLED ||
-            order.status === ORDER_STATUS.FULLY_FILLED
+            order.status !== ORDER_STATUS.OPEN ||
+            order.status !== ORDER_STATUS.PARTIALLY_FILLED
         ) {
             throw new Error('Order with ID ' + orderId);
         } else {
@@ -49,89 +52,20 @@ export default class OrderService {
         }
     }
 
-    async save(order, userId) {
-        // --- NOTE: THIS NEEDS MAJOR REFACTORING - WILL BE PUT OFF FOR LATER DUE TO TIME CONSTRAINT ----
-
-        // Validate order format and verify cryptocurrency exists
-        validateCreateOrder(order);
-        await cryptoService.getCryptocurrencyById(order.cryptocurrencyId);
-
-        if (order.orderVariant === ORDER_VARIANT.BUY) {
-            // Get user's current fiat account balance (returned as string from service)
-            const stringBalance = (await accountService.getFiatAccountByUserID(userId)).balance;
-            const balance = Number(stringBalance);
-
-            // We need to calculate how much USD is already committed to open buy orders
-            // to determine available balance for this new order
-            let sumOrderValues = 0;
-            const arrayOpenOrders = await this.orderRepository.findAllOpenBuyOrders(userId);
-
-            arrayOpenOrders.forEach((element) => {
-                // Convert DB strings to numbers for calculation
-                const quantityRemaining = Number(element.quantity_remaining);
-                const price = Number(element.price);
-                const orderValue = quantityRemaining * price; // USD value of this open order
-                sumOrderValues += orderValue;
-            });
-
-            const availableBalance = balance - sumOrderValues; // Available USD after existing orders
-
-            // Calculate USD value of the new order being placed
-            const orderQuantityTotal = Number(order.quantityTotal);
-            const orderPrice = Number(order.price);
-            const orderValue = orderQuantityTotal * orderPrice;
-
-            // Check if user has sufficient available balance
-            if (orderValue > availableBalance) {
-                throw new Error('Order value exceeds available balance');
-            } else {
-                return this.saveOrder(order, userId);
-            }
-        } else if (order.orderVariant === ORDER_VARIANT.SELL) {
-            // Get the cryptocurrency symbol and user's holding balance
-            const symbol = (await cryptoService.getCryptocurrencyById(order.cryptocurrencyId))
-                .symbol;
-            const stringBalance = (
-                await accountService.getCryptoHoldingByUserIdAndSymbol(userId, symbol)
-            ).balance;
-            const balance = Number(stringBalance);
-
-            // Calculate crypto quantity tied up in existing open sell orders
-
-            // PostgreSQL SUM function returns result as string in sum property
-            const stringSumQuantityRemainingOpenOrders = (
-                await this.orderRepository.findAllOpenSellOrders(userId)
-            ).sum;
-            const sumQuantityRemainingOpenOrders = Number(stringSumQuantityRemainingOpenOrders);
-
-            // Balance validation for new sell order
-
-            const availableBalance = balance - sumQuantityRemainingOpenOrders; // Available crypto after existing orders
-            const orderQuantity = Number(order.quantityTotal);
-
-            // Check if user has sufficient available crypto balance
-            if (orderQuantity > availableBalance) {
-                throw new Error('Order quantity exceeds available balance');
-            } else {
-                return this.saveOrder(order, userId);
-            }
-        }
-    }
-
     async update(userId, orderId, order) {
-        const { cryptocurrencyId, quantityTotal, price, status } = order;
+        const { cryptocurrencyId, initialQuantity, price, status } = order;
 
-        // If quantity_total is being updated, reset quantity_remaining to match
+        // If initial_quantity is being updated, reset remaining_quantity to match
         // This assumes order modifications reset any partial fills
-        let quantityRemaining = undefined;
-        if (quantityTotal !== undefined) quantityRemaining = quantityTotal;
+        let remainingQuantity = undefined;
+        if (initialQuantity !== undefined) remainingQuantity = initialQuantity;
 
         const updatedOrder = await this.orderRepository.update(
             userId,
             orderId,
             cryptocurrencyId,
-            quantityTotal,
-            quantityRemaining,
+            initialQuantity,
+            remainingQuantity,
             price,
             status
         );
@@ -145,7 +79,8 @@ export default class OrderService {
         // ==========================================
 
         // Validate update order format
-        validateUpdateOrder(order);
+        validateUpdateLimitOrder(order);
+        validateMinimumOrderValue(order);
 
         // Get the original order to determine its variant and cryptocurrency
         const originalOrder = await this.getOpenOrderByUserAndOrderId(userId, orderId);
@@ -180,9 +115,9 @@ export default class OrderService {
 
             arrayOpenOrders.forEach((element) => {
                 // Convert DB strings to numbers for calculation
-                const quantityRemaining = Number(element.quantity_remaining);
+                const remainingQuantity = Number(element.remaining_quantity);
                 const price = Number(element.price);
-                const orderValue = quantityRemaining * price; // USD value of this open order
+                const orderValue = remainingQuantity * price; // USD value of this open order
                 sumOrderValues += orderValue;
             });
 
@@ -193,9 +128,9 @@ export default class OrderService {
             const availableBalance = balance - sumOrderValues; // Available USD after existing orders
 
             // Calculate USD value of the updated order
-            const orderQuantityTotal = Number(order.quantityTotal);
+            const orderInitialQuantity = Number(order.initialQuantity);
             const orderPrice = Number(order.price);
-            const orderValue = orderQuantityTotal * orderPrice;
+            const orderValue = orderInitialQuantity * orderPrice;
 
             // Check if user has sufficient available balance for the update
             if (orderValue > availableBalance) {
@@ -229,7 +164,7 @@ export default class OrderService {
             // ----------------------------------------
 
             const availableBalance = balance - sumQuantityRemainingOpenOrders; // Available crypto after existing orders
-            const orderQuantity = Number(order.quantityTotal);
+            const orderQuantity = Number(order.initialQuantity);
 
             // Check if user has sufficient available crypto balance for the update
             if (orderQuantity > availableBalance) {
@@ -241,18 +176,156 @@ export default class OrderService {
     }
 
     async saveOrder(order, userId) {
-        const { cryptocurrencyId, orderType, orderVariant, quantityTotal, price } = order;
+        const { cryptocurrencyId, orderType, orderVariant, initialQuantity, price, notionalValue } =
+            order;
 
         // Save order to database via repository
         const savedOrder = await this.orderRepository.save(
             cryptocurrencyId,
             orderType,
             orderVariant,
-            quantityTotal,
+            initialQuantity,
             price,
-            userId
+            userId,
+            notionalValue
         );
 
         return normaliseForOpenAPI(savedOrder);
+    }
+
+    async saveLimitOrder(order, userId) {
+        // Validate limit order format and verify cryptocurrency exists
+        validateCreateLimitOrder(order);
+        validateMinimumOrderValue(order);
+        await cryptoService.getCryptocurrencyById(order.cryptocurrencyId);
+
+        if (order.orderVariant === ORDER_VARIANT.BUY) {
+            // Get user's current fiat account balance (returned as string from service)
+            const stringBalance = (await accountService.getFiatAccountByUserID(userId)).balance;
+            const balance = Number(stringBalance);
+
+            // We need to calculate how much USD is already committed to open buy orders
+            // to determine available balance for this new order
+            let sumOrderValues = 0;
+            const arrayOpenOrders = await this.orderRepository.findAllOpenBuyOrders(userId);
+
+            arrayOpenOrders.forEach((element) => {
+                // Convert DB strings to numbers for calculation
+                const remainingQuantity = Number(element.remaining_quantity);
+                const price = Number(element.price);
+                const orderValue = remainingQuantity * price; // USD value of this open order
+                sumOrderValues += orderValue;
+            });
+
+            const availableBalance = balance - sumOrderValues; // Available USD after existing orders
+
+            // Calculate USD value of the new order being placed
+            const orderInitialQuantity = Number(order.initialQuantity);
+            const orderPrice = Number(order.price);
+            const orderValue = orderInitialQuantity * orderPrice;
+
+            // Check if user has sufficient available balance
+            if (orderValue > availableBalance) {
+                throw new Error('Order value exceeds available balance');
+            } else {
+                return this.saveOrder(order, userId);
+            }
+        } else if (order.orderVariant === ORDER_VARIANT.SELL) {
+            // Get the cryptocurrency symbol and user's holding balance
+            const symbol = (await cryptoService.getCryptocurrencyById(order.cryptocurrencyId))
+                .symbol;
+            const stringBalance = (
+                await accountService.getCryptoHoldingByUserIdAndSymbol(userId, symbol)
+            ).balance;
+            const balance = Number(stringBalance);
+
+            // Calculate crypto quantity tied up in existing open sell orders
+
+            // PostgreSQL SUM function returns result as string in sum property
+            const stringSumQuantityRemainingOpenOrders = (
+                await this.orderRepository.findAllOpenSellOrders(userId)
+            ).sum;
+            const sumQuantityRemainingOpenOrders = Number(stringSumQuantityRemainingOpenOrders);
+
+            // Balance validation for new sell order
+
+            const availableBalance = balance - sumQuantityRemainingOpenOrders; // Available crypto after existing orders
+            const orderQuantity = Number(order.initialQuantity);
+
+            // Check if user has sufficient available crypto balance
+            if (orderQuantity > availableBalance) {
+                throw new Error('Order quantity exceeds available balance');
+            } else {
+                return this.saveOrder(order, userId);
+            }
+        }
+    }
+
+    async saveMarketOrder(order, userId) {
+        // Validate market order format and verify cryptocurrency exists
+        validateCreateMarketOrder(order);
+        validateMinimumOrderValue(order);
+        await cryptoService.getCryptocurrencyById(order.cryptocurrencyId);
+
+        if (order.orderVariant === ORDER_VARIANT.BUY) {
+            // Get user's current fiat account balance (returned as string from service)
+            const stringBalance = (await accountService.getFiatAccountByUserID(userId)).balance;
+            const balance = Number(stringBalance);
+
+            // We need to calculate how much USD is already committed to open buy orders
+            // to determine available balance for this new order
+            let sumOrderValues = 0;
+            const arrayOpenOrders = await this.orderRepository.findAllOpenBuyOrders(userId);
+
+            arrayOpenOrders.forEach((element) => {
+                // Convert DB strings to numbers for calculation
+                const remainingQuantity = Number(element.remaining_quantity);
+                const price = Number(element.price);
+                const orderValue = remainingQuantity * price; // USD value of this open order
+                sumOrderValues += orderValue;
+            });
+
+            const availableBalance = balance - sumOrderValues; // Available USD after existing orders
+
+            // For market orders, use notional_value instead of calculating totalValue
+            const notionalValue = Number(order.notionalValue);
+
+            // Check if user has sufficient available balance
+            if (notionalValue > availableBalance) {
+                throw new Error('Order notional value exceeds available balance');
+            } else {
+                // Save market order with both initialQuantity and notional_value
+
+                const savedOrder = await this.orderRepository.save(order, userId);
+                return normaliseForOpenAPI(savedOrder);
+            }
+        } else if (order.orderVariant === ORDER_VARIANT.SELL) {
+            // Get the cryptocurrency symbol and user's holding balance
+            const symbol = (await cryptoService.getCryptocurrencyById(order.cryptocurrencyId))
+                .symbol;
+            const stringBalance = (
+                await accountService.getCryptoHoldingByUserIdAndSymbol(userId, symbol)
+            ).balance;
+            const balance = Number(stringBalance);
+
+            // Calculate crypto quantity tied up in existing open sell order
+            // PostgreSQL SUM function returns result as string in sum property
+            const stringSumQuantityRemainingOpenOrders = (
+                await this.orderRepository.findAllOpenSellOrders(userId)
+            ).sum;
+            const sumOpenOrders = Number(stringSumQuantityRemainingOpenOrders);
+
+            // Balance validation for new sell order
+
+            const availableBalance = balance - sumOpenOrders; // Available crypto after existing orders
+            const orderQuantity = Number(order.initialQuantity);
+
+            // Check if user has sufficient available crypto balance
+            if (orderQuantity > availableBalance) {
+                throw new Error('Order quantity exceeds available balance');
+            } else {
+                return this.saveOrder(order, userId);
+            }
+        }
     }
 }

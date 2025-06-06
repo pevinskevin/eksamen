@@ -16,7 +16,7 @@ export async function executeTradeAgainstBinance(
     userId, // ID of the user who placed the order
     cryptocurrencyId, // ID of the crypto being traded
     orderVariant, // 'BUY' or 'SELL'
-    orderQuantity, // The total quantity of the original order
+    tradeQuantity, // The quantity to be traded (usually remainingQuantity for market orders)
     executionPrice // The price from getBestPrice (best ask for BUY, best bid for SELL)
 ) {
     try {
@@ -27,14 +27,14 @@ export async function executeTradeAgainstBinance(
         let cumQuant;
 
         if (orderVariant === ORDER_VARIANT.BUY) {
-            const totalCost = orderQuantity * executionPrice;
+            const totalCost = tradeQuantity * executionPrice;
 
             // 1. Update user's fiat balance
             const increment = -totalCost;
             await accountRepository.incrementFiatAccount(userId, increment);
 
             // 2. Update user's crypto holding
-            await accountRepository.incrementCryptoHolding(userId, cryptocurrencyId, orderQuantity);
+            await accountRepository.incrementCryptoHolding(userId, cryptocurrencyId, tradeQuantity);
 
             // 3. Record trade in db.
             const buyerUserId = userId;
@@ -42,7 +42,7 @@ export async function executeTradeAgainstBinance(
             await tradeRepository.create(
                 orderId,
                 cryptocurrencyId,
-                orderQuantity,
+                tradeQuantity,
                 executionPrice,
                 buyerUserId,
                 sellerUserId
@@ -50,11 +50,11 @@ export async function executeTradeAgainstBinance(
             console.log('Trade executed. Gj Kevin.');
         } else if (orderVariant === ORDER_VARIANT.SELL) {
             // 1. Update user's crypto holding
-            const increment = -orderQuantity;
+            const increment = -tradeQuantity;
             await accountRepository.incrementCryptoHolding(userId, cryptocurrencyId, increment);
 
             // 2. Update user's fiat balance
-            const totalValueIncrement = orderQuantity * executionPrice;
+            const totalValueIncrement = tradeQuantity * executionPrice;
             await accountRepository.incrementFiatAccount(userId, totalValueIncrement);
 
             // 3. Record trade in db.
@@ -63,22 +63,21 @@ export async function executeTradeAgainstBinance(
             await tradeRepository.create(
                 orderId,
                 cryptocurrencyId,
-                orderQuantity,
+                tradeQuantity,
                 executionPrice,
                 buyerUserId,
                 sellerUserId
             );
         }
-        // Update Order.
-        orderQuantity = null;
-        const quantityRemaining = 0;
+        // Update Order - mark as fully filled
+        const remainingQuantity = 0;
         const status = ORDER_STATUS.FULLY_FILLED;
         const updatedOrder = await orderRepository.update(
             userId,
             orderId,
             cryptocurrencyId,
-            orderQuantity,
-            quantityRemaining,
+            null, // initialQuantity - keep original value
+            remainingQuantity,
             executionPrice,
             status
         );
@@ -89,7 +88,6 @@ export async function executeTradeAgainstBinance(
         return await db.query('ROLLBACK');
     }
 }
-
 // try {
 //     await db.query('BEGIN');
 //     const BINANCE_USER_ID = 999;
