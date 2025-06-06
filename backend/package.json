@@ -4,7 +4,7 @@
   "main": "app.js",
   "scripts": {
     "dev": "nodemon app.js",
-    "dev-safe": "node scripts/kill-port.js && nodemon app.js"
+    "dev-safe": "node database/createDb.js --reset && node scripts/kill-port.js && nodemon app.js"
   },
   "keywords": [],
   "author": "",

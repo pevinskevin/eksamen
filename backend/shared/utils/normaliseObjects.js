@@ -1,39 +1,49 @@
 import camelcaseKeys from 'camelcase-keys';
 
-// This function:
-// 1. Converts nullish values to a empty strings
-// 2. Converts Object keys from snake_case to camelCase.
-// 3. Both are required to comply with openAPI.yml specification.
+// Normalises data to comply with OpenAPI specification requirements:
+// 1. Converts nullish values to appropriate defaults:
+//    - icon_url fields become empty strings ('')
+//    - All other nullish fields become '0' (representing decimal values as strings)
+// 2. Converts object keys from snake_case to camelCase
 
-// Selects for arrays and objects.
+ /*
+ * @param {Object|Array} data - The data to normalise
+ * @returns {Object|Array} Normalised data with camelCase keys and default values
+ * @throws {Error} If no data is provided
+ */
 export default function normaliseForOpenAPI(data) {
-    // Handle arrays by normalising each object within
-    if (Array.isArray(data)) {
-        const map = data.map((element) => {
-            nullishConverter(element);
-            normaliseEmptyBalance(element);
-            element = camelcaseKeys(element);
-        });
-    }
-    if (!data || typeof data !== 'object') return;
+    if (!data) throw new Error('normaliseForOpenAPI(): No data provided for normalisation.');
 
-    // Handles single objects.
-    nullishConverter(data);
-    normaliseEmptyBalance(data);
-    return camelcaseKeys(data);
+    if (Array.isArray(data)) {
+        // Process each element in the array
+        data.forEach((element) => {
+            nullishConverter(element);
+        });
+        return camelcaseKeys(data);
+    } else {
+        // Process single object
+        nullishConverter(data);
+        return camelcaseKeys(data);
+    }
 }
 
-// Converts nullish values in an object to empty strings
+//  Converts nullish values in an object to appropriate defaults:
+//  - icon_url fields become empty strings
+//  - All other nullish fields become '0' (representing decimal values)
 function nullishConverter(object) {
     for (let key in object) {
         if (!Object.prototype.hasOwnProperty.call(object, key)) continue;
-        let value = object[key];
+
+        const value = object[key];
+
+        // Special case: icon_url must be an empty string
+        if (key === 'icon_url') {
+            object[key] = '';
+            continue;
+        }
+        // All other nullish values become '0' (representing decimal values)
         if (!value) {
             object[key] = '0';
         }
     }
-}
-
-function normaliseEmptyBalance(object) {
-    if (object.balance === '' ) object.balance = '0';
 }

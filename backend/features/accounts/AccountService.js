@@ -10,7 +10,6 @@ export default class AccountService {
 
     async getFiatAccountByUserID(userId) {
         const account = await this.accountRepository.findFiatAccount(userId);
-
         // Transform balance from number to string for OpenAPI compliance
         const transformedAccount = transformFinancialFields(account);
 
