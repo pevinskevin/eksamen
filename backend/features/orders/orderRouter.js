@@ -101,7 +101,7 @@ router.put('/limit/:id', isAuthenticated, async (req, res) => {
     try {
         // Convert string parameter to number for service layer
         const orderId = Number(req.params.id);
-        const order = await orderService.validateAndUpdateByUserAndOrderId(
+        const order = await orderService.validateAndUpdateOrderByUserAndOrderId(
             req.user.id,
             orderId,
             req.body
@@ -136,7 +136,10 @@ router.put('/limit/:id', isAuthenticated, async (req, res) => {
 router.delete('/limit/:id', isAuthenticated, async (req, res) => {
     try {
         const orderId = req.params.id;
-        const order = await orderService.setStatusToCancelledByUserAndOrderId(req.user.id, orderId);
+        const order = await orderService.setOrderStatusToCancelledByUserAndOrderId(
+            req.user.id,
+            orderId
+        );
         return sendSuccess(res, order);
     } catch (error) {
         // Validation error (invalid order ID format)

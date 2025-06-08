@@ -9,6 +9,14 @@ export default class CryptoRepository {
         return (await this.db.query(query)).rows;
     }
 
+    async findSymbolById(id) {
+        const query = {
+            text: 'SELECT symbol FROM cryptocurrencies where id = $1',
+            values: [id],
+        };
+        return (await this.db.query(query)).rows.at(0).symbol;
+    }
+
     async findById(id) {
         const query = {
             text: 'SELECT * FROM cryptocurrencies WHERE id = $1',

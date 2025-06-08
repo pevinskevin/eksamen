@@ -1,25 +1,29 @@
 import { marketOrderEmitter } from '../../../shared/events/marketOrderEmitter.js';
-import { getBestPrice } from './binance-ws.js';
+import { getTinyOrderBook } from './binance-ws.js';
 import { cryptoRepository } from '../../../shared/factory/factory.js';
 import { ORDER_VARIANT } from '../../../shared/validators/validators.js';
 import { executeTradeAgainstBinance } from './trade-executor.js';
 
-async function getSymbolUsingCryptoIDAndCatWithUSDT(cryptocurrencyId) {
-    const symbol = (await cryptoRepository.findById(cryptocurrencyId)).symbol;
-    const symbolUSDT = symbol + 'USDT';
-    return symbolUSDT;
+function normaliseSymbolToUsdt(symbol) {
+    return symbol + 'USDT';
 }
 
 marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
     console.log('market emitter has received order');
+    // get symbol from symbolsarray where id = cryptocurrencyId
+
     const { order } = eventData;
     const { id: orderId, userId, cryptocurrencyId, orderVariant, remainingQuantity } = order;
-    const symbol = await getSymbolUsingCryptoIDAndCatWithUSDT(cryptocurrencyId);
-    const priceData = getBestPrice(symbol);
+
+    const symbol = await cryptoRepository.findSymbolById(cryptocurrencyId);
+    const binanceSymbol = normaliseSymbolToUsdt(symbol);
+    const priceData = getTinyOrderBook(binanceSymbol);
+    console.log(JSON.stringify(priceData));
+    
 
     if (!priceData) {
         console.error(
-            `[MarketOrderEngine] No price data found for symbol ${symbol}. Order ID: ${orderId}`
+            `[MarketOrderEngine] No price data found for symbol ${binanceSymbol}. Order ID: ${orderId}`
         );
         return;
     }

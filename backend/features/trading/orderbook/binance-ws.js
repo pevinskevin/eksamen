@@ -26,33 +26,41 @@ let depthCacheEndpoints = []; // Track WebSocket endpoints for cleanup
 // ---- -----
 
 const endpoints = binance.websockets.depthCache(symbols, (symbol, depth) => {
-    // ---- -----
-    // Best price "Orderbook"
-    const bestBid = binance.first(depth.bids);
-    const bestAsk = binance.first(depth.asks);
-    const bestPrice = { bid: bestBid, ask: bestAsk };
-    priceCache.set(symbol, bestPrice);
-
-    
-    marketDataEmitter.emit('bestPriceUpdate', { symbol, ...bestPrice });
-    // ---- -----
+    // // ---- -----
+    // // Best price "Orderbook"
+    // const bestBid = binance.first(depth.bids);
+    // const bestAsk = binance.first(depth.asks);
+    // const bestPrice = { bid: bestBid, ask: bestAsk };
+    // priceCache.set(symbol, bestPrice);
+    // // ---- -----
 
     // ---- -----
-    const bids = Object.entries(binance.sortBids(depth.bids, 1000));
+
+    //     {
+    //     bids: {
+    //         "45000.00": 1.5,    // price: quantity
+    //         "44999.99": 0.8,
+    //     },
+    //     asks: {
+    //         "45000.01": 0.9,
+    //         "45000.02": 1.2,
+    //     },
+    // }
+    // converts each property to nested array [[price, quantity]].
+    const bids = Object.entries(binance.sortBids(depth.bids, 1000)); // 1000 properties.
     const asks = Object.entries(binance.sortAsks(depth.asks, 1000));
-    const bidsArr = [];
-    const asksArr = [];
-    foo(bids, bidsArr);
-    foo(asks, asksArr);
-    function foo(oldArray, newArray) {
-        oldArray.forEach((element) => {
-            element[0] = Number(element[0]);
-            newArray.push(element);
-        });
-    }
-    const data = { asks: asksArr, bids: bidsArr };
-    tinyOrderBook.set(symbol, data);
-    marketDataEmitter.emit('orderBookDepthUpdate', { symbol, data });
+    const bidsArr = bids.map((element) => {
+        element[0] = Number(element[0]);
+        return element;
+    });
+    const asksArr = asks.map((element) => {
+        element[0] = Number(element[0]);
+        return element;
+    });
+
+    tinyOrderBook.set(symbol, { asks: asksArr, bids: bidsArr });
+    // Emits data to front-end
+    // marketDataEmitter.emit('orderBookDepthUpdate', { symbol });
     // ---- -----
 });
 
@@ -99,7 +107,7 @@ export function isPriceDataAvailable(symbol) {
 }
 
 export function getTinyOrderBook(symbol) {
-    return tinyOrderBook.has(symbol);
+    return tinyOrderBook.get(symbol);
 }
 
 // ---- -----

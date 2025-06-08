@@ -9,8 +9,6 @@ import {
 
 import { ORDER_STATUS, ORDER_VARIANT } from '../../../shared/validators/validators.js';
 
-import { getTinyOrderBook } from './binance-ws.js';
-
 export async function executeTradeAgainstBinance(
     orderId, // ID of the order being processed
     userId, // ID of the user who placed the order
@@ -22,9 +20,6 @@ export async function executeTradeAgainstBinance(
     try {
         await db.query('BEGIN');
         const BINANCE_USER_ID = 999;
-
-        let cumPrice;
-        let cumQuant;
 
         if (orderVariant === ORDER_VARIANT.BUY) {
             const totalCost = tradeQuantity * executionPrice;

@@ -15,7 +15,7 @@ export default class OrderService {
         this.orderRepository = orderRepository;
     }
 
-    async setStatusToCancelledByUserAndOrderId(userId, orderId) {
+    async setOrderStatusToCancelledByUserAndOrderId(userId, orderId) {
         // Validate that the orderId is in correct format
         validateOrderId(orderId);
 
@@ -73,7 +73,7 @@ export default class OrderService {
         return normaliseForOpenAPI(updatedOrder);
     }
 
-    async validateAndUpdateByUserAndOrderId(userId, orderId, order) {
+    async validateAndUpdateOrderByUserAndOrderId(userId, orderId, order) {
         // ==========================================
         // STEP 1: VALIDATION & SETUP
         // ==========================================
