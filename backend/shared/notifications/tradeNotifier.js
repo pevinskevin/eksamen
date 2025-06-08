@@ -3,8 +3,7 @@ import { ORDER_STATUS } from '../validators/validators.js';
 
 export function initializeTradeNotifier(io) {
     tradeNotificationEmitter.on('tradeExecuted', async (eventData) => {
-
-        if (!eventData) return console.error("No data received - order is null/undefined.")
+        if (!eventData) return console.error('No data received - order is null/undefined.');
 
         const updatedOrder = eventData;
         const { userId, orderId } = eventData;

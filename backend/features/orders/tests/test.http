@@ -190,9 +190,9 @@ Content-Type: {{contentType}}
 
 {
     "cryptocurrencyId": 1,
-    "orderVariant": "buy",
-    "initialQuantity": "0.1",
-    "notionalValue": "5000.00"
+    "orderVariant": "sell",
+    "initialQuantity": "1.1",
+    "notionalValue": "800000.00"
 }
 
 ### 23. Create market order with missing required fields (should return 400)

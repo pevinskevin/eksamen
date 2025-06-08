@@ -107,7 +107,11 @@ export function isPriceDataAvailable(symbol) {
 }
 
 export function getTinyOrderBook(symbol) {
-    return tinyOrderBook.get(symbol);
+    try {
+        return tinyOrderBook.get(symbol);
+    } catch (error) {
+        console.log('Error returning tiny orderbook: ' + error.message);
+    }
 }
 
 // ---- -----

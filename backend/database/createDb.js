@@ -138,14 +138,14 @@ export async function createTables() {
         // Trade table
         await client.query(`
       CREATE TABLE IF NOT EXISTS trades (
-        id SERIAL PRIMARY KEY,
-        order_id INTEGER REFERENCES orders(id),
-        cryptocurrency_id INTEGER REFERENCES cryptocurrencies(id),
-        quantity DECIMAL(20, 8) NOT NULL,
+        id SERIAL PRIMARY KEY NOT NULL,
+        order_id INTEGER REFERENCES orders(id) NOT NULL,
+        cryptocurrency_id INTEGER REFERENCES cryptocurrencies(id) NOT NULL,
+        quantity DECIMAL(30, 21) NOT NULL,
         price DECIMAL(20, 8) NOT NULL,
-        buyer_user_id INTEGER REFERENCES users(id),
-        seller_user_id INTEGER REFERENCES users(id),
-        trade_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        buyer_user_id INTEGER REFERENCES users(id) NOT NULL,
+        seller_user_id INTEGER REFERENCES users(id) NOT NULL,
+        trade_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
       )
     `);
         console.log('✓ Created trades table');

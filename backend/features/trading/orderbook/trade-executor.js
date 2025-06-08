@@ -1,6 +1,6 @@
 import db from '../../../database/connection.js';
 import { tradeNotificationEmitter } from '../../../shared/events/tradeNotificationEmitter.js';
-
+import Decimal from 'decimal.js';
 import {
     accountRepository,
     orderRepository,
@@ -14,22 +14,57 @@ export async function executeTradeAgainstBinance(
     userId, // ID of the user who placed the order
     cryptocurrencyId, // ID of the crypto being traded
     orderVariant, // 'BUY' or 'SELL'
-    tradeQuantity, // The quantity to be traded (usually remainingQuantity for market orders)
-    executionPrice // The price from getBestPrice (best ask for BUY, best bid for SELL)
+    tradeQuantity,
+    notionalValue, // The quantity to be traded (usually remainingQuantity for market orders)
+    priceAndDepthArrayForConsumption // The price from getBestPrice (best ask for BUY, best bid for SELL)
 ) {
     try {
         await db.query('BEGIN');
         const BINANCE_USER_ID = 999;
+        let executionPrice;
 
         if (orderVariant === ORDER_VARIANT.BUY) {
-            const totalCost = tradeQuantity * executionPrice;
+            let remainingValue = new Decimal(notionalValue);
+            let sumQuantity = new Decimal(0);
+            for (const element of priceAndDepthArrayForConsumption) {
+                const price = new Decimal(element[0]);
+
+                const quantity = new Decimal(element[1]);
+                const askValue = new Decimal(price.mul(quantity));
+                if (remainingValue.gte(askValue)) {
+                    sumQuantity = sumQuantity.plus(quantity);
+                    remainingValue = remainingValue.minus(askValue);
+                    continue;
+                }
+                if (remainingValue.lessThanOrEqualTo(0)) break;
+                else {
+                    const askPartialFillQuantity = new Decimal(
+                        remainingValue.div(askValue).mul(quantity)
+                    );
+                    sumQuantity = sumQuantity.plus(askPartialFillQuantity);
+                    remainingValue = new Decimal(0);
+                    break;
+                }
+            }
+            const executionPrice = new Decimal(notionalValue).div(sumQuantity);
+            console.log('Average price: ', executionPrice);
+            console.log('Quantity: ', sumQuantity.toNumber());
+
+            console.log('notionalValue: ' + notionalValue);
+            console.log('Remainig value: ' + remainingValue);
+            console.log('Sum quantity: ' + sumQuantity);
+            console.log('average price: ' + `${notionalValue / sumQuantity}`);
 
             // 1. Update user's fiat balance
-            const increment = -totalCost;
+            const increment = -notionalValue;
             await accountRepository.incrementFiatAccount(userId, increment);
 
             // 2. Update user's crypto holding
-            await accountRepository.incrementCryptoHolding(userId, cryptocurrencyId, tradeQuantity);
+            await accountRepository.incrementCryptoHolding(
+                userId,
+                cryptocurrencyId,
+                sumQuantity.toNumber()
+            );
 
             // 3. Record trade in db.
             const buyerUserId = userId;
@@ -37,19 +72,42 @@ export async function executeTradeAgainstBinance(
             await tradeRepository.create(
                 orderId,
                 cryptocurrencyId,
-                tradeQuantity,
-                executionPrice,
+                sumQuantity.toNumber(),
+                executionPrice.toNumber(),
                 buyerUserId,
                 sellerUserId
             );
             console.log('Trade executed. Gj Kevin.');
         } else if (orderVariant === ORDER_VARIANT.SELL) {
+            let remainingQuantity = new Decimal(tradeQuantity);
+            let sumValue = new Decimal(0);
+            for (const element of priceAndDepthArrayForConsumption) {
+                const price = new Decimal(element[0]);
+                const quantity = new Decimal(element[1]);
+                const askValue = new Decimal(price.mul(quantity));
+                if (remainingQuantity.gte(quantity)) {
+                    sumValue = sumValue.plus(askValue);
+                    remainingQuantity = remainingQuantity.minus(quantity);
+                    continue;
+                }
+                if (remainingQuantity.lessThanOrEqualTo(0)) break;
+                else {
+                    const bidPartialFillQuantity = new Decimal(
+                        remainingQuantity.div(quantity).mul(quantity)
+                    );
+                    sumValue = sumValue.plus(bidPartialFillQuantity.mul(price));
+                    remainingQuantity = new Decimal(0);
+                    break;
+                }
+            }
+            executionPrice = sumValue.toNumber() / tradeQuantity;
+
             // 1. Update user's crypto holding
             const increment = -tradeQuantity;
             await accountRepository.incrementCryptoHolding(userId, cryptocurrencyId, increment);
 
             // 2. Update user's fiat balance
-            const totalValueIncrement = tradeQuantity * executionPrice;
+            const totalValueIncrement = sumValue.toNumber();
             await accountRepository.incrementFiatAccount(userId, totalValueIncrement);
 
             // 3. Record trade in db.
@@ -61,7 +119,7 @@ export async function executeTradeAgainstBinance(
                 tradeQuantity,
                 executionPrice,
                 buyerUserId,
-                sellerUserId
+                sellerUserId,
             );
         }
         // Update Order - mark as fully filled

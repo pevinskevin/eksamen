@@ -10,16 +10,13 @@ function normaliseSymbolToUsdt(symbol) {
 
 marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
     console.log('market emitter has received order');
-    // get symbol from symbolsarray where id = cryptocurrencyId
 
     const { order } = eventData;
-    const { id: orderId, userId, cryptocurrencyId, orderVariant, remainingQuantity } = order;
+    const { id: orderId, userId, cryptocurrencyId, orderVariant, remainingQuantity, notionalValue } = order;
 
     const symbol = await cryptoRepository.findSymbolById(cryptocurrencyId);
     const binanceSymbol = normaliseSymbolToUsdt(symbol);
-    const priceData = getTinyOrderBook(binanceSymbol);
-    console.log(JSON.stringify(priceData));
-    
+    const priceData = getTinyOrderBook(`${binanceSymbol}`);
 
     if (!priceData) {
         console.error(
@@ -28,10 +25,8 @@ marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
         return;
     }
 
-    const executionPrice = orderVariant === ORDER_VARIANT.BUY ? priceData.ask : priceData.bid;
-    console.log('Price data: ' + priceData.ask);
-
-    console.log('Execution price: ' + executionPrice);
+    const priceAndDepthArrayForConsumption =
+        orderVariant === ORDER_VARIANT.BUY ? priceData.asks : priceData.bids;
 
     console.log(`[MarketOrderEngine] Preparing to execute trade. Order ID: ${orderId}`);
 
@@ -42,7 +37,8 @@ marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
             cryptocurrencyId,
             orderVariant,
             remainingQuantity,
-            parseFloat(executionPrice)
+            notionalValue,
+            priceAndDepthArrayForConsumption
         );
         console.log(
             `[MarketOrderEngine] Successfully called executeTradeAgainstBinance for Order ID: ${orderId}`
