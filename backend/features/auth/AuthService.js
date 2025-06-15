@@ -1,7 +1,12 @@
 import { comparePassword, hashPassword } from '../../shared/utils/hashing.js';
 import { welcomeNewUser } from '../../shared/email/nodemailer.js';
-import { userDataAndPasswordMatchValidation, loginBusinessRules } from './authValidation.js';
+import {
+    userDataAndPasswordMatchValidation,
+    loginBusinessRules,
+    resetPasswordBusinessRules,
+} from './authValidation.js';
 import { parse } from 'valibot';
+import generator from 'generate-password';
 import normaliseForOpenAPI from '../../shared/utils/normaliseObjects.js';
 
 export default class AuthService {
@@ -55,5 +60,24 @@ export default class AuthService {
         }
         delete user.password_hash;
         return normaliseForOpenAPI(user);
+    }
+
+    async resetPassword(email) {
+        parse(resetPasswordBusinessRules, { email });
+        const userExists = await this.authRepository.findByEmail(email);
+        if (!userExists) {
+            throw new Error('No account registered to email: ' + email);
+        }
+        const newPassword = generator.generate({ length: 10, numbers: true });
+        const newPasswordHash = await hashPassword(newPassword);
+        const passwordUpdatedSuccessfully = await this.authRepository.resetPasswordUsingEmail(
+            email,
+            newPasswordHash
+        );
+        if (!passwordUpdatedSuccessfully) {
+            throw new Error('Failed to update password for email: ' + email);
+        } else {
+            return { password: newPassword }; // returns the new password so that it can be provided to the user.
+        }
     }
 }

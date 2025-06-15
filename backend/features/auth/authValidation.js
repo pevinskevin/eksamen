@@ -49,3 +49,12 @@ export const loginBusinessRules = v.object({
 
     password: v.string(),
 });
+
+export const resetPasswordBusinessRules = v.object({
+    email: v.pipe(
+        v.string(),
+        v.trim(),
+        v.toLowerCase(),
+        v.email('Please enter a valid email address')
+    ),
+});

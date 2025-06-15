@@ -149,3 +149,29 @@ POST {{baseUrl}}/logout
 ### 15. Logout when not logged in (should return 400)
 POST {{baseUrl}}/logout
 Cookie:
+
+### RESET PASSWORD TESTS ###
+
+### 16. Reset password successfully (should return 200)
+POST {{baseUrl}}/reset-password
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@test.com"
+}
+
+### 17. Reset password for a non-existent user (should return 404)
+POST {{baseUrl}}/reset-password
+Content-Type: {{contentType}}
+
+{
+  "email": "nonexistent@test.com"
+}
+
+### 18. Reset password with an invalid email format (should return 422)
+POST {{baseUrl}}/reset-password
+Content-Type: {{contentType}}
+
+{
+  "email": "invalid-email"
+}

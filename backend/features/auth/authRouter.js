@@ -9,6 +9,7 @@ import {
     sendConflict,
     sendUnprocessableEntity,
     sendInternalServerError,
+    sendNotFound,
 } from '../../shared/utils/responseHelpers.js';
 
 router.post('/register', async (req, res) => {
@@ -59,6 +60,23 @@ router.post('/logout', async (req, res) => {
         return sendSuccess(res, { message: 'Successfully logged out' });
     } catch (error) {
         return sendInternalServerError(res, error.message);
+    }
+});
+
+router.post('/reset-password', async (req, res) => {
+    try {
+        const newPassword = await authService.resetPassword(req.body.email);
+        return sendSuccess(res, newPassword);
+    } catch (error) {
+        if (error.name === 'ValiError') {
+            const validationMessage = error.issues.map((issue) => issue.message).join(', ');
+            return sendUnprocessableEntity(res, validationMessage);
+        }
+        if (error.message.includes('No account registered to email: ')) {
+            return sendNotFound(res, error.message);
+        } else {
+            return sendInternalServerError(res, error.message);
+        }
     }
 });
 

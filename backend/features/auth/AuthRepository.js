@@ -27,4 +27,12 @@ export default class AuthRepository {
         };
         await this.db.query(seedUserQuery);
     }
+
+    async resetPasswordUsingEmail(email, newPasswordHash) {
+        const query = {
+            text: 'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP where email = $2 RETURNING *',
+            values: [newPasswordHash, email],
+        };
+        return (await this.db.query(query)).rows.at(0);
+    }
 }
