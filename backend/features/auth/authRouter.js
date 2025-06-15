@@ -65,8 +65,8 @@ router.post('/logout', async (req, res) => {
 
 router.post('/reset-password', async (req, res) => {
     try {
-        const newPassword = await authService.resetPassword(req.body.email);
-        return sendSuccess(res, newPassword);
+        const resetPassword = await authService.resetPassword(req.body.email);
+        return sendSuccess(res, resetPassword);
     } catch (error) {
         if (error.name === 'ValiError') {
             const validationMessage = error.issues.map((issue) => issue.message).join(', ');

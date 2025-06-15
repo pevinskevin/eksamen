@@ -1,5 +1,5 @@
 import { comparePassword, hashPassword } from '../../shared/utils/hashing.js';
-import { welcomeNewUser } from '../../shared/email/nodemailer.js';
+import { welcomeNewUser, resetPassword } from '../../shared/email/nodemailer.js';
 import {
     userDataAndPasswordMatchValidation,
     loginBusinessRules,
@@ -77,7 +77,11 @@ export default class AuthService {
         if (!passwordUpdatedSuccessfully) {
             throw new Error('Failed to update password for email: ' + email);
         } else {
-            return { password: newPassword }; // returns the new password so that it can be provided to the user.
+            resetPassword(email, newPassword); // Nodemailer: Sends password to users email.
+            return {
+                message:
+                    'Password reset successfully. A new password has been sent to the registered email address.',
+            };
         }
     }
 }

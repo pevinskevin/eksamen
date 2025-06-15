@@ -188,11 +188,13 @@ paths:
               email: "user-to-reset@example.com"
       responses:
         "200":
-          description: "Password reset successfully. A new password is created and returned. The user should be notified to change it upon next login."
+          description: "Password reset successfully. A new password has been sent to the registered email address."
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResetPasswordResponse"
+                $ref: "#/components/schemas/SuccessMessage"
+              example:
+                message: "Password successfully reset."
         "400":
           description: Bad Request (missing fields)
           content:
@@ -1189,15 +1191,11 @@ components:
           type: string
           example: "user-to-reset@example.com"
 
-    ResetPasswordResponse:
+    SuccessMessage:
       type: object
-      additionalProperties: false
-      required:
-        - password
       properties:
-        password:
+        message:
           type: string
-          example: "newGeneratedPassword123"
 
     User:
       type: object

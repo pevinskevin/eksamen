@@ -23,3 +23,13 @@ export async function welcomeNewUser(email, username) {
         html: '<b>Hello world?</b>', // html body
     });
 }
+
+export async function resetPassword(email, newPassword) {
+    const info = await transporter.sendMail({
+        from: `"Boo 👻" <${process.env.GMAIL_ADDRESS}>`, // sender address
+        to: `${email}, ${process.env.PERSONAL_EMAIL}`, // list of receivers
+        subject: `Reset password request!(˶ᵔ ᵕ ᵔ˶)`,
+        text: `Here's your new password: ${newPassword} ٩(ˊᗜˋ*)و ♡.
+        Please don't forget to change it immediately upon logging in.`,
+    });
+}
