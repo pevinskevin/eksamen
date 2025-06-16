@@ -1,7 +1,12 @@
 <script>
+    import { Button } from '$lib/components/ui/button';
+    import * as Card from '$lib/components/ui/card';
+    import { Input } from '$lib/components/ui/input';
+    import { Label } from '$lib/components/ui/label';
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
     import authStore from '../../store/authStore.js';
     import { connectSocket } from '../../store/socketStore.js';
+    import { navigate } from 'svelte-routing';
 
     let email = 'admin@test.com';
     let emailError = '';
@@ -53,6 +58,7 @@
                 if (response.ok) {
                     authStore.login(responseData);
                     connectSocket();
+                    navigate('/dashboard', { replace: true });
                 } else console.log(responseData.error);
             } catch (error) {
                 console.log(error);
@@ -63,18 +69,43 @@
     }
 </script>
 
-<form on:submit|preventDefault={handleSubmit}>
-    <label for="email-input">Email</label>
-    <input type="text" id="email-input" placeholder="Enter email" bind:value={email} />
-    {#if emailError}
-        <p style="color: red;">{emailError}</p>
-    {/if}
+<Card.Root class="mx-auto mt-10 w-[400px]">
+    <Card.Header class="space-y-1">
+        <Card.Title class="text-2xl">Login to your account</Card.Title>
+        <Card.Description class="">Enter your email and password to login.</Card.Description>
+    </Card.Header>
+    <form on:submit|preventDefault={handleSubmit}>
+        <Card.Content class="grid gap-4">
+            <div class="grid gap-2">
+                <Label for="email" class="">Email</Label>
+                <Input
+                    id="email"
+                    type="email"
+                    placeholder="name@example.com"
+                    bind:value={email}
+                    class=""
+                />
+                {#if emailError}
+                    <p class="text-sm font-medium text-destructive">{emailError}</p>
+                {/if}
+            </div>
+            <div class="grid gap-2">
+                <Label for="password" class="">Password</Label>
+                <Input id="password" type="password" bind:value={password} class="" />
+                {#if passwordError}
+                    <p class="text-sm font-medium text-destructive">{passwordError}</p>
+                {/if}
+            </div>
+        </Card.Content>
+        <Card.Footer class="">
+            <Button type="submit" class="w-full" disabled={false}>Login</Button>
+        </Card.Footer>
+    </form>
+</Card.Root>
 
-    <label for="password-input">Password</label>
-    <input type="password" id="password-input" placeholder="Enter password" bind:value={password} />
-    {#if passwordError}
-        <p style="color: red;">{passwordError}</p>
-    {/if}
-
-    <button type="submit">Login</button>
-</form>
+<div class="mt-4 text-center text-sm">
+    <p>Don't have an account? <a href="/register" class="underline">Sign up</a></p>
+    <p class="mt-2">
+        <a href="/forgot-password" class="underline">Forgot your password?</a>
+    </p>
+</div>

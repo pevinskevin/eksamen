@@ -44,21 +44,3 @@
 {:else}
     <p>Loading cryptocurrencies...</p>
 {/if}
-
-<style>
-    .crypto-grid {
-        /* Grid styling here */
-    }
-
-    .crypto-card {
-        /* Card styling here */
-    }
-
-    .crypto-symbol {
-        /* Symbol styling here */
-    }
-
-    .crypto-name {
-        /* Name styling here */
-    }
-</style>

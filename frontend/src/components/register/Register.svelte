@@ -1,5 +1,10 @@
 <script>
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+    import { navigate } from 'svelte-routing';
+    import { Button } from '$lib/components/ui/button';
+    import * as Card from '$lib/components/ui/card';
+    import { Input } from '$lib/components/ui/input';
+    import { Label } from '$lib/components/ui/label';
 
     let firstName = '';
     let firstNameError = '';
@@ -99,7 +104,7 @@
                 const responseData = await response.json();
 
                 if (response.ok) {
-                    // Redirect to login page or show success message
+                    navigate('/', { replace: true });
                 } else {
                     console.log(responseData.error);
                 }
@@ -112,46 +117,57 @@
     }
 </script>
 
-<form on:submit|preventDefault={handleSubmit}>
-    <label for="first-name-input">First Name</label>
-    <input
-        type="text"
-        id="first-name-input"
-        placeholder="Enter first name"
-        bind:value={firstName}
-    />
-    {#if firstNameError}
-        <p style="color: red;">{firstNameError}</p>
-    {/if}
+<Card.Root class="mx-auto mt-10 w-[400px]">
+    <Card.Header class="space-y-1">
+        <Card.Title class="text-2xl">Create an account</Card.Title>
+        <Card.Description>Enter your information to create an account.</Card.Description>
+    </Card.Header>
+    <form on:submit|preventDefault={handleSubmit}>
+        <Card.Content class="grid gap-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="grid gap-2">
+                    <Label for="first-name">First name</Label>
+                    <Input id="first-name" placeholder="Max" bind:value={firstName} />
+                    {#if firstNameError}
+                        <p class="text-sm font-medium text-destructive">{firstNameError}</p>
+                    {/if}
+                </div>
+                <div class="grid gap-2">
+                    <Label for="last-name">Last name</Label>
+                    <Input id="last-name" placeholder="Robinson" bind:value={lastName} />
+                    {#if lastNameError}
+                        <p class="text-sm font-medium text-destructive">{lastNameError}</p>
+                    {/if}
+                </div>
+            </div>
+            <div class="grid gap-2">
+                <Label for="email">Email</Label>
+                <Input id="email" type="email" placeholder="m@example.com" bind:value={email} />
+                {#if emailError}
+                    <p class="text-sm font-medium text-destructive">{emailError}</p>
+                {/if}
+            </div>
+            <div class="grid gap-2">
+                <Label for="password">Password</Label>
+                <Input id="password" type="password" bind:value={password} />
+                {#if passwordError}
+                    <p class="text-sm font-medium text-destructive">{passwordError}</p>
+                {/if}
+            </div>
+            <div class="grid gap-2">
+                <Label for="repeat-password">Repeat Password</Label>
+                <Input id="repeat-password" type="password" bind:value={repeatPassword} />
+                {#if repeatPasswordError}
+                    <p class="text-sm font-medium text-destructive">{repeatPasswordError}</p>
+                {/if}
+            </div>
+        </Card.Content>
+        <Card.Footer>
+            <Button type="submit" class="w-full">Create account</Button>
+        </Card.Footer>
+    </form>
+</Card.Root>
 
-    <label for="last-name-input">Last Name</label>
-    <input type="text" id="last-name-input" placeholder="Enter last name" bind:value={lastName} />
-    {#if lastNameError}
-        <p style="color: red;">{lastNameError}</p>
-    {/if}
-
-    <label for="email-input">Email</label>
-    <input type="text" id="email-input" placeholder="Enter email" bind:value={email} />
-    {#if emailError}
-        <p style="color: red;">{emailError}</p>
-    {/if}
-
-    <label for="password-input">Password</label>
-    <input type="password" id="password-input" placeholder="Enter password" bind:value={password} />
-    {#if passwordError}
-        <p style="color: red;">{passwordError}</p>
-    {/if}
-
-    <label for="repeat-password-input">Repeat Password</label>
-    <input
-        type="password"
-        id="repeat-password-input"
-        placeholder="Repeat password"
-        bind:value={repeatPassword}
-    />
-    {#if repeatPasswordError}
-        <p style="color: red;">{repeatPasswordError}</p>
-    {/if}
-
-    <button type="submit">Submit</button>
-</form>
+<div class="mt-4 text-center text-sm">
+    Already have an account? <a href="/" class="underline">Login</a>
+</div>

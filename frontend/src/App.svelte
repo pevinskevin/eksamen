@@ -1,22 +1,65 @@
 <script>
+    import './app.css';
+
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
-    import Register from './components/register/Register.svelte';
-    import Login from './components/login/Login.svelte';
-    import AccountDashboard from './components/accountDashboard/AccountDashboard.svelte';
-    import CryptocurrencyList from './components/cryptocurrencyList/CryptocurrencyList.svelte';
-    import Logout from './components/logout/Logout.svelte';
+    import { Router, Route, link } from 'svelte-routing';
 
+    export let url = '';
+
+    import Frontpage from './routes/Frontpage.svelte';
+    import Register from './components/register/Register.svelte';
+    import ResetPassword from './routes/ResetPassword.svelte';
+    import Logout from './components/logout/Logout.svelte';
+    import AccountDashboard from './routes/AccountDashboard.svelte';
+    import AccountSettings from './routes/AccountSettings.svelte';
+    import TradingForm from './routes/TradingForm.svelte';
     import authStore from './store/authStore';
+    import * as NavigationMenu from '$lib/components/ui/navigation-menu';
+    import { buttonVariants } from '$lib/components/ui/button';
 </script>
 
-{#if !$authStore.isAuthenticated}
-    <Login></Login>
-    <Register></Register>
-{/if}
+<Router {url}>
+    {#if !$authStore.isAuthenticated}
+        <Route path="/"><Frontpage /></Route>
+        <Route path="/register"><Register /></Route>
+        <Route path="/forgot-password"><ResetPassword /></Route>
+    {/if}
 
-{#if $authStore.isAuthenticated}
-    <AccountDashboard></AccountDashboard>
-    <CryptocurrencyList></CryptocurrencyList>
-    <Logout></Logout>
-{/if}
+    {#if $authStore.isAuthenticated}
+        <NavigationMenu.Root class="flex justify-center p-4">
+            <NavigationMenu.List class="flex items-center space-x-2">
+                <NavigationMenu.Item>
+                    <a href="/dashboard" use:link class={buttonVariants({ variant: 'ghost' })}
+                        >Account</a
+                    >
+                </NavigationMenu.Item>
+                <NavigationMenu.Item>
+                    <a href="/settings" use:link class={buttonVariants({ variant: 'ghost' })}
+                        >Account Settings</a
+                    >
+                </NavigationMenu.Item>
+                <NavigationMenu.Item>
+                    <a href="/trading" use:link class={buttonVariants({ variant: 'ghost' })}
+                        >Trade</a
+                    >
+                </NavigationMenu.Item>
+                <NavigationMenu.Item>
+                    <Logout />
+                </NavigationMenu.Item>
+            </NavigationMenu.List>
+        </NavigationMenu.Root>
+
+        <Route path="/dashboard">
+            <AccountDashboard />
+        </Route>
+
+        <Route path="/trading">
+            <TradingForm />
+        </Route>
+
+        <Route path="/settings">
+            <AccountSettings />
+        </Route>
+    {/if}
+</Router>

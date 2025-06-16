@@ -1,13 +1,40 @@
 import { writable, get } from 'svelte/store';
 
-// Initial state for the store
-const initialAuthState = {
-    isAuthenticated: false,
-    user: null, // This will hold user details like { id, email, role } when logged in
+// Helper to safely access localStorage
+const getStorage = () => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage;
+    }
+    // Return a dummy storage object if localStorage is not available (e.g., during SSR)
+    return {
+        getItem: () => null,
+        setItem: () => {},
+        removeItem: () => {},
+    };
 };
 
-// Create the writable store
+const storage = getStorage();
+
+// Load initial state from localStorage if it exists
+const storedAuth = storage.getItem('auth');
+const initialAuthState = storedAuth
+    ? JSON.parse(storedAuth)
+    : {
+          isAuthenticated: false,
+          user: null, // This will hold user details like { id, email, role }
+      };
+
+// Create the writable store with the potentially persisted state
 const authStore = writable(initialAuthState);
+
+// Whenever the store changes, update localStorage
+authStore.subscribe((value) => {
+    if (value.isAuthenticated) {
+        storage.setItem('auth', JSON.stringify(value));
+    } else {
+        storage.removeItem('auth');
+    }
+});
 
 // Optional: Export custom functions to interact with the store in a more controlled way
 // This is good practice as your store logic grows.
@@ -20,7 +47,7 @@ export default {
         authStore.set({
             isAuthenticated: true,
             user: {
-                id: userData.userId, // Assuming userData comes from your API response
+                id: userData.id, // Ensure you are passing the full user object
                 email: userData.email,
                 role: userData.role,
             },
@@ -32,14 +59,14 @@ export default {
     },
 
     // Function to call upon logout
-    logout: () => {
+    logout: async () => {
+        // You would typically make an API call to the backend here
+        // await fetch('/api/logout', { method: 'POST' });
+
         authStore.set({
             isAuthenticated: false,
             user: null,
         });
-        // Also clear any localStorage if you used it
-        // And importantly, you'd typically also make an API call to your backend's
-        // /api/logout endpoint here to destroy the server-side session.
     },
 
     // You could add a function to initialize the store from sessionStorage/localStorage

@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
 import { io } from 'socket.io-client';
+
 const socketUrl = import.meta.env.VITE_SOCKET_URL;
 import authStore from './authStore';
 
@@ -13,6 +14,10 @@ socket.on('connect', () => {
     if (rawId != null) {
       const userId = `user_${rawId}`;
       socket.emit('joinRoom', userId);
+      console.log("Requested to join room");
+      socket.on('joined', (response)=>{
+        console.log(response);
+      })
     } else {
       console.warn('Skipping joinRoom: no authenticated user');
     }
@@ -23,7 +28,7 @@ socket.on('disconnect', () => {
     isConnected.set(false);
 });
 
-socket.on('orderBookUpdate', (data) => {
+socket.on('orderBookDepthUpdate', (data) => {
     orderBookData.set(data);
 });
 
