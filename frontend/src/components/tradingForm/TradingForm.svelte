@@ -5,12 +5,21 @@
     import { Input } from '$lib/components/ui/input';
     import { Label } from '$lib/components/ui/label';
     import * as Select from '$lib/components/ui/select';
+    import * as Table from '$lib/components/ui/table';
     import { orderBookData } from '../../store/socketStore.js';
 
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
     let cryptocurrenciesArray = null;
     let selectedCryptoSymbol;
     let amount; // Use 'undefined' initial state for number input
+
+    $: filteredOrderBook =
+        $orderBookData && selectedCryptoSymbol
+            ? $orderBookData[selectedCryptoSymbol + 'USDT']
+            : null;
+    $: triggerContent =
+        cryptocurrenciesArray?.find((c) => c.symbol === selectedCryptoSymbol)?.name ??
+        'Select a cryptocurrency';
 
     async function getCryptocurrencies() {
         try {
@@ -52,16 +61,19 @@
             <Label for="crypto-select">Cryptocurrency</Label>
             {#if cryptocurrenciesArray}
                 {#if cryptocurrenciesArray.length > 0}
-                    <Select.Root bind:value={selectedCryptoSymbol}>
+                    <Select.Root type="single" bind:value={selectedCryptoSymbol}>
                         <Select.Trigger class="w-full">
-                            <Select.Value placeholder="Select a cryptocurrency" />
+                            {triggerContent}
                         </Select.Trigger>
                         <Select.Content>
-                            {#each cryptocurrenciesArray as crypto}
-                                <Select.Item value={crypto.symbol} label={crypto.name}>
-                                    {crypto.name} ({crypto.symbol})
-                                </Select.Item>
-                            {/each}
+                            <Select.Group>
+                                <Select.Label>Available Cryptos</Select.Label>
+                                {#each cryptocurrenciesArray as crypto}
+                                    <Select.Item value={crypto.symbol} label={crypto.name}>
+                                        {crypto.name} ({crypto.symbol})
+                                    </Select.Item>
+                                {/each}
+                            </Select.Group>
                         </Select.Content>
                     </Select.Root>
                 {:else}
@@ -90,3 +102,49 @@
         >
     </Card.Footer>
 </Card.Root>
+
+{#if filteredOrderBook}
+    <div class="mt-6">
+        <h3 class="mb-4 text-lg font-semibold">Order Book for {selectedCryptoSymbol}</h3>
+        <div class="grid grid-cols-2 gap-6">
+            <div class="h-96 overflow-y-auto rounded-md border">
+                <h4 class="sticky top-0 bg-background p-2 font-medium">Bids</h4>
+                <Table.Root>
+                    <Table.Header>
+                        <Table.Row>
+                            <Table.Head>Price (USDT)</Table.Head>
+                            <Table.Head>Amount</Table.Head>
+                        </Table.Row>
+                    </Table.Header>
+                    <Table.Body>
+                        {#each filteredOrderBook.bids as [price, amount]}
+                            <Table.Row>
+                                <Table.Cell>{price}</Table.Cell>
+                                <Table.Cell>{amount}</Table.Cell>
+                            </Table.Row>
+                        {/each}
+                    </Table.Body>
+                </Table.Root>
+            </div>
+            <div class="h-96 overflow-y-auto rounded-md border">
+                <h4 class="sticky top-0 bg-background p-2 font-medium">Asks</h4>
+                <Table.Root>
+                    <Table.Header>
+                        <Table.Row>
+                            <Table.Head>Price (USDT)</Table.Head>
+                            <Table.Head>Amount</Table.Head>
+                        </Table.Row>
+                    </Table.Header>
+                    <Table.Body>
+                        {#each filteredOrderBook.asks as [price, amount]}
+                            <Table.Row>
+                                <Table.Cell>{price}</Table.Cell>
+                                <Table.Cell>{amount}</Table.Cell>
+                            </Table.Row>
+                        {/each}
+                    </Table.Body>
+                </Table.Root>
+            </div>
+        </div>
+    </div>
+{/if}
