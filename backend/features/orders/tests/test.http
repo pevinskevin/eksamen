@@ -191,7 +191,7 @@ Content-Type: {{contentType}}
 {
     "cryptocurrencyId": 1,
     "orderVariant": "sell",
-    "initialQuantity": "1.1",
+    "initialQuantity": "0.1",
     "notionalValue": "800000.00"
 }
 

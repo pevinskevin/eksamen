@@ -18,10 +18,11 @@
                 authStore.logout();
                 disconnectSocket();
                 navigate('/', { replace: true });
-            } else console.log(responseData.error);
-        } catch (error) {
-            console.log(error);
-        }
+            } else {
+                authStore.logout();
+                navigate('/', { replace: true });
+            }
+        } catch (error) {}
     }
 </script>
 
