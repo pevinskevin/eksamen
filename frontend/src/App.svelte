@@ -6,8 +6,10 @@
     import { Router, Route, link } from 'svelte-routing';
 
     export let url = '';
-    
+
     import { Toaster } from 'svelte-sonner';
+    import BankTransfers from './routes/BankTransfers.svelte';
+    import DigitalAssets from './routes/DigitalAssets.svelte';
     import Frontpage from './routes/Frontpage.svelte';
     import Register from './components/register/Register.svelte';
     import ResetPassword from './routes/ResetPassword.svelte';
@@ -16,8 +18,10 @@
     import AccountSettings from './routes/AccountSettings.svelte';
     import TradingForm from './routes/TradingForm.svelte';
     import authStore from './store/authStore';
+
     import * as NavigationMenu from '$lib/components/ui/navigation-menu';
     import { buttonVariants } from '$lib/components/ui/button';
+    import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 </script>
 
 <Router {url}>
@@ -37,9 +41,22 @@
                     >
                 </NavigationMenu.Item>
                 <NavigationMenu.Item>
-                    <a href="/settings" use:link class={buttonVariants({ variant: 'ghost' })}
-                        >Account Settings</a
-                    >
+                    <DropdownMenu.Root>
+                        <DropdownMenu.Trigger>Settings</DropdownMenu.Trigger>
+                        <DropdownMenu.Content>
+                            <DropdownMenu.Group>
+                                <DropdownMenu.Label>Manage Account</DropdownMenu.Label>
+                                <DropdownMenu.Separator />
+                                <DropdownMenu.Item>
+                                    <a href="/bank-transfers" use:link>Bank Transfers</a>
+                                </DropdownMenu.Item>
+                                <DropdownMenu.Item>
+                                    <a href="/digital-assets" use:link>Digital Assets</a>
+                                </DropdownMenu.Item>
+                                <DropdownMenu.Item>Profile Settings</DropdownMenu.Item>
+                            </DropdownMenu.Group>
+                        </DropdownMenu.Content>
+                    </DropdownMenu.Root>
                 </NavigationMenu.Item>
                 <NavigationMenu.Item>
                     <a href="/trading" use:link class={buttonVariants({ variant: 'ghost' })}
@@ -62,6 +79,14 @@
 
         <Route path="/settings">
             <AccountSettings />
+        </Route>
+
+        <Route path="/bank-transfers">
+            <BankTransfers />
+        </Route>
+
+        <Route path="/digital-assets">
+            <DigitalAssets />
         </Route>
     {/if}
 </Router>

@@ -48,7 +48,7 @@
                 <Table.Root class="">
                     <Table.Header class="">
                         <Table.Row class="">
-                            <Table.Head>Currency</Table.Head>
+                            <Table.Head class="">Currency</Table.Head>
                             <Table.Head class="text-right">Balance</Table.Head>
                         </Table.Row>
                     </Table.Header>
@@ -83,7 +83,7 @@
                 <Table.Root class="">
                     <Table.Header class="">
                         <Table.Row class="">
-                            <Table.Head>Asset</Table.Head>
+                            <Table.Head class="">Asset</Table.Head>
                             <Table.Head class="text-right">Balance</Table.Head>
                         </Table.Row>
                     </Table.Header>

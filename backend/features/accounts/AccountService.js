@@ -2,7 +2,8 @@ import { cryptoService } from '../../shared/factory/factory.js';
 import { transformFinancialFields } from '../../shared/utils/balanceTransformer.js';
 import validateCryptoSymbol from '../cryptocurrencies/cryptoValidators.js';
 import normaliseForOpenAPI from '../../shared/utils/normaliseObjects.js';
-
+import Stripe from 'stripe';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 export default class AccountService {
     constructor(accountRepository) {
         this.accountRepository = accountRepository;
@@ -39,5 +40,35 @@ export default class AccountService {
         });
 
         return normaliseForOpenAPI(transformedHoldings);
+    }
+
+    async fiatDeposit(userId, amount) {
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price_data: {
+                        currency: 'usd',
+                        product_data: { name: 'Account Deposit' },
+                        unit_amount: amount * 100, // cents
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            success_url: 'http://localhost:5173/dashboard?deposit=success',
+            cancel_url: 'http://localhost:5173/dashboard',
+            metadata: { userId },
+        });
+
+        await this.accountRepository.incrementFiatAccount(userId, amount);
+
+        return { url: session.url };
+    }
+
+    async fiatWithdrawal(userId, amount) {
+        const negativeAmount = -amount;
+
+        return await this.accountRepository.incrementFiatAccount(userId, negativeAmount);
     }
 }

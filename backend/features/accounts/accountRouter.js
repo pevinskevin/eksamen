@@ -9,8 +9,6 @@ import {
     sendUnauthorized,
     sendUnprocessableEntity,
 } from '../../shared/utils/responseHelpers.js';
-import Stripe from 'stripe';
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 router.get('/balances', isAuthenticated, async (req, res) => {
     try {
@@ -46,24 +44,22 @@ router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {
     }
 });
 
-router.post('/deposit/fiat', async (req, res) => {
-    const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
-    line_items: [{
-      price_data: {
-        currency: 'usd',
-        product_data: { name: 'Account Deposit' },
-        unit_amount: req.body.amount * 100, // cents
-      },
-      quantity: 1,
-    }],
-    mode: 'payment',
-    success_url: 'http://localhost:5173/dashboard?deposit=success',
-    cancel_url: 'http://localhost:5173/dashboard',
-    metadata: { userId: req.user.id }
-  });
-  
-  res.json({ url: session.url });
+router.post('/deposit/fiat', isAuthenticated, async (req, res) => {
+    try {
+        const deposit = await accountService.fiatDeposit(req.user.id, req.body.amount);
+        return sendSuccess(res, deposit);
+    } catch (error) {
+        return sendError(res, error);
+    }
+});
+
+router.post('/withdrawal/fiat', isAuthenticated, async (req, res) => {
+    try {
+        const withdrawal = await accountService.fiatWithdrawal(req.user.id, req.body.amount);
+        return sendSuccess(res, withdrawal);
+    } catch (error) {
+        return sendError(res, error);
+    }
 });
 
 export default router;

@@ -341,6 +341,118 @@ paths:
                 error: "InternalServerError"
                 message: "Failed to retrieve crypto holding"
 
+  /account/deposit/fiat:
+    post:
+      summary: Create Stripe checkout session for fiat deposit
+      tags:
+        - Account
+      # security:
+      #   - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FiatDepositRequest"
+      responses:
+        "200":
+          description: Stripe checkout session URL created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                    example: "https://checkout.stripe.com/c/pay/cs_test_..."
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
+        "422":
+          description: Unprocessable Entity (validation errors)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Amount must be a positive number."
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to create Stripe session"
+
+  /account/withdrawal/fiat:
+    post:
+      summary: Initiate a fiat withdrawal from user account
+      tags:
+        - Account
+      # security:
+      #   - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FiatWithdrawalRequest"
+      responses:
+        "200":
+          description: Withdrawal successfully initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+              example:
+                message: "Withdrawal of 100.50 USD initiated successfully."
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
+        "402":
+          description: Payment Required (insufficient balance)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "InsufficientFundsError"
+                message: "Insufficient balance for withdrawal."
+        "422":
+          description: Unprocessable Entity (validation errors)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Amount must be a positive number."
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to process withdrawal"
+
   /cryptocurrencies:
     get:
       summary: Get all cryptocurrencies
@@ -1543,6 +1655,30 @@ components:
         message:
           type: string
           example: "Invalid email format"
+
+    FiatDepositRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - amount
+      properties:
+        amount:
+          type: number
+          format: float
+          description: "The amount to deposit in the base currency (e.g., USD)."
+          example: 100.50
+
+    FiatWithdrawalRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - amount
+      properties:
+        amount:
+          type: number
+          format: float
+          description: "The amount to withdraw in the base currency (e.g., USD)."
+          example: 50.25
 
 tags:
   - name: Authentication
