@@ -1,6 +1,6 @@
 # Task ID: 17
 # Title: BE: Order Matching Engine Development
-# Status: pending
+# Status: deferred
 # Dependencies: 16
 # Priority: high
 # Description: Develop the backend logic for a simplified order execution engine, as outlined in the task titled 'BE: Order Matching Engine Development'. This engine will **not** perform traditional user-to-user order matching. Instead, it will focus on executing user orders directly against Binance, using Binance as the price oracle and sole counterparty.

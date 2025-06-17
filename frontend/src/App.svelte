@@ -6,7 +6,8 @@
     import { Router, Route, link } from 'svelte-routing';
 
     export let url = '';
-
+    
+    import { Toaster } from 'svelte-sonner';
     import Frontpage from './routes/Frontpage.svelte';
     import Register from './components/register/Register.svelte';
     import ResetPassword from './routes/ResetPassword.svelte';
@@ -20,6 +21,7 @@
 </script>
 
 <Router {url}>
+    <Toaster />
     {#if !$authStore.isAuthenticated}
         <Route path="/"><Frontpage /></Route>
         <Route path="/register"><Register /></Route>

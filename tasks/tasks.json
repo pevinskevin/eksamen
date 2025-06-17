@@ -389,10 +389,8 @@
     {
       "id": 13,
       "title": "FE: Trading Form & My Open Orders Display",
-      "description": "Develop Svelte components for a trading form (select crypto, buy/sell, quantity, price) and a display area for the user's currently open orders. Orders submitted via the form should be sent to the backend API.",
-      "details": "Create `TradingForm.svelte` component. Inputs for cryptocurrency selection (dropdown populated from crypto list), order type (buy/sell buttons), quantity, price. On submit, `fetch` POST to `/orders/place`. Create `MyOpenOrders.svelte` component. Fetch user's open orders from a new backend endpoint (e.g., `/orders/mine`) and display them in a table.",
-      "testStrategy": "User can fill and submit the trading form. Order data is sent to backend. User's open orders are fetched and displayed correctly. Client-side validation for form inputs.",
-      "priority": "high",
+      "description": "Develop a Svelte component for a trading form to place MARKET orders. The form will allow users to select a cryptocurrency, choose between buy/sell, and enter either a quantity (for sell orders) or a notional value (for buy orders). Orders submitted via the form should be sent to the backend market order API endpoint.",
+      "status": "pending",
       "dependencies": [
         6,
         8,
@@ -402,8 +400,42 @@
         "32",
         "33"
       ],
-      "status": "pending",
-      "subtasks": []
+      "priority": "high",
+      "details": "Create `TradingForm.svelte` component. Inputs for cryptocurrency selection (dropdown populated from crypto list), order type (buy/sell buttons), and a conditional input for either quantity (if selling) or notional value (if buying). On submit, `fetch` POST to `/orders/market/place`.",
+      "testStrategy": "User can fill and submit the market order trading form. Order data (including correct quantity or notional value based on order type) is sent to the backend. Client-side validation for form inputs (quantity/notional). Verify conditional input logic for quantity/notional based on buy/sell selection.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create `TradingForm.svelte` Shell with Inputs and Layout for Market Orders",
+          "description": "Develop the basic structure and UI elements for the `TradingForm.svelte` component, including inputs for cryptocurrency selection, order type (buy/sell), and a conditional input field for either quantity (for sell orders) or notional value (for buy orders).",
+          "dependencies": [],
+          "details": "Implement `TradingForm.svelte` with a dropdown placeholder for cryptocurrency, buy/sell selection elements (e.g., buttons or radio group), and a single number input field that dynamically represents either quantity (if 'sell' is selected) or notional value (if 'buy' is selected). Focus on the HTML structure, basic Svelte bindings, and UI logic for switching the input field's purpose. No API calls or complex state management yet.",
+          "status": "pending",
+          "testStrategy": "Visually inspect the form rendering in a browser. Test basic input functionality. Verify that the label and placeholder for the quantity/notional input field change correctly when the buy/sell selection is toggled. Ensure Svelte reactive variables for inputs are updating locally."
+        },
+        {
+          "id": 2,
+          "title": "Implement Crypto List Fetching and Form State Management for `TradingForm.svelte` (Market Orders)",
+          "description": "Integrate fetching of the cryptocurrency list to populate the selection dropdown in `TradingForm.svelte`. Implement robust state management for all form inputs, accommodating the conditional quantity/notional value for market orders.",
+          "dependencies": [
+            1
+          ],
+          "details": "Modify `TradingForm.svelte` to fetch a list of available cryptocurrencies (e.g., from `/cryptos`) on component initialization and populate the dropdown. Manage the state of all form inputs: selected cryptocurrency, order type (buy/sell), and the value entered for quantity (if selling) or notional (if buying). Ensure the state correctly reflects the type of value being entered.",
+          "status": "pending",
+          "testStrategy": "Verify the cryptocurrency dropdown is populated with data. Confirm that changes to form inputs correctly update the component's internal state, including the distinction between quantity and notional value based on order type. Check for appropriate handling of loading state for the crypto list."
+        },
+        {
+          "id": 3,
+          "title": "Implement Market Order Submission API Integration for `TradingForm.svelte`",
+          "description": "Add functionality to `TradingForm.svelte` to validate form inputs and submit the market order details to the backend API endpoint `/orders/market/place` using a POST request. Include user feedback for submission status.",
+          "dependencies": [
+            2
+          ],
+          "details": "Create a submit handler function in `TradingForm.svelte`. Implement basic client-side validation for the quantity or notional value input. On valid submission, construct the payload (cryptocurrency, order type, and either `quantity` or `notional_value` based on the order type) and use `fetch` to send a POST request to `/orders/market/place`. Display simple success or error messages to the user based on the API response.",
+          "status": "pending",
+          "testStrategy": "Mock the `/orders/market/place` backend endpoint or use a test environment. Verify that the correct payload (containing `quantity` for sells or `notional_value` for buys, but not price) is sent upon form submission. Test validation logic for the active input. Confirm that success and error messages are displayed appropriately to the user."
+        }
+      ]
     },
     {
       "id": 14,
@@ -529,7 +561,7 @@
             2,
             4
           ],
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 6,
@@ -540,7 +572,7 @@
             2,
             4
           ],
-          "status": "pending"
+          "status": "deferred"
         },
         {
           "id": 7,
@@ -550,7 +582,7 @@
           "dependencies": [
             6
           ],
-          "status": "pending"
+          "status": "deferred"
         },
         {
           "id": 8,
@@ -562,7 +594,7 @@
             5,
             6
           ],
-          "status": "pending"
+          "status": "deferred"
         },
         {
           "id": 9,
@@ -572,7 +604,7 @@
           "dependencies": [
             8
           ],
-          "status": "pending"
+          "status": "deferred"
         }
       ]
     },
@@ -580,7 +612,7 @@
       "id": 17,
       "title": "BE: Order Matching Engine Development",
       "description": "Develop the backend logic for a simplified order execution engine, as outlined in the task titled 'BE: Order Matching Engine Development'. This engine will **not** perform traditional user-to-user order matching. Instead, it will focus on executing user orders directly against Binance, using Binance as the price oracle and sole counterparty.\n\nKey functionalities include:\n1.  Executing user market orders immediately against cached Binance best bid/ask prices.\n2.  Handling user limit orders: monitoring against Binance prices and executing against Binance when triggered.\n3.  Implementing robust order validation (e.g., valid parameters, minimums) and user balance checks prior to execution.\n4.  Processing all trades with Binance as the designated counterparty.\n5.  Managing comprehensive order status updates (e.g., pending, active, partially_filled, filled, cancelled) and detailed trade recording.\n6.  Providing backend support for visual feedback on the consumption of Binance liquidity levels during order execution.\n\nThe implementation will follow a phased approach:\n*   **Phase 1:** Simple execution against cached Binance best bid/ask prices.\n*   **Phase 2:** Depth-aware execution, 'walking the book' using Binance order book levels if an order's size exceeds top-of-book liquidity.\n*   **Phase 3:** Enhanced support for visual feedback of liquidity consumption.\n\nIntegration with `binance-ws.js` is crucial for accessing real-time Binance market data. This system is fundamentally a Binance execution simulator/interface, not an independent matching venue.",
-      "status": "pending",
+      "status": "deferred",
       "dependencies": [
         16
       ],
@@ -648,7 +680,7 @@
       "id": 18,
       "title": "BE: Trade Execution & State Updates",
       "description": "Implement the backend logic for trade execution. All trades are user executions against Binance, which acts as the sole counterparty, price oracle, and liquidity provider. This system processes matched limit orders (from Task 17) and market orders directly against Binance. There are no user-to-user settlements. The system must atomically update only the user's balances, create a `Trade` record with Binance (via a system account) as the counterparty, and update the user's `Order` record (status, quantity) in the database and in-memory order book. Market orders require execution at simulated Binance prices with pre-trade balance validation. Atomicity of database operations is critical.",
-      "status": "pending",
+      "status": "deferred",
       "dependencies": [
         9,
         11,
@@ -694,7 +726,7 @@
       "id": 19,
       "title": "BE: Real-time Order Book Broadcasting",
       "description": "Implement a simplified real-time broadcasting system via WebSockets, focusing exclusively on Binance market data and individual user trading activity against the Binance order book. This system replaces any previous plans for user-to-user trade broadcasting. The system will:\n1. Broadcast live Binance order book data to all subscribed clients for visualization.\n2. Send user-specific trade notifications for trades executed against the Binance order book.\n3. Broadcast balance updates to individual users resulting from their trading activity or account changes.\n4. Provide visual feedback messages for user trades, indicating consumed liquidity from the Binance order book.\nThis approach emphasizes clean WebSocket messaging, direct streaming of Binance data, and providing users with clear feedback on their interactions with the Binance market, ensuring a simple and maintainable architecture.",
-      "status": "pending",
+      "status": "deferred",
       "dependencies": [
         14,
         16,
@@ -746,7 +778,7 @@
       "id": 20,
       "title": "FE: Real-time Order Book Visualization",
       "description": "Create a Svelte component to visualize the live Binance order book (bids and asks). This component will subscribe to Binance order book WebSocket updates via the backend for the selected cryptocurrency pair, efficiently re-render the display when new data arrives, and provide visual feedback when user trades consume Binance liquidity. The goal is a clean, real-time visualization of market depth from Binance.",
-      "status": "pending",
+      "status": "deferred",
       "dependencies": [
         8,
         15,
@@ -882,7 +914,60 @@
         18
       ],
       "status": "pending",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "BE: Design Trade History Data Model and Query Logic",
+          "description": "Define the data structure for trade history entries and develop the database query to retrieve trades for an authenticated user, determining trade type from the user's perspective.",
+          "dependencies": [],
+          "details": "Specify the fields for each trade record: pair, type (buy/sell from user's perspective), quantity, price, and timestamp. Design the SQL query for the `Trades` table to fetch records where `buyer_user_id` or `seller_user_id` matches the authenticated user's ID (`req.user.id`). The 'type' field must be dynamically determined based on whether `req.user.id` is the buyer or seller for that trade. Ensure trades are typically ordered by timestamp descending.",
+          "status": "pending",
+          "testStrategy": "Unit test the database query logic with mock user IDs and trade data. Verify correct filtering by user ID, accurate 'type' determination (buy/sell), and correct data transformation for all specified fields. Test edge cases like a user having no trades."
+        },
+        {
+          "id": 2,
+          "title": "BE: Implement `/trades/history` API Endpoint",
+          "description": "Create the backend GET endpoint `/trades/history`, protected by authentication, to serve trade history data for the authenticated user.",
+          "dependencies": [
+            1
+          ],
+          "details": "Develop the GET `/trades/history` route. Implement authentication middleware to ensure only authenticated users can access it. Integrate the database query logic from Subtask 1 to fetch trades based on `req.user.id`. Serialize and return the list of trade objects as JSON, matching the defined data model.",
+          "status": "pending",
+          "testStrategy": "API integration tests: verify endpoint protection (e.g., 401 Unauthorized for missing/invalid token). Test successful data retrieval (200 OK with trade list) for users with trades. Test response for users with no trades (e.g., 200 OK with an empty list). Validate response structure and data accuracy."
+        },
+        {
+          "id": 3,
+          "title": "FE: Create `TradeHistory.svelte` Component Shell",
+          "description": "Set up the initial structure for the `TradeHistory.svelte` frontend component, including a placeholder for the trade history table and its headers.",
+          "dependencies": [],
+          "details": "Create the `TradeHistory.svelte` file. Implement the basic Svelte component structure. Add a title (e.g., \"Trade History\") and an HTML table element (`<table>`). Define the table header (`<thead>`) with columns: Pair, Type, Quantity, Price, Timestamp. The table body (`<tbody>`) will initially be empty or show a loading indicator.",
+          "status": "pending",
+          "testStrategy": "Render the component in a development environment or Storybook. Verify that the basic layout, title, and table headers are displayed correctly. Check initial state (e.g., loading message or empty table)."
+        },
+        {
+          "id": 4,
+          "title": "FE: Implement API Call to Fetch Trade History in `TradeHistory.svelte`",
+          "description": "Implement the logic within `TradeHistory.svelte` to call the `/trades/history` backend endpoint and manage the fetched data state.",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "In `TradeHistory.svelte`, use Svelte's `onMount` lifecycle function to make an asynchronous GET request to the `/trades/history` API endpoint. Implement state management for loading, error, and data states (e.g., using reactive variables). Store the fetched trade data. Handle potential API errors gracefully (e.g., display an error message).",
+          "status": "pending",
+          "testStrategy": "Unit/integration test the component's data fetching logic. Mock the `/trades/history` API responses to test: successful data retrieval and storage in component state, display of loading indicators, and correct error handling and message display on API failure."
+        },
+        {
+          "id": 5,
+          "title": "FE: Display Fetched Trade History Data in Table",
+          "description": "Populate the table in `TradeHistory.svelte` with the fetched trade data, ensuring a clear, readable, and tabular format.",
+          "dependencies": [
+            4
+          ],
+          "details": "Using Svelte's templating (e.g., `#each` block), iterate over the fetched trade data stored in the component's state. For each trade, render a table row (`<tr>`) within the `<tbody>`. Populate table cells (`<td>`) with the trade's pair, type, quantity, price, and timestamp. Ensure data is formatted for readability (e.g., date/time for timestamp, number formatting for quantity/price). If no trades exist, display a message like \"No trade history available.\"",
+          "status": "pending",
+          "testStrategy": "UI tests: Verify that the table correctly displays trade data from various mock API responses (no trades, one trade, multiple trades). Check data formatting for all fields. Ensure the 'type' (buy/sell) is displayed correctly from the user's perspective. Test responsiveness if applicable."
+        }
+      ]
     },
     {
       "id": 27,
@@ -1190,6 +1275,19 @@
       "dependencies": [
         1,
         32
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 44,
+      "title": "FE: Display Open Limit Orders",
+      "description": "Develop a Svelte component to display a user's currently open and partially_filled limit orders. This component will fetch data from a backend endpoint and display it in a clear, tabular format. This feature is dependent on the implementation of limit order logic in the backend.",
+      "details": "Create a new MyOpenOrders.svelte component. It should fetch data from an authenticated endpoint like /api/order/open. The table should include columns for cryptocurrency, side (buy/sell), remaining quantity, price, and the date the order was created. Include a mechanism to cancel an open order directly from this view.",
+      "testStrategy": "Verify the component fetches and displays open orders correctly for an authenticated user. Test that the cancellation functionality works and removes the order from the list upon success. Ensure loading and empty states are handled gracefully.",
+      "status": "deferred",
+      "dependencies": [
+        13
       ],
       "priority": "medium",
       "subtasks": []

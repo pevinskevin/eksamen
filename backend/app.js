@@ -139,7 +139,7 @@ import {
     cleanup as cleanupBinanceWS,
 } from './features/trading/orderbook/binance-ws.js';
 marketDataEmitter.on('marketUpdate', (updatedDataObject) => {
-    io.emit('orderBookUpdate', updatedDataObject);
+    io.emit('orderBookDepthUpdate', updatedDataObject);
 });
 
 // -- Market Order Engine Setup (to register its event listeners) --

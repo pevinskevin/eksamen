@@ -1,6 +1,6 @@
 # Task ID: 18
 # Title: BE: Trade Execution & State Updates
-# Status: pending
+# Status: deferred
 # Dependencies: 9, 11, 17
 # Priority: high
 # Description: Implement the backend logic for trade execution. All trades are user executions against Binance, which acts as the sole counterparty, price oracle, and liquidity provider. This system processes matched limit orders (from Task 17) and market orders directly against Binance. There are no user-to-user settlements. The system must atomically update only the user's balances, create a `Trade` record with Binance (via a system account) as the counterparty, and update the user's `Order` record (status, quantity) in the database and in-memory order book. Market orders require execution at simulated Binance prices with pre-trade balance validation. Atomicity of database operations is critical.

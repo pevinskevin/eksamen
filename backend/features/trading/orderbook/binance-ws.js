@@ -60,7 +60,7 @@ const endpoints = binance.websockets.depthCache(symbols, (symbol, depth) => {
 
     tinyOrderBook.set(symbol, { asks: asksArr, bids: bidsArr });
     // Emits data to front-end
-    // marketDataEmitter.emit('orderBookDepthUpdate', { symbol });
+    marketDataEmitter.emit('marketUpdate', Object.fromEntries(tinyOrderBook));
     // ---- -----
 });
 

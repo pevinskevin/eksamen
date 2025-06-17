@@ -9,3 +9,35 @@ BE: `/trades/history` GET endpoint, protected by auth. Query `Trades` table for 
 
 # Test Strategy:
 User can view their past trades. Data should be accurate and match records in the `Trades` table. Display should clearly indicate if user was buyer or seller for each trade.
+
+# Subtasks:
+## 1. BE: Design Trade History Data Model and Query Logic [pending]
+### Dependencies: None
+### Description: Define the data structure for trade history entries and develop the database query to retrieve trades for an authenticated user, determining trade type from the user's perspective.
+### Details:
+Specify the fields for each trade record: pair, type (buy/sell from user's perspective), quantity, price, and timestamp. Design the SQL query for the `Trades` table to fetch records where `buyer_user_id` or `seller_user_id` matches the authenticated user's ID (`req.user.id`). The 'type' field must be dynamically determined based on whether `req.user.id` is the buyer or seller for that trade. Ensure trades are typically ordered by timestamp descending.
+
+## 2. BE: Implement `/trades/history` API Endpoint [pending]
+### Dependencies: 26.1
+### Description: Create the backend GET endpoint `/trades/history`, protected by authentication, to serve trade history data for the authenticated user.
+### Details:
+Develop the GET `/trades/history` route. Implement authentication middleware to ensure only authenticated users can access it. Integrate the database query logic from Subtask 1 to fetch trades based on `req.user.id`. Serialize and return the list of trade objects as JSON, matching the defined data model.
+
+## 3. FE: Create `TradeHistory.svelte` Component Shell [pending]
+### Dependencies: None
+### Description: Set up the initial structure for the `TradeHistory.svelte` frontend component, including a placeholder for the trade history table and its headers.
+### Details:
+Create the `TradeHistory.svelte` file. Implement the basic Svelte component structure. Add a title (e.g., "Trade History") and an HTML table element (`<table>`). Define the table header (`<thead>`) with columns: Pair, Type, Quantity, Price, Timestamp. The table body (`<tbody>`) will initially be empty or show a loading indicator.
+
+## 4. FE: Implement API Call to Fetch Trade History in `TradeHistory.svelte` [pending]
+### Dependencies: 26.2, 26.3
+### Description: Implement the logic within `TradeHistory.svelte` to call the `/trades/history` backend endpoint and manage the fetched data state.
+### Details:
+In `TradeHistory.svelte`, use Svelte's `onMount` lifecycle function to make an asynchronous GET request to the `/trades/history` API endpoint. Implement state management for loading, error, and data states (e.g., using reactive variables). Store the fetched trade data. Handle potential API errors gracefully (e.g., display an error message).
+
+## 5. FE: Display Fetched Trade History Data in Table [pending]
+### Dependencies: 26.4
+### Description: Populate the table in `TradeHistory.svelte` with the fetched trade data, ensuring a clear, readable, and tabular format.
+### Details:
+Using Svelte's templating (e.g., `#each` block), iterate over the fetched trade data stored in the component's state. For each trade, render a table row (`<tr>`) within the `<tbody>`. Populate table cells (`<td>`) with the trade's pair, type, quantity, price, and timestamp. Ensure data is formatted for readability (e.g., date/time for timestamp, number formatting for quantity/price). If no trades exist, display a message like "No trade history available."
+

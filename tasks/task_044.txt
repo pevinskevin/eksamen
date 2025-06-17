@@ -1,0 +1,11 @@
+# Task ID: 44
+# Title: FE: Display Open Limit Orders
+# Status: deferred
+# Dependencies: 13
+# Priority: medium
+# Description: Develop a Svelte component to display a user's currently open and partially_filled limit orders. This component will fetch data from a backend endpoint and display it in a clear, tabular format. This feature is dependent on the implementation of limit order logic in the backend.
+# Details:
+Create a new MyOpenOrders.svelte component. It should fetch data from an authenticated endpoint like /api/order/open. The table should include columns for cryptocurrency, side (buy/sell), remaining quantity, price, and the date the order was created. Include a mechanism to cancel an open order directly from this view.
+
+# Test Strategy:
+Verify the component fetches and displays open orders correctly for an authenticated user. Test that the cancellation functionality works and removes the order from the list upon success. Ensure loading and empty states are handled gracefully.

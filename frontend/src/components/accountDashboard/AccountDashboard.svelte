@@ -1,6 +1,7 @@
 <script>
     import { onMount } from 'svelte';
     import authStore from '../../store/authStore.js';
+    import { navigate } from 'svelte-routing';
     import * as Card from '$lib/components/ui/card';
     import * as Table from '$lib/components/ui/table';
 
@@ -24,7 +25,8 @@
                 accountBalance = responseData;
             } else console.log(responseData.error);
         } catch (error) {
-            console.log(error);
+            authStore.logout();
+            navigate('/', { replace: true });
         }
     }
 
@@ -37,22 +39,22 @@
     <h1 class="text-3xl font-bold">Welcome, user.</h1>
 
     <div class="grid gap-4 md:grid-cols-2">
-        <Card.Root>
-            <Card.Header>
-                <Card.Title>Fiat Balance</Card.Title>
-                <Card.Description>Your cash holdings.</Card.Description>
+        <Card.Root class="">
+            <Card.Header class="">
+                <Card.Title class="">Fiat Balance</Card.Title>
+                <Card.Description class="">Your cash holdings.</Card.Description>
             </Card.Header>
-            <Card.Content>
-                <Table.Root>
-                    <Table.Header>
-                        <Table.Row>
+            <Card.Content class="">
+                <Table.Root class="">
+                    <Table.Header class="">
+                        <Table.Row class="">
                             <Table.Head>Currency</Table.Head>
                             <Table.Head class="text-right">Balance</Table.Head>
                         </Table.Row>
                     </Table.Header>
-                    <Table.Body>
+                    <Table.Body class="">
                         {#if accountBalance && accountBalance.fiatAccount}
-                            <Table.Row>
+                            <Table.Row class="">
                                 <Table.Cell class="font-medium"
                                     >{accountBalance.fiatAccount.currencyCode}</Table.Cell
                                 >
@@ -61,7 +63,7 @@
                                 >
                             </Table.Row>
                         {:else}
-                            <Table.Row>
+                            <Table.Row class="">
                                 <Table.Cell colspan="2" class="h-24 text-center"
                                     >No fiat balance found.</Table.Cell
                                 >
@@ -72,23 +74,23 @@
             </Card.Content>
         </Card.Root>
 
-        <Card.Root>
-            <Card.Header>
-                <Card.Title>Cryptocurrency Holdings</Card.Title>
-                <Card.Description>Your digital asset portfolio.</Card.Description>
+        <Card.Root class="">
+            <Card.Header class="">
+                <Card.Title class="">Cryptocurrency Holdings</Card.Title>
+                <Card.Description class="">Your digital asset portfolio.</Card.Description>
             </Card.Header>
-            <Card.Content>
-                <Table.Root>
-                    <Table.Header>
-                        <Table.Row>
+            <Card.Content class="">
+                <Table.Root class="">
+                    <Table.Header class="">
+                        <Table.Row class="">
                             <Table.Head>Asset</Table.Head>
                             <Table.Head class="text-right">Balance</Table.Head>
                         </Table.Row>
                     </Table.Header>
-                    <Table.Body>
+                    <Table.Body class="">
                         {#if accountBalance && accountBalance.cryptoHoldings && accountBalance.cryptoHoldings.length > 0}
                             {#each accountBalance.cryptoHoldings as cryptoAccount}
-                                <Table.Row>
+                                <Table.Row class="">
                                     <Table.Cell class="font-medium"
                                         >{cryptoAccount.symbol}</Table.Cell
                                     >
@@ -98,7 +100,7 @@
                                 </Table.Row>
                             {/each}
                         {:else}
-                            <Table.Row>
+                            <Table.Row class="">
                                 <Table.Cell colspan="2" class="h-24 text-center"
                                     >No cryptocurrency assets found.</Table.Cell
                                 >

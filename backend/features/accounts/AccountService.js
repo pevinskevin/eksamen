@@ -37,7 +37,6 @@ export default class AccountService {
         holdings.forEach((element) => {
             transformedHoldings.push(transformFinancialFields(element));
         });
-        console.log(normaliseForOpenAPI(transformedHoldings));
 
         return normaliseForOpenAPI(transformedHoldings);
     }

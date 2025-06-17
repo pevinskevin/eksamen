@@ -109,31 +109,31 @@ Database schema for trades (pair, side, quantity, price, timestamp, user_id). Si
 ### Details:
 Handle initial snapshot and differential updates for depth streams. Ensure data structures for local Binance book are efficient for updates and reads by the execution engine.
 
-## 5. Phase 2: Implement Depth-Aware Market Order Execution [pending]
+## 5. Phase 2: Implement Depth-Aware Market Order Execution [done]
 ### Dependencies: 16.2, 16.4
 ### Description: Modify market order execution to 'walk the book'. If an order's quantity exceeds liquidity at one price level, it consumes subsequent levels from the local Binance order book copy until filled or liquidity exhausted. Calculate VWAP.
 ### Details:
 Use depth data from subtask 4. Handle partial fills if order quantity exceeds available simulated depth. Calculate Volume-Weighted Average Price for multi-level fills.
 
-## 6. Phase 2: Implement Limit Order Logic [pending]
+## 6. Phase 2: Implement Limit Order Logic [deferred]
 ### Dependencies: 16.2, 16.4
 ### Description: Implement placement of user limit orders (buy/sell). Monitor the live Binance price stream (best bid/ask or depth) and execute limit orders when market conditions meet order criteria, potentially walking the book.
 ### Details:
 Store pending limit orders. Logic to check trigger conditions (e.g., Binance best ask <= limit buy price). Execution may consume multiple depth levels similar to market orders (subtask 5).
 
-## 7. Phase 2: Implement Order Management (Status, Cancellation) [pending]
+## 7. Phase 2: Implement Order Management (Status, Cancellation) [deferred]
 ### Dependencies: 16.6
 ### Description: Implement comprehensive order status updates (e.g., pending, partially_filled, filled, cancelled). Allow users to cancel their pending limit orders.
 ### Details:
 Update order state throughout its lifecycle. Ensure cancellations correctly remove orders from active consideration. Handle partial fills for both market (subtask 5) and limit orders (subtask 6).
 
-## 8. Phase 3: Design & Implement Simulated Order Book State for Visual Impact [pending]
+## 8. Phase 3: Design & Implement Simulated Order Book State for Visual Impact [deferred]
 ### Dependencies: 16.4, 16.5, 16.6
 ### Description: Develop data structures and server-side logic to maintain a *simulated* view of the Binance order book. This view should reflect the *impact* of the current user's trades by showing reduced quantities at price levels they 'consumed'.
 ### Details:
 This is not for matching, but for user-specific visual feedback. Initialize from live Binance data (subtask 4). Update based on user's executed trades (subtasks 5, 6). This state is transient or user-session specific.
 
-## 9. Phase 3: Backend for Real-time Visual Order Book Display [pending]
+## 9. Phase 3: Backend for Real-time Visual Order Book Display [deferred]
 ### Dependencies: 16.8
 ### Description: Implement backend API endpoints or WebSocket messages to provide data for a UI to display the simulated order book (from subtask 8). This should show market consumption in real-time.
 ### Details:

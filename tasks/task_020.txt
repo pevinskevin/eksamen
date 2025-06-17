@@ -1,6 +1,6 @@
 # Task ID: 20
 # Title: FE: Real-time Order Book Visualization
-# Status: pending
+# Status: deferred
 # Dependencies: 8, 15, 19
 # Priority: high
 # Description: Create a Svelte component to visualize the live Binance order book (bids and asks). This component will subscribe to Binance order book WebSocket updates via the backend for the selected cryptocurrency pair, efficiently re-render the display when new data arrives, and provide visual feedback when user trades consume Binance liquidity. The goal is a clean, real-time visualization of market depth from Binance.

@@ -1,6 +1,6 @@
 # Task ID: 19
 # Title: BE: Real-time Order Book Broadcasting
-# Status: pending
+# Status: deferred
 # Dependencies: 14, 16, 18
 # Priority: high
 # Description: Implement a simplified real-time broadcasting system via WebSockets, focusing exclusively on Binance market data and individual user trading activity against the Binance order book. This system replaces any previous plans for user-to-user trade broadcasting. The system will:

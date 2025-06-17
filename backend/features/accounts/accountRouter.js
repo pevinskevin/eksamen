@@ -9,6 +9,8 @@ import {
     sendUnauthorized,
     sendUnprocessableEntity,
 } from '../../shared/utils/responseHelpers.js';
+import Stripe from 'stripe';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 router.get('/balances', isAuthenticated, async (req, res) => {
     try {
@@ -42,6 +44,26 @@ router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {
         if (error.message.includes('Invalid symbol: ')) return sendNotFound(res, error.message);
         sendError(res, error, 500);
     }
+});
+
+router.post('/deposit/fiat', async (req, res) => {
+    const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [{
+      price_data: {
+        currency: 'usd',
+        product_data: { name: 'Account Deposit' },
+        unit_amount: req.body.amount * 100, // cents
+      },
+      quantity: 1,
+    }],
+    mode: 'payment',
+    success_url: 'http://localhost:5173/dashboard?deposit=success',
+    cancel_url: 'http://localhost:5173/dashboard',
+    metadata: { userId: req.user.id }
+  });
+  
+  res.json({ url: session.url });
 });
 
 export default router;

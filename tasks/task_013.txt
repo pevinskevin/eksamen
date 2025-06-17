@@ -3,9 +3,29 @@
 # Status: pending
 # Dependencies: 6, 8, 10, 12, 31, 32, 33
 # Priority: high
-# Description: Develop Svelte components for a trading form (select crypto, buy/sell, quantity, price) and a display area for the user's currently open orders. Orders submitted via the form should be sent to the backend API.
+# Description: Develop a Svelte component for a trading form to place MARKET orders. The form will allow users to select a cryptocurrency, choose between buy/sell, and enter either a quantity (for sell orders) or a notional value (for buy orders). Orders submitted via the form should be sent to the backend market order API endpoint.
 # Details:
-Create `TradingForm.svelte` component. Inputs for cryptocurrency selection (dropdown populated from crypto list), order type (buy/sell buttons), quantity, price. On submit, `fetch` POST to `/orders/place`. Create `MyOpenOrders.svelte` component. Fetch user's open orders from a new backend endpoint (e.g., `/orders/mine`) and display them in a table.
+Create `TradingForm.svelte` component. Inputs for cryptocurrency selection (dropdown populated from crypto list), order type (buy/sell buttons), and a conditional input for either quantity (if selling) or notional value (if buying). On submit, `fetch` POST to `/orders/market/place`.
 
 # Test Strategy:
-User can fill and submit the trading form. Order data is sent to backend. User's open orders are fetched and displayed correctly. Client-side validation for form inputs.
+User can fill and submit the market order trading form. Order data (including correct quantity or notional value based on order type) is sent to the backend. Client-side validation for form inputs (quantity/notional). Verify conditional input logic for quantity/notional based on buy/sell selection.
+
+# Subtasks:
+## 1. Create `TradingForm.svelte` Shell with Inputs and Layout for Market Orders [pending]
+### Dependencies: None
+### Description: Develop the basic structure and UI elements for the `TradingForm.svelte` component, including inputs for cryptocurrency selection, order type (buy/sell), and a conditional input field for either quantity (for sell orders) or notional value (for buy orders).
+### Details:
+Implement `TradingForm.svelte` with a dropdown placeholder for cryptocurrency, buy/sell selection elements (e.g., buttons or radio group), and a single number input field that dynamically represents either quantity (if 'sell' is selected) or notional value (if 'buy' is selected). Focus on the HTML structure, basic Svelte bindings, and UI logic for switching the input field's purpose. No API calls or complex state management yet.
+
+## 2. Implement Crypto List Fetching and Form State Management for `TradingForm.svelte` (Market Orders) [pending]
+### Dependencies: 13.1
+### Description: Integrate fetching of the cryptocurrency list to populate the selection dropdown in `TradingForm.svelte`. Implement robust state management for all form inputs, accommodating the conditional quantity/notional value for market orders.
+### Details:
+Modify `TradingForm.svelte` to fetch a list of available cryptocurrencies (e.g., from `/cryptos`) on component initialization and populate the dropdown. Manage the state of all form inputs: selected cryptocurrency, order type (buy/sell), and the value entered for quantity (if selling) or notional (if buying). Ensure the state correctly reflects the type of value being entered.
+
+## 3. Implement Market Order Submission API Integration for `TradingForm.svelte` [pending]
+### Dependencies: 13.2
+### Description: Add functionality to `TradingForm.svelte` to validate form inputs and submit the market order details to the backend API endpoint `/orders/market/place` using a POST request. Include user feedback for submission status.
+### Details:
+Create a submit handler function in `TradingForm.svelte`. Implement basic client-side validation for the quantity or notional value input. On valid submission, construct the payload (cryptocurrency, order type, and either `quantity` or `notional_value` based on the order type) and use `fetch` to send a POST request to `/orders/market/place`. Display simple success or error messages to the user based on the API response.
+
