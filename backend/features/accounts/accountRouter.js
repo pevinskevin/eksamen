@@ -44,6 +44,26 @@ router.get('/crypto/:symbol', isAuthenticated, async (req, res) => {
     }
 });
 
+router.post('/deposit/crypto', isAuthenticated, async (req, res) => {
+    // currently only supports ETH
+    try {
+        const deposit = await accountService.cryptoDeposit(req.user.id, req.body.amount);
+        return sendSuccess(res, { amount: req.body.amount });
+    } catch (error) {
+        return sendError(res, error);
+    }
+});
+
+router.post('/withdrawal/crypto', isAuthenticated, async (req, res) => {
+    // currently only supports ETH
+    try {
+        const withdrawal = await accountService.cryptoWithdrawal(req.user.id, req.body.amount);
+        return sendSuccess(res, { amount: req.body.amount });
+    } catch (error) {
+        return sendError(res, error);
+    }
+});
+
 router.post('/deposit/fiat', isAuthenticated, async (req, res) => {
     try {
         const deposit = await accountService.fiatDeposit(req.user.id, req.body.amount);

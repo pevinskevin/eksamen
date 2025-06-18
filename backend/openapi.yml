@@ -453,6 +453,113 @@ paths:
                 error: "InternalServerError"
                 message: "Failed to process withdrawal"
 
+  /account/deposit/crypto:
+    post:
+      summary: Deposit cryptocurrency (ETH only)
+      description: "Initiates a cryptocurrency deposit. Currently, this endpoint only supports ETH."
+      tags:
+        - Account
+      # security:
+      #   - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CryptoDepositRequest"
+      responses:
+        "200":
+          description: Cryptocurrency deposit successfully initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
+        "422":
+          description: Unprocessable Entity (validation errors)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Amount must be a positive number."
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to process crypto deposit"
+
+  /account/withdrawal/crypto:
+    post:
+      summary: Withdraw cryptocurrency (ETH only)
+      description: "Initiates a cryptocurrency withdrawal. The destination address must be pre-configured in user settings. Currently, this endpoint only supports ETH."
+      tags:
+        - Account
+      # security:
+      #   - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CryptoWithdrawalRequest"
+      responses:
+        "200":
+          description: Cryptocurrency withdrawal successfully initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
+        "402":
+          description: Payment Required (insufficient balance)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "InsufficientFundsError"
+                message: "Insufficient balance for withdrawal."
+        "422":
+          description: Unprocessable Entity (validation errors)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Amount must be a positive number."
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to process crypto withdrawal"
+
   /cryptocurrencies:
     get:
       summary: Get all cryptocurrencies
@@ -1679,6 +1786,30 @@ components:
           format: float
           description: "The amount to withdraw in the base currency (e.g., USD)."
           example: 50.25
+
+    CryptoDepositRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - amount
+      properties:
+        amount:
+          type: string
+          format: decimal
+          description: "The amount of cryptocurrency (ETH) to deposit."
+          example: "1.5"
+
+    CryptoWithdrawalRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - amount
+      properties:
+        amount:
+          type: string
+          format: decimal
+          description: "The amount of cryptocurrency (ETH) to withdraw."
+          example: "0.75"
 
 tags:
   - name: Authentication

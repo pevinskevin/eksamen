@@ -42,6 +42,16 @@ export default class AccountService {
         return normaliseForOpenAPI(transformedHoldings);
     }
 
+    async cryptoDeposit(userId, amount) {
+        return await this.accountRepository.incrementCryptoHolding(userId, 2, amount); // ETH ID = 2
+    }
+
+    async cryptoWithdrawal(userId, amount) {
+        const negativeAmount = -amount;
+
+        return await this.accountRepository.incrementCryptoHolding(userId, 2, negativeAmount); // ETH ID = 2
+    }
+
     async fiatDeposit(userId, amount) {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
