@@ -88,6 +88,9 @@ export default class AccountService {
 
     async fiatWithdrawal(userId, amount) {
         const negativeAmount = -amount;
+        const balance = (await this.accountRepository.findFiatAccount(userId)).balance;
+        if (amount > balance)
+            throw new Error('Amount exceeds users available balance of: ' + balance);
 
         return await this.accountRepository.incrementFiatAccount(userId, negativeAmount);
     }

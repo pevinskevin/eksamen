@@ -28,6 +28,15 @@
             credentials: 'include',
             body: JSON.stringify({ amount }),
         });
+        const responseData = await response.json();
+
+        if (response.ok) {
+            alert('Withdrawal successful');
+            navigate('/dashboard', { replace: true });
+        } else {
+            alert(responseData.message);
+        }
+
         navigate('/dashboard', { replace: true });
     }
 </script>

@@ -139,7 +139,7 @@ export async function createTables() {
         await client.query(`
       CREATE TABLE IF NOT EXISTS trades (
         id SERIAL PRIMARY KEY NOT NULL,
-        order_id INTEGER REFERENCES orders(id) NOT NULL,
+        order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE NOT NULL,
         cryptocurrency_id INTEGER REFERENCES cryptocurrencies(id) NOT NULL,
         quantity DECIMAL(30, 21) NOT NULL,
         price DECIMAL(20, 8) NOT NULL,

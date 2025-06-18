@@ -83,6 +83,8 @@ router.post('/withdrawal/fiat', isAuthenticated, async (req, res) => {
         const withdrawal = await accountService.fiatWithdrawal(req.user.id, req.body.amount);
         return sendSuccess(res, withdrawal);
     } catch (error) {
+        if (error.message.includes('Amount exceeds users available balance of: '))
+            return sendPaymentRequired(res, error.message);
         return sendError(res, error);
     }
 });
