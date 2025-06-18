@@ -5,105 +5,184 @@
     import Label from '$lib/components/ui/label/label.svelte';
     import { Button } from '$lib/components/ui/button';
     import * as Card from '$lib/components/ui/card';
-    import { navigate } from 'svelte-routing';
 
     let firstName = '';
-    let firstNameError = '';
-
     let lastName = '';
-    let lastNameError = '';
-
     let email = '';
-    let emailError = '';
-
     let password = '';
-    let passwordError = '';
-
     let repeatPassword = '';
+
+    let firstNameError = '';
+    let lastNameError = '';
+    let emailError = '';
+    let passwordError = '';
     let repeatPasswordError = '';
+    let generalError = '';
+    let successMessage = '';
 
-    function validateFirstName() {
-        if (!firstName) {
-            firstNameError = 'First name is required';
-        } else {
-            firstNameError = '';
+    async function handleUpdate() {
+        // Reset previous errors and success messages
+        firstNameError =
+            lastNameError =
+            emailError =
+            passwordError =
+            repeatPasswordError =
+            generalError =
+            successMessage =
+                '';
+
+        let isNameTouched = firstName || lastName;
+        let isEmailTouched = email;
+        let isPasswordTouched = password || repeatPassword;
+
+        if (isNameTouched) {
+            firstNameError = !firstName ? 'First name is required to update name.' : '';
+            lastNameError = !lastName ? 'Last name is required to update name.' : '';
         }
-    }
 
-    function validateLastName() {
-        if (!lastName) {
-            lastNameError = 'Last name is required';
-        } else {
-            lastNameError = '';
+        if (isEmailTouched) {
+            if (!email.includes('@') || !email.includes('.')) {
+                emailError = 'Please enter a valid email address.';
+            }
         }
-    }
 
-    function validateEmail() {
-        if (!email) {
-            emailError = 'Email is required';
-        } else if (!email.includes('@') || !email.includes('.')) {
-            emailError = 'Please enter a valid email address.';
-        } else {
-            emailError = '';
+        if (isPasswordTouched) {
+            passwordError = !password ? 'New password is required.' : '';
+            repeatPasswordError = !repeatPassword ? 'Please confirm your new password.' : '';
+            if (password && repeatPassword && password !== repeatPassword) {
+                repeatPasswordError = 'Passwords do not match.';
+            }
         }
-    }
 
-    function validatePassword() {
-        if (!password) {
-            passwordError = 'Password is required.';
-        } else {
-            passwordError = '';
+        if (firstNameError || lastNameError || emailError || passwordError || repeatPasswordError) {
+            return;
         }
-    }
 
-    function validateRepeatPassword() {
-        if (!repeatPassword) {
-            repeatPasswordError = 'Confirming your password is required.';
-        } else if (password && password !== repeatPassword) {
-            repeatPasswordError = 'Passwords do not match.';
-        } else {
-            repeatPasswordError = '';
+        // Build the payload with only the fields that the user wants to update
+        const payload = {};
+        if (isNameTouched && !firstNameError && !lastNameError) {
+            payload.firstName = firstName;
+            payload.lastName = lastName;
         }
-    }
+        if (isEmailTouched && !emailError) {
+            payload.email = email;
+        }
+        if (isPasswordTouched && !passwordError && !repeatPasswordError) {
+            payload.password = password;
+        }
 
-    async function handleUpdate(updatedUserObject) {
-        firstNameError = '';
-        lastNameError = '';
-        emailError = '';
-        passwordError = '';
-        repeatPasswordError = '';
+        // Check if there is anything to update
+        if (Object.keys(payload).length === 0) {
+            generalError = 'Please fill out at least one section to update your account.';
+            return;
+        }
 
-        validateFirstName();
-        validateLastName();
-        validateEmail();
-        validatePassword();
-        validateRepeatPassword();
-
-        if (
-            !firstNameError &&
-            !lastNameError &&
-            !emailError &&
-            !passwordError &&
-            !repeatPasswordError
-        )
         try {
             const response = await fetch(`${apiBaseUrl}/account`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify(updatedUserObject)
+                body: JSON.stringify(payload),
             });
 
             const responseData = await response.json();
-            
-            if (response.ok) console.log(responseData);
 
+            if (response.ok) {
+                successMessage = 'Your account has been updated successfully!';
+                firstName = lastName = email = password = repeatPassword = '';
+            } else {
+                generalError = responseData.message || 'An unknown error occurred.';
+            }
         } catch (error) {
-            console.log(error);
+            generalError = 'Failed to connect to the server. Please try again later.';
+            console.error(error);
         }
     }
 </script>
 
-<form on:submit={handleUpdate}>
+<Card.Root class="w-full max-w-2xl mx-auto mt-8">
+    <Card.Header>
+        <Card.Title>Account Settings</Card.Title>
+        <Card.Description>
+            Update your personal information. Only filled sections will be updated.
+        </Card.Description>
+    </Card.Header>
+    <Card.Content>
+        <form on:submit|preventDefault={handleUpdate} class="space-y-6">
+            <!-- Update Name Section -->
+            <fieldset class="space-y-4 p-4 border rounded-md">
+                <legend class="text-lg font-medium px-1">Update Name</legend>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <Label for="firstName" class="mb-1 block">First Name</Label>
+                        <Input
+                            id="firstName"
+                            bind:value={firstName}
+                            placeholder="John"
+                            type="text"
+                        />
+                        {#if firstNameError}<p class="text-red-500 text-sm mt-1">
+                                {firstNameError}
+                            </p>{/if}
+                    </div>
+                    <div>
+                        <Label for="lastName" class="mb-1 block">Last Name</Label>
+                        <Input id="lastName" bind:value={lastName} placeholder="Doe" type="text" />
+                        {#if lastNameError}<p class="text-red-500 text-sm mt-1">
+                                {lastNameError}
+                            </p>{/if}
+                    </div>
+                </div>
+            </fieldset>
 
-</form>
+            <!-- Update Email Section -->
+            <fieldset class="space-y-4 p-4 border rounded-md">
+                <legend class="text-lg font-medium px-1">Update Email</legend>
+                <div>
+                    <Label for="email" class="mb-1 block">Email Address</Label>
+                    <Input
+                        id="email"
+                        type="email"
+                        bind:value={email}
+                        placeholder="you@example.com"
+                    />
+                    {#if emailError}<p class="text-red-500 text-sm mt-1">{emailError}</p>{/if}
+                </div>
+            </fieldset>
+
+            <!-- Update Password Section -->
+            <fieldset class="space-y-4 p-4 border rounded-md">
+                <legend class="text-lg font-medium px-1">Update Password</legend>
+                <div>
+                    <Label for="password" class="mb-1 block">New Password</Label>
+                    <Input
+                        id="password"
+                        type="password"
+                        bind:value={password}
+                        placeholder="••••••••"
+                    />
+                    {#if passwordError}<p class="text-red-500 text-sm mt-1">{passwordError}</p>{/if}
+                </div>
+                <div>
+                    <Label for="repeatPassword" class="mb-1 block">Confirm New Password</Label>
+                    <Input
+                        id="repeatPassword"
+                        type="password"
+                        bind:value={repeatPassword}
+                        placeholder="••••••••"
+                    />
+                    {#if repeatPasswordError}<p class="text-red-500 text-sm mt-1">
+                            {repeatPasswordError}
+                        </p>{/if}
+                </div>
+            </fieldset>
+
+            <!-- Submission Area -->
+            <div class="flex flex-col items-center pt-4">
+                <Button type="submit" class="w-full">Update Account</Button>
+                {#if generalError}<p class="text-red-500 text-sm mt-2">{generalError}</p>{/if}
+                {#if successMessage}<p class="text-green-500 text-sm mt-2">{successMessage}</p>{/if}
+            </div>
+        </form>
+    </Card.Content>
+</Card.Root>
