@@ -22,6 +22,7 @@
     import * as NavigationMenu from '$lib/components/ui/navigation-menu';
     import { buttonVariants } from '$lib/components/ui/button';
     import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+    import TradeHistory from './routes/TradeHistory.svelte';
 </script>
 
 <Router {url}>
@@ -48,6 +49,9 @@
                                 <DropdownMenu.Label>Manage Account</DropdownMenu.Label>
                                 <DropdownMenu.Separator />
                                 <DropdownMenu.Item>
+                                    <a href="/trade-history" use:link>Trade History</a>
+                                </DropdownMenu.Item>
+                                <DropdownMenu.Item>
                                     <a href="/bank-transfers" use:link>Bank Transfers</a>
                                 </DropdownMenu.Item>
                                 <DropdownMenu.Item>
@@ -55,6 +59,11 @@
                                 </DropdownMenu.Item>
                                 <DropdownMenu.Item>
                                     <a href="/account-settings" use:link>Profile Settings</a>
+                                </DropdownMenu.Item>
+                                <DropdownMenu.Item>
+                                    <a href="http://localhost:8080/docs/#/" use:link
+                                        >Developer API documentation</a
+                                    >
                                 </DropdownMenu.Item>
                             </DropdownMenu.Group>
                         </DropdownMenu.Content>
@@ -89,6 +98,10 @@
 
         <Route path="/digital-assets">
             <DigitalAssets />
+        </Route>
+
+        <Route path="/trade-history">
+            <TradeHistory />
         </Route>
 
         <Route path="/account-settings">

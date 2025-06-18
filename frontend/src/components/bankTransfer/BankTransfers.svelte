@@ -58,7 +58,7 @@
 
 <Card.Root class="w-full max-w-md mx-auto">
     <Card.Header class="space-y-1">
-        <Card.Title class="text-2xl font-bold">Deposit Funds</Card.Title>
+        <Card.Title class="text-2xl font-bold">Withdraw Funds</Card.Title>
         <Card.Description>Enter the amount you wish to withdraw in USD</Card.Description>
     </Card.Header>
     <Card.Content class="space-y-4">

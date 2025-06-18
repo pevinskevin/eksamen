@@ -18,9 +18,9 @@ export default class TradeRepository {
         return (await this.db.query(query)).rows.at(0);
     }
 
-    async getTransactionsByUserId(userId) {
+    async getTradesByUserId(userId) {
         const query = {
-            text: 'SELECT * FROM transactions WHERE user_id = $1 ORDER BY timestamp DESC',
+            text: 'SELECT * FROM trades WHERE buyer_user_id = $1 OR seller_user_id = $1 ORDER BY trade_timestamp DESC',
             values: [userId],
         };
         return (await this.db.query(query)).rows;

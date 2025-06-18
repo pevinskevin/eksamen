@@ -360,7 +360,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: "#/components/schemas/UpdateAccountResponse"
         "401":
           description: Unauthorized
           content:
@@ -1361,20 +1361,21 @@ paths:
 
   /trades:
     get:
-      summary: Get all user transactions (deposits, withdrawals)
+      summary: Get all user trades
+      description: Retrieves a list of all trades where the user was either the buyer or the seller.
       tags:
         - Trades
       # security:
       #   - cookieAuth: []
       responses:
         "200":
-          description: A list of user transactions
+          description: A list of user trades
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Transaction"
+                  $ref: "#/components/schemas/Trade"
         "401":
           description: Unauthorized
           content:
@@ -1382,17 +1383,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                error: "AuthenticationError"
-                message: "Authentication required"
-        "500":
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
                 error: "InternalServerError"
-                message: "Failed to retrieve transactions"
+                message: "Failed to retrieve trades"
 
 components:
   securitySchemes:
@@ -1783,9 +1775,7 @@ components:
         id:
           type: integer
           description: Trade ID
-        buyOrderId:
-          type: integer
-        sellOrderId:
+        orderId:
           type: integer
         cryptocurrencyId:
           type: integer
@@ -1912,6 +1902,26 @@ components:
           type: string
           minLength: 1
           description: "New last name for the user."
+          example: "Doe"
+        password:
+          type: string
+          minLength: 1
+          description: "New password for the user"
+          example: "UpdatedPassWord1234"
+
+    UpdateAccountResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          format: email
+          example: "new.email@example.com"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
           example: "Doe"
 
 tags:

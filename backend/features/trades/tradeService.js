@@ -6,13 +6,14 @@ export default class TradeService {
         this.tradeRepository = tradeRepository;
     }
 
-    async getTransactionsByUserId(userId) {
-        const transactions = await this.tradeRepository.getTransactionsByUserId(userId);
+    async getTradesByUserId(userId) {
+        const trades = await this.tradeRepository.getTradesByUserId(userId);
 
-        const transformedTransactions = [];
-        transactions.forEach((element) => {
-            transformedTransactions.push(transformFinancialFields(element));
+        const transformedTrades = [];
+        trades.forEach((element) => {
+            transformedTrades.push(transformFinancialFields(element));
         });
-        return normaliseForOpenAPI(transformedTransactions);
+
+        return normaliseForOpenAPI(transformedTrades);
     }
 }

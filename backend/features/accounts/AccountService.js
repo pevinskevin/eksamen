@@ -2,6 +2,7 @@ import { cryptoService } from '../../shared/factory/factory.js';
 import { transformFinancialFields } from '../../shared/utils/balanceTransformer.js';
 import validateCryptoSymbol from '../cryptocurrencies/cryptoValidators.js';
 import normaliseForOpenAPI from '../../shared/utils/normaliseObjects.js';
+import { hashPassword } from '../../shared/utils/hashing.js';
 import Stripe from 'stripe';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 export default class AccountService {
@@ -86,6 +87,15 @@ export default class AccountService {
     }
 
     async updateAccountInformation(userId, updatedInformationObject) {
-        return await this.accountRepository.updateAccount(userId, updatedInformationObject);
+        const { password = null } = updatedInformationObject;
+        if (password) {
+            password = await hashPassword(password);
+        }
+        const update = await this.accountRepository.updateAccount(
+            userId,
+            updatedInformationObject,
+            password
+        );
+        return normaliseForOpenAPI(update);
     }
 }

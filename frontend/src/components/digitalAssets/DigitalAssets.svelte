@@ -155,8 +155,8 @@
                     type="number"
                     bind:value={depositAmount}
                     placeholder="Enter amount in ETH"
-                    min="1"
-                    step="0.01"
+                    min="0.001"
+                    step="0.001"
                     required
                 />
             </div>
@@ -179,8 +179,8 @@
                     type="number"
                     bind:value={withdrawalAmount}
                     placeholder="Enter amount in ETH"
-                    min="1"
-                    step="0.01"
+                    min="0.001"
+                    step="0.001"
                     required
                 />
             </div>

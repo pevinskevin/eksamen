@@ -117,6 +117,9 @@ app.use('/api', cryptoRouter);
 import orderRouter from './features/orders/orderRouter.js';
 app.use('/api/order', orderRouter);
 
+import tradeRouter from './features/trades/tradeRouter.js';
+app.use('/api/trades', tradeRouter);
+
 // Selective error handler - only for OpenAPI structural validation errors
 app.use((err, req, res, next) => {
     // Only handle OpenAPI structural validation errors (missing fields, wrong types, etc.)

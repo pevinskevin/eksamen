@@ -6,7 +6,7 @@ import isAuthenticated from '../../shared/middleware/authorisation.js';
 
 router.get('/', isAuthenticated, async (req, res) => {
     try {
-        const trades = await tradeService.getTransactionsByUserId(req.user.id);
+        const trades = await tradeService.getTradesByUserId(req.user.id);
         return sendSuccess(res, trades);
     } catch (error) {
         return sendError(res, error);
