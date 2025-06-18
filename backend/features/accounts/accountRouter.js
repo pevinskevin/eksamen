@@ -8,6 +8,8 @@ import {
     sendNotFound,
     sendUnauthorized,
     sendUnprocessableEntity,
+    sendBadRequest,
+    sendPaymentRequired,
 } from '../../shared/utils/responseHelpers.js';
 
 router.get('/balances', isAuthenticated, async (req, res) => {
@@ -60,7 +62,9 @@ router.post('/withdrawal/crypto', isAuthenticated, async (req, res) => {
         const withdrawal = await accountService.cryptoWithdrawal(req.user.id, req.body.amount);
         return sendSuccess(res, { amount: req.body.amount });
     } catch (error) {
-        return sendError(res, error);
+        if (error.message.includes('Amount exceeds users available balance of: '))
+            return sendPaymentRequired(res, error.message);
+        else return sendError(res, error);
     }
 });
 

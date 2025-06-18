@@ -55,6 +55,34 @@
         userAddress = null;
     }
 
+    async function depositETH(amountInEth) {
+        console.log('Deposit requested received');
+
+        try {
+            console.log('Processing...');
+
+            const amountWei = ethers.parseUnits(amountInEth.toString(), 'ether');
+            const txHash = await window.ethereum.request({
+                method: 'eth_sendTransaction',
+                params: [
+                    {
+                        from: userAddress,
+                        to: exchangeWalletAddress,
+                        value: '0x' + amountWei.toString(16),
+                        chainId: 1337,
+                    },
+                ],
+            });
+            alert(`Deposit submitted! TxHash: ${txHash}`);
+            console.log('Deposit TxHash:', txHash);
+            return true;
+        } catch (error) {
+            alert(`Deposit failed: ${error.message}`);
+            console.error('Deposit error:', error);
+            return false;
+        }
+    }
+
     async function withdrawETH(amountInEth) {
         const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
         try {
@@ -79,27 +107,24 @@
             alert(`Withdrawal failed: ${error.message || error.reason || 'Unknown error'}`);
             console.error('Withdrawal error:', error);
         }
-
-        // // Transaction sent! Now update your backend
-        // await fetch('/api/crypto-deposit', {
-        //     method: 'POST',
-        //     body: JSON.stringify({
-        //         tx,
-        //         amount: amountInEth,
-        //         currency: 'ETH',
-        //     }),
-        // });
     }
 
     async function handleDeposit(amount) {
-        const response = await fetch('http://localhost:8080/api/account/deposit/crypto', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ amount }),
-        });
-        const { url } = await response.json();
-        window.location.href = url;
+        try {
+            await connectWallet();
+            const deposit = await depositETH(amount);
+            if (!deposit) throw new Error('Deposit failed.');
+            await removeUserWalletAddress();
+            const response = await fetch('http://localhost:8080/api/account/deposit/crypto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ amount: amount.toString() }),
+            });
+            navigate('/dashboard', { replace: true });
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     async function handleWithdrawal(amount) {
