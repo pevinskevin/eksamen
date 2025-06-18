@@ -40,7 +40,6 @@
         validatePassword();
 
         if (!emailError && !passwordError) {
-
             try {
                 const response = await fetch(`${apiBaseUrl}/login`, {
                     method: 'POST',
@@ -57,12 +56,10 @@
                     authStore.login(responseData);
                     connectSocket();
                     navigate('/dashboard', { replace: true });
-                } else console.log(responseData.error);
+                } else alert(responseData.message);
             } catch (error) {
-                console.log(error);
+                console.log('Form has errors.');
             }
-        } else {
-            console.log('Form has errors.');
         }
     }
 </script>
