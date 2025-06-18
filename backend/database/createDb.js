@@ -73,7 +73,7 @@ export async function createTables() {
         await client.query(`
       CREATE TABLE IF NOT EXISTS accounts (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id),
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         currency_code VARCHAR(10) DEFAULT 'SIM_USD',
         balance DECIMAL(20, 8) DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -87,7 +87,7 @@ export async function createTables() {
         await client.query(`
       CREATE TABLE IF NOT EXISTS crypto_holdings_base (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id),
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         cryptocurrency_id INTEGER REFERENCES cryptocurrencies(id),
         balance DECIMAL(20, 8) DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -120,7 +120,7 @@ export async function createTables() {
         await client.query(`
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id),
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         cryptocurrency_id INTEGER REFERENCES cryptocurrencies(id),
         order_type order_type NOT NULL,
         order_variant order_variant NOT NULL,
@@ -143,8 +143,8 @@ export async function createTables() {
         cryptocurrency_id INTEGER REFERENCES cryptocurrencies(id) NOT NULL,
         quantity DECIMAL(30, 21) NOT NULL,
         price DECIMAL(20, 8) NOT NULL,
-        buyer_user_id INTEGER REFERENCES users(id) NOT NULL,
-        seller_user_id INTEGER REFERENCES users(id) NOT NULL,
+        buyer_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        seller_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
         trade_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
       )
     `);
@@ -154,7 +154,7 @@ export async function createTables() {
         await client.query(`
       CREATE TABLE IF NOT EXISTS transactions (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id),
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         type transaction_type NOT NULL,
         currency_code_or_crypto_id VARCHAR(50) NOT NULL,
         amount DECIMAL(20, 8) NOT NULL,

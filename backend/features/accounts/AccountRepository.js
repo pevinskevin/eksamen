@@ -2,6 +2,19 @@ export default class AccountRepository {
     constructor(db) {
         this.db = db;
     }
+
+    async delete(userId) {
+        const query = {
+            text: `
+                DELETE FROM users CASCADE
+                WHERE id = $1
+                RETURNING *;
+            `,
+            values: [userId],
+        };
+        return (await this.db.query(query)).rows.at(0);
+    }
+
     async findFiatAccount(userId) {
         const accountQuery = {
             text: 'SELECT id, currency_code, balance, created_at, updated_at FROM accounts WHERE accounts.user_id = $1;',
@@ -50,6 +63,4 @@ export default class AccountRepository {
         };
         return (await this.db.query(query)).rows.at(0);
     }
-
-
 }

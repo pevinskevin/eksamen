@@ -1,5 +1,7 @@
 <script>
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+    import authStore from '../../store/authStore';
+    import { navigate } from 'svelte-routing';
 
     import Input from '$lib/components/ui/input/input.svelte';
     import Label from '$lib/components/ui/label/label.svelte';
@@ -20,6 +22,31 @@
     let repeatPasswordError = '';
     let generalError = '';
     let successMessage = '';
+
+    async function handleDelete() {
+        try {
+            const response = await fetch(`${apiBaseUrl}/account`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+            });
+
+            const responseData = await response.json();
+            if (response.ok) {
+                alert('Account successfully deleted.');
+                authStore.logout();
+                navigate('/', { replace: true });
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async function confirmAndDelete() {
+        if (confirm('Are you sure? This action cannot be undone.')) {
+            await handleDelete();
+        }
+    }
 
     async function handleUpdate() {
         // Reset previous errors and success messages
@@ -221,6 +248,25 @@
                     </div>
                 </Collapsible.Content>
             </Collapsible.Root>
+        </form>
+    </Card.Content>
+</Card.Root>
+
+<Card.Root class="w-full max-w-lg mx-auto mt-8">
+    <Card.Header>
+        <Card.Title class="text-destructive">Delete Account</Card.Title>
+        <Card.Description>This action is permanent and cannot be undone.</Card.Description>
+    </Card.Header>
+    <Card.Content>
+        <form on:submit|preventDefault={confirmAndDelete} class="space-y-4">
+            <p class="text-sm text-muted-foreground">
+                All of your data, including personal information and trade history, will be
+                permanently removed.
+            </p>
+            <Button type="submit" variant="destructive" class="w-full">Delete My Account</Button>
+            {#if generalError}
+                <p class="text-red-500 text-sm mt-2 text-center">{generalError}</p>
+            {/if}
         </form>
     </Card.Content>
 </Card.Root>

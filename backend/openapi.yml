@@ -388,6 +388,45 @@ paths:
               example:
                 error: "InternalServerError"
                 message: "Failed to update account"
+    delete:
+      summary: Delete user account
+      tags:
+        - Account
+      description: >
+        Permanently deletes the authenticated user's account and all associated data.
+        This action is irreversible. The user's session is terminated upon successful deletion.
+      responses:
+        "200":
+          description: Account deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: string
+                    example: "Account deleted successfuly"
+        "400":
+          description: Bad Request (e.g., deletion failed due to a recoverable issue)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                status: "error"
+                message: "Deletion failed"
+        "401":
+          description: Unauthorized (user not authenticated)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /account/deposit/fiat:
     post:

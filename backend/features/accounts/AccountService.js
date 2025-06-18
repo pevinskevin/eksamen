@@ -10,6 +10,12 @@ export default class AccountService {
         this.accountRepository = accountRepository;
     }
 
+    async delete(userId) {
+        const deletedAccount = await this.accountRepository.delete(userId);
+        if (!deletedAccount) throw new Error('Deletion failed');
+        return 'Account deleted successfuly';
+    }
+
     async getFiatAccountByUserID(userId) {
         const account = await this.accountRepository.findFiatAccount(userId);
         // Transform balance from number to string for OpenAPI compliance

@@ -96,4 +96,14 @@ router.put('/', isAuthenticated, async (req, res) => {
     }
 });
 
+router.delete('/', isAuthenticated, async (req, res) => {
+    try {
+        const deletedAccount = await accountService.delete(req.user.id);
+        sendSuccess(res, { message: deletedAccount });
+    } catch (error) {
+        if (error.message.includes('Deletion failed')) sendError(res, error.message);
+        else return sendInternalServerError(res, error.message);
+    }
+});
+
 export default router;
