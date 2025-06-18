@@ -26,4 +26,6 @@ export const orderService = new OrderService(orderRepository);
 
 // Trades
 import TradeRepository from '../../features/trades/tradeRepository.js';
+import TradeService from '../../features/trades/tradeService.js';
 export const tradeRepository = new TradeRepository(db);
+export const tradeService = new TradeService(tradeRepository);

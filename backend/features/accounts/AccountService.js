@@ -49,7 +49,8 @@ export default class AccountService {
     async cryptoWithdrawal(userId, amount) {
         const negativeAmount = -amount;
         const balance = (await this.accountRepository.findCryptoHolding(userId, 'ETH')).balance;
-        if (amount > balance) throw new Error('Amount exceeds users available balance of: ' + balance);
+        if (amount > balance)
+            throw new Error('Amount exceeds users available balance of: ' + balance);
 
         return await this.accountRepository.incrementCryptoHolding(userId, 2, negativeAmount); // ETH ID = 2
     }
@@ -82,5 +83,9 @@ export default class AccountService {
         const negativeAmount = -amount;
 
         return await this.accountRepository.incrementFiatAccount(userId, negativeAmount);
+    }
+
+    async updateAccountInformation(userId, updatedInformationObject) {
+        return await this.accountRepository.updateAccount(userId, updatedInformationObject);
     }
 }

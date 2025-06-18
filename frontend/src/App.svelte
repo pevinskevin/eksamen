@@ -22,8 +22,6 @@
     import * as NavigationMenu from '$lib/components/ui/navigation-menu';
     import { buttonVariants } from '$lib/components/ui/button';
     import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
-
-
 </script>
 
 <Router {url}>
@@ -55,7 +53,9 @@
                                 <DropdownMenu.Item>
                                     <a href="/digital-assets" use:link>Digital Assets</a>
                                 </DropdownMenu.Item>
-                                <DropdownMenu.Item>Profile Settings</DropdownMenu.Item>
+                                <DropdownMenu.Item>
+                                    <a href="/account-settings" use:link>Profile Settings</a>
+                                </DropdownMenu.Item>
                             </DropdownMenu.Group>
                         </DropdownMenu.Content>
                     </DropdownMenu.Root>
@@ -89,6 +89,10 @@
 
         <Route path="/digital-assets">
             <DigitalAssets />
+        </Route>
+
+        <Route path="/account-settings">
+            <AccountSettings />
         </Route>
     {/if}
 </Router>

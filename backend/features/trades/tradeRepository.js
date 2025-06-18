@@ -17,4 +17,12 @@ export default class TradeRepository {
         };
         return (await this.db.query(query)).rows.at(0);
     }
+
+    async getTransactionsByUserId(userId) {
+        const query = {
+            text: 'SELECT * FROM transactions WHERE user_id = $1 ORDER BY timestamp DESC',
+            values: [userId],
+        };
+        return (await this.db.query(query)).rows;
+    }
 }

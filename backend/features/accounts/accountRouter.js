@@ -10,6 +10,7 @@ import {
     sendUnprocessableEntity,
     sendBadRequest,
     sendPaymentRequired,
+    sendInternalServerError,
 } from '../../shared/utils/responseHelpers.js';
 
 router.get('/balances', isAuthenticated, async (req, res) => {
@@ -83,6 +84,15 @@ router.post('/withdrawal/fiat', isAuthenticated, async (req, res) => {
         return sendSuccess(res, withdrawal);
     } catch (error) {
         return sendError(res, error);
+    }
+});
+
+router.put('/', isAuthenticated, async (req, res) => {
+    try {
+        const updatedAccount = await accountService.updateAccountInformation(req.user.id, req.body);
+        return sendSuccess(res, updatedAccount);
+    } catch (error) {
+        return sendInternalServerError(res, error.message);
     }
 });
 

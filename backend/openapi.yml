@@ -341,6 +341,54 @@ paths:
                 error: "InternalServerError"
                 message: "Failed to retrieve crypto holding"
 
+  /account:
+    put:
+      summary: Update user account information
+      tags:
+        - Account
+      # security:
+      #   - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAccountRequest"
+      responses:
+        "200":
+          description: Account updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
+        "422":
+          description: Unprocessable Entity (validation errors)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "ValidationError"
+                message: "Invalid email format."
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to update account"
+
   /account/deposit/fiat:
     post:
       summary: Create Stripe checkout session for fiat deposit
@@ -1311,6 +1359,41 @@ paths:
                 error: "InternalServerError"
                 message: "Failed to delete limit order"
 
+  /trades:
+    get:
+      summary: Get all user transactions (deposits, withdrawals)
+      tags:
+        - Trades
+      # security:
+      #   - cookieAuth: []
+      responses:
+        "200":
+          description: A list of user transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "AuthenticationError"
+                message: "Authentication required"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "InternalServerError"
+                message: "Failed to retrieve transactions"
+
 components:
   securitySchemes:
     {}
@@ -1811,6 +1894,26 @@ components:
           description: "The amount of cryptocurrency (ETH) to withdraw."
           example: "0.75"
 
+    UpdateAccountRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          format: email
+          description: "New email address for the user."
+          example: "new.email@example.com"
+        firstName:
+          type: string
+          minLength: 1
+          description: "New first name for the user."
+          example: "John"
+        lastName:
+          type: string
+          minLength: 1
+          description: "New last name for the user."
+          example: "Doe"
+
 tags:
   - name: Authentication
     description: User authentication endpoints
@@ -1820,3 +1923,5 @@ tags:
     description: Cryptocurrency management
   - name: Orders
     description: Order management
+  - name: Trades
+    description: Trade execution and history

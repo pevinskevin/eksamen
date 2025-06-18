@@ -41,4 +41,15 @@ export default class AccountRepository {
         };
         return (await this.db.query(query)).rows.at(0);
     }
+
+    async updateAccount(userId, updatedInformationObject) {
+        const { email = null, firstName = null, lastName = null } = updatedInformationObject;
+        const query = {
+            text: 'UPDATE users SET email = COALESCE($2, email), first_name = COALESCE($3, first_name), last_name = COALESCE($4, last_name), updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING email, first_name, last_name',
+            values: [userId, email, firstName, lastName],
+        };
+        return (await this.db.query(query)).rows.at(0);
+    }
+
+
 }
