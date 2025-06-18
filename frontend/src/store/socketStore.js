@@ -7,16 +7,13 @@ import authStore from './authStore';
 const socket = io(`${socketUrl}`, { autoConnect: false });
 
 socket.on('connect', () => {
-    console.log('Connected to server.');
     socketConnection.set(socket);
     isConnected.set(true);
     const rawId = authStore.accessUserId();
     if (rawId != null) {
       const userId = `user_${rawId}`;
       socket.emit('joinRoom', userId);
-      console.log("Requested to join room");
       socket.on('joined', (response)=>{
-        console.log(response);
       })
     } else {
       console.warn('Skipping joinRoom: no authenticated user');
@@ -24,7 +21,6 @@ socket.on('connect', () => {
 });
 
 socket.on('disconnect', () => {
-    console.log('Disconnected from server.');
     isConnected.set(false);
 });
 
@@ -34,7 +30,6 @@ socket.on('orderBookDepthUpdate', (data) => {
 
 socket.on('tradeNotification', (data) => {
     tradeNotification.set(data);
-    console.log(data);
     
 });
 

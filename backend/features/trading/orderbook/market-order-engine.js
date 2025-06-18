@@ -9,7 +9,7 @@ function normaliseSymbolToUsdt(symbol) {
 }
 
 marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
-    console.log('market emitter has received order');
+
 
     const { order } = eventData;
     const { id: orderId, userId, cryptocurrencyId, orderVariant, remainingQuantity, notionalValue } = order;
@@ -28,7 +28,7 @@ marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
     const priceAndDepthArrayForConsumption =
         orderVariant === ORDER_VARIANT.BUY ? priceData.asks : priceData.bids;
 
-    console.log(`[MarketOrderEngine] Preparing to execute trade. Order ID: ${orderId}`);
+
 
     try {
         await executeTradeAgainstBinance(
@@ -39,9 +39,6 @@ marketOrderEmitter.on('marketOrderCreated', async (eventData) => {
             remainingQuantity,
             notionalValue,
             priceAndDepthArrayForConsumption
-        );
-        console.log(
-            `[MarketOrderEngine] Successfully called executeTradeAgainstBinance for Order ID: ${orderId}`
         );
     } catch (error) {
         console.error(

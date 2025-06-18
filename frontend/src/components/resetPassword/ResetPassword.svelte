@@ -33,7 +33,6 @@
 
             if (response.ok) {
                 const message = responseData.message;
-                console.log(message);
                 navigate('/', { replace: true });
             } else {
                 console.log(responseData);

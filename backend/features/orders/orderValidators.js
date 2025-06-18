@@ -6,7 +6,6 @@ import * as v from 'valibot';
 import { ORDER_TYPE, ORDER_VARIANT, ORDER_STATUS } from '../../shared/validators/validators.js';
 import { CryptocurrencyIdSchema } from '../cryptocurrencies/cryptoValidators.js';
 
-// console.log('--- DEBUG: TYPE OF IMPORTED DECIMAL ---', typeof Decimal, Decimal);
 
 // Business rule: Positive integer IDs only
 const OrderIdSchema = v.pipe(

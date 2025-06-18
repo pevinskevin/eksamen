@@ -17,7 +17,6 @@ export default class OrderRepository {
             text: 'SELECT * FROM orders WHERE user_id = $1 AND id = $2',
             values: [userId, orderId],
         };
-        console.log((await this.db.query(query)).rows.at(0));
 
         return (await this.db.query(query)).rows.at(0);
     }

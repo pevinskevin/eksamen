@@ -25,15 +25,6 @@
         try {
             provider = new ethers.JsonRpcProvider(jsonRpcProviderUrl);
             exchangeSignerWallet = new ethers.Wallet(exchangeWalletPrivateKey, provider);
-            console.log('Programmatic Exchange Wallet Initialized:', exchangeSignerWallet.address);
-            // Basic check:
-            if (
-                exchangeSignerWallet.address.toLowerCase() !== exchangeWalletAddress.toLowerCase()
-            ) {
-                console.warn(
-                    'ENV VAR MISMATCH: Private key does not match VITE_EXCHANGE_WALLET_ADDRESS.',
-                );
-            }
         } catch (e) {
             console.error('Failed to initialize programmatic exchange wallet:', e);
             exchangeSignerWallet = null; // Ensure it's null if setup fails
@@ -56,10 +47,8 @@
     }
 
     async function depositETH(amountInEth) {
-        console.log('Deposit requested received');
 
         try {
-            console.log('Processing...');
 
             const amountWei = ethers.parseUnits(amountInEth.toString(), 'ether');
             const txHash = await window.ethereum.request({
@@ -73,11 +62,9 @@
                     },
                 ],
             });
-            alert(`Deposit submitted! TxHash: ${txHash}`);
-            console.log('Deposit TxHash:', txHash);
+
             return true;
         } catch (error) {
-            alert(`Deposit failed: ${error.message}`);
             console.error('Deposit error:', error);
             return false;
         }
@@ -93,18 +80,10 @@
                 chainId: 1337,
                 gasLimit: 21000,
             };
-            console.log(
-                `Attempting withdrawal from ${exchangeSignerWallet.address} to ${userAddress}`,
-            );
             const txResponse = await exchangeSignerWallet.sendTransaction(tx);
-            alert(`Withdrawal initiated! TxHash: ${txResponse.hash}. Waiting for confirmation...`);
-            console.log('Withdrawal TxResponse:', txResponse);
 
             const receipt = await txResponse.wait(); // Wait for 1 confirmation
-            alert(`Withdrawal confirmed! TxHash: ${receipt.hash}`);
-            console.log('Withdrawal Receipt:', receipt);
         } catch (error) {
-            alert(`Withdrawal failed: ${error.message || error.reason || 'Unknown error'}`);
             console.error('Withdrawal error:', error);
         }
     }

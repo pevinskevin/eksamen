@@ -40,8 +40,6 @@
         validatePassword();
 
         if (!emailError && !passwordError) {
-            console.log('Login form is valid', email, password);
-            console.log('Login form submitted!');
 
             try {
                 const response = await fetch(`${apiBaseUrl}/login`, {

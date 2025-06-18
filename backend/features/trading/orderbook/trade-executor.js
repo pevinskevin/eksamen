@@ -47,13 +47,7 @@ export async function executeTradeAgainstBinance(
                 }
             }
             const executionPrice = new Decimal(notionalValue).div(sumQuantity);
-            console.log('Average price: ', executionPrice);
-            console.log('Quantity: ', sumQuantity.toNumber());
 
-            console.log('notionalValue: ' + notionalValue);
-            console.log('Remainig value: ' + remainingValue);
-            console.log('Sum quantity: ' + sumQuantity);
-            console.log('average price: ' + `${notionalValue / sumQuantity}`);
 
             // 1. Update user's fiat balance
             const increment = -notionalValue;
@@ -77,7 +71,7 @@ export async function executeTradeAgainstBinance(
                 buyerUserId,
                 sellerUserId
             );
-            console.log('Trade executed. Gj Kevin.');
+
         } else if (orderVariant === ORDER_VARIANT.SELL) {
             let remainingQuantity = new Decimal(tradeQuantity);
             let sumValue = new Decimal(0);

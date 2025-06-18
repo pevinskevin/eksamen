@@ -34,7 +34,6 @@ export default class OrderService {
     }
 
     async getOpenOrderByUserAndOrderId(userId, orderId) {
-        console.log(userId, orderId);
         // Validate order ID format
         validateOrderId(orderId);
 
@@ -323,7 +322,7 @@ export default class OrderService {
                 await accountService.getCryptoHoldingByUserIdAndSymbol(userId, symbol)
             ).balance;
             const balance = Number(stringBalance);
-            console.log("User balance: " + balance);
+
             
 
             // Calculate crypto quantity tied up in existing open sell order
@@ -332,14 +331,14 @@ export default class OrderService {
                 await this.orderRepository.findAllOpenSellOrders(userId)
             ).sum;
             const sumOpenOrders = Number(stringSumQuantityRemainingOpenOrders);
-            console.log("Sum open orders: " + sumOpenOrders);
+
             
 
             // Balance validation for new sell order
 
             const availableBalance = balance - sumOpenOrders; // Available crypto after existing orders
             const orderQuantity = Number(order.initialQuantity);
-            console.log("available balance: " + availableBalance);
+
             
 
             // Check if user has sufficient available crypto balance
