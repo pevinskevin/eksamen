@@ -5,6 +5,7 @@
     import Label from '$lib/components/ui/label/label.svelte';
     import { Button } from '$lib/components/ui/button';
     import * as Card from '$lib/components/ui/card';
+    import * as Collapsible from '$lib/components/ui/collapsible';
 
     let firstName = '';
     let lastName = '';
@@ -183,6 +184,43 @@
                 {#if generalError}<p class="text-red-500 text-sm mt-2">{generalError}</p>{/if}
                 {#if successMessage}<p class="text-green-500 text-sm mt-2">{successMessage}</p>{/if}
             </div>
+
+            <!-- Privacy Policy Section -->
+            <Collapsible.Root class="w-full pt-2">
+                <div class="text-center text-sm text-muted-foreground">
+                    Read our
+                    <Collapsible.Trigger class="underline hover:no-underline font-medium"
+                        >privacy policy</Collapsible.Trigger
+                    >.
+                </div>
+                <Collapsible.Content class="mt-2">
+                    <div class="p-4 border rounded-md mt-2 space-y-2 bg-muted/40 text-sm">
+                        <h4 class="font-semibold text-base">Our Privacy Commitment</h4>
+                        <p class="text-muted-foreground">
+                            Here is a simple summary of how we handle your data to be GDPR
+                            compliant.
+                        </p>
+                        <ul class="list-disc list-inside space-y-2 pl-2">
+                            <li>
+                                <strong>What We Collect:</strong> Your name, email address and trade
+                                history.
+                            </li>
+                            <li>
+                                <strong>Why We Collect It:</strong> To manage your account, secure the
+                                platform, and provide you with your trading history.
+                            </li>
+                            <li>
+                                <strong>How Long We Keep It:</strong> Your account data is stored as
+                                long as your account is active. Trade data is retained to meet financial
+                                regulations.
+                            </li>
+                        </ul>
+                        <p class="text-xs text-muted-foreground pt-2">
+                            You have the right to access, correct, and request erasure of your data.
+                        </p>
+                    </div>
+                </Collapsible.Content>
+            </Collapsible.Root>
         </form>
     </Card.Content>
 </Card.Root>
